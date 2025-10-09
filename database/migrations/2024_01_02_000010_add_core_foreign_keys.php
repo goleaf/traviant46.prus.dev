@@ -20,19 +20,6 @@ return new class extends Migration
             $table->foreign('kid', 'units_kid_fk')->references('kid')->on('vdata')->cascadeOnDelete();
         });
 
-        Schema::table('hero', function (Blueprint $table) {
-            $table->foreign('uid', 'hero_uid_fk')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('kid', 'hero_kid_fk')->references('kid')->on('vdata')->cascadeOnDelete();
-        });
-
-        Schema::table('inventory', function (Blueprint $table) {
-            $table->foreign('uid', 'inventory_uid_fk')->references('id')->on('users')->cascadeOnDelete();
-        });
-
-        Schema::table('items', function (Blueprint $table) {
-            $table->foreign('uid', 'items_uid_fk')->references('id')->on('users')->cascadeOnDelete();
-        });
-
         Schema::table('farmlist', function (Blueprint $table) {
             $table->foreign('kid', 'farmlist_kid_fk')->references('kid')->on('vdata')->cascadeOnDelete();
             $table->foreign('owner', 'farmlist_owner_fk')->references('id')->on('users')->cascadeOnDelete();
@@ -128,19 +115,6 @@ return new class extends Migration
         Schema::table('farmlist', function (Blueprint $table) {
             $table->dropForeign('farmlist_owner_fk');
             $table->dropForeign('farmlist_kid_fk');
-        });
-
-        Schema::table('items', function (Blueprint $table) {
-            $table->dropForeign('items_uid_fk');
-        });
-
-        Schema::table('inventory', function (Blueprint $table) {
-            $table->dropForeign('inventory_uid_fk');
-        });
-
-        Schema::table('hero', function (Blueprint $table) {
-            $table->dropForeign('hero_kid_fk');
-            $table->dropForeign('hero_uid_fk');
         });
 
         Schema::table('units', function (Blueprint $table) {
