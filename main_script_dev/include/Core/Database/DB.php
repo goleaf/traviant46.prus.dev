@@ -150,7 +150,8 @@ class DB
             sleep(2);
         }
         $ping = TRUE;
-        if (($this->lastPing - time()) > 100 || $force) {
+        $lastPing = $this->lastPing ?? 0;
+        if ((time() - $lastPing) > 100 || $force) {
             $ping = $this->ping();
             $try = 0;
             while (!$ping && $try <= 20) {
