@@ -10,6 +10,7 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600;jetbrains-mono:400&display=swap" rel="stylesheet" />
 
     @livewireStyles
+    @livewireScriptConfig
     @fluxAppearance
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -21,6 +22,7 @@
         @yield('content')
     </div>
 
+    @livewireScripts
     @fluxScripts
     @stack('scripts')
 </body>
