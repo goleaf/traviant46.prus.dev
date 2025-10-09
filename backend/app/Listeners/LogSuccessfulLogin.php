@@ -21,8 +21,8 @@ class LogSuccessfulLogin
             return;
         }
 
-        $actingAsSitter = (bool) $request->session()->pull('auth.acting_as_sitter', false);
-        $actingSitterId = $request->session()->pull('auth.sitter_id');
+        $actingAsSitter = (bool) $request->session()->get('auth.acting_as_sitter', false);
+        $actingSitterId = $request->session()->get('auth.sitter_id');
 
         $now = now();
         $user->forceFill(array_filter([
