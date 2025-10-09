@@ -15,7 +15,7 @@ CREATE TABLE `mdata`
   `uid`             INT(11) UNSIGNED     NOT NULL,
   `to_uid`          INT(11) UNSIGNED     NOT NULL,
   `topic`           VARCHAR(100)         NOT NULL,
-  `message`         LONGTEXT             NOT NULL,
+  `message`         MEDIUMTEXT           NOT NULL,
   `viewed`          TINYINT(1) UNSIGNED  NOT NULL DEFAULT '0',
   `archived`        TINYINT(1) UNSIGNED  NOT NULL DEFAULT '0',
   `delete_receiver` SMALLINT(1) UNSIGNED NOT NULL DEFAULT '0',
@@ -29,7 +29,8 @@ CREATE TABLE `mdata`
   PRIMARY KEY (`id`),
   KEY (`uid`),
   KEY (`to_uid`),
-  KEY `search` (`uid`, `to_uid`, `viewed`, `delete_receiver`)
+  KEY `search` (`uid`, `to_uid`, `viewed`, `delete_receiver`),
+  FULLTEXT KEY `message_content` (`message`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
