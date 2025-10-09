@@ -38,8 +38,13 @@ if (!property_exists($config, 'db')) {
 }
 $db = DB::getInstance();
 {
-    if (true || php_sapi_name() == 'cli') {
+    $result = null;
+    if (php_sapi_name() == 'cli') {
         $result = $db->query("SELECT * FROM config");
+        if ($result === false) {
+            logError("Failed to fetch config row: " . $db->error);
+            exit("We are having issues, please try again in a moment. E1");
+        }
         if (!$result->num_rows) {
             logError("No config row found.");
             exit("We are having issues, please try again in a moment. E1");
@@ -50,14 +55,19 @@ $db = DB::getInstance();
             $config->dynamic = $_cache;
         } else {
             $result = $db->query("SELECT * FROM config");
+            if ($result === false) {
+                logError("Failed to fetch config row: " . $db->error);
+                exit("We are having issues, please try again in a moment. E1");
+            }
             if (!$result->num_rows) {
                 logError("No config row found.");
                 exit("We are having issues, please try again in a moment. E1");
             }
-            $cache->set('WorldConfig', (object)$result->fetch_assoc(), 300);
+            $config->dynamic = (object)$result->fetch_assoc();
+            $cache->set('WorldConfig', $config->dynamic, 300);
         }
     }
-    if (property_exists($config, 'startTime')) {
+    if (!property_exists($config->dynamic, 'startTime')) {
         logError("No column found in config row.");
         exit("We are having issues, please try again in a moment. E2");
     }
