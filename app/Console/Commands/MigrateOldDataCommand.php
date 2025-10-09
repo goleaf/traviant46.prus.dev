@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -459,10 +460,14 @@ class MigrateOldDataCommand extends Command
         return [
             'activation' => [
                 'created_at' => static function ($value, array $row) {
-                    return isset($row['time']) ? (int) $row['time'] : $value;
+                    $timestamp = isset($row['time']) ? (int) $row['time'] : null;
+
+                    return $timestamp ? Carbon::createFromTimestampUTC($timestamp) : $value;
                 },
                 'updated_at' => static function ($value, array $row) {
-                    return isset($row['time']) ? (int) $row['time'] : $value;
+                    $timestamp = isset($row['time']) ? (int) $row['time'] : null;
+
+                    return $timestamp ? Carbon::createFromTimestampUTC($timestamp) : $value;
                 },
             ],
         ];
