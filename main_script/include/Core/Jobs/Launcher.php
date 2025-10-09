@@ -2,12 +2,13 @@
 
 namespace Core\Jobs;
 
+use App\Jobs\ProcessFakeUsers;
+use App\Jobs\ProcessNatarVillages;
 use Core\Automation;
 use Model\AdventureModel;
 use Model\AuctionModel;
 use Model\AutoExtendModel;
 use Model\DailyQuestModel;
-use Model\FakeUserModel;
 use Model\inactiveModel;
 use Model\MedalsModel;
 use Model\NatarsModel;
@@ -186,25 +187,9 @@ class Launcher
 
     public function AIProgress()
     {
-        $fakeModel = new FakeUserModel();
         $jobs = [];
-        {
-            $job = [$fakeModel, 'handleFakeUsers'];
-            $jobs[] = new Job('AIProgress:handleFakeUsers', 45, $job);
-        }
-        {
-            $job = [$fakeModel, 'handleFakeUserExpands'];
-            $jobs[] = new Job('AIProgress:handleFakeUserExpands', 45, $job);
-        }
-        $natarsModel = new NatarsModel();
-        {
-            $job = [$natarsModel, 'handleNatarVillages'];
-            $jobs[] = new Job('AIProgress:handleNatarVillages', 15, $job);
-        }
-        {
-            $job = [$natarsModel, 'handleNatarExpansion'];
-            $jobs[] = new Job('AIProgress:handleNatarExpansion', 15, $job);
-        }
+        $jobs[] = new Job('AIProgress:processFakeUsers', 45, new ProcessFakeUsers());
+        $jobs[] = new Job('AIProgress:processNatarVillages', 15, new ProcessNatarVillages());
         new Job('AIProgress', 5, $jobs, TRUE);
     }
 
