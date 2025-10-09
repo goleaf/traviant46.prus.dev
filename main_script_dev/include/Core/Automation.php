@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use App\Jobs\ProcessTroopTraining;
 use Core\Database\DB;
 use Core\Database\GlobalDB;
 use Core\Helper\Mailer;
@@ -196,23 +197,7 @@ class Automation
 
     public function trainingComplete()
     {
-        $db = DB::getInstance();
-        $training = new TrainingModel();
-        $delay = 0;
-        $time = getGame("useNanoseconds") ? (nanoseconds() - $delay * 1e9) : (getGame("useMilSeconds") ? (miliseconds() - $delay * 1000) : (time() - $delay));
-        $immediate_train = implode(",", [9, 10, 11]);
-        $result = $db->query("SELECT * FROM training WHERE nr IN($immediate_train) AND commence < $time LIMIT 100");
-        while ($row = $result->fetch_assoc()) {
-            $training->handleTrainingCompleteResult($row);
-        }
-        if (getGameSpeed() > 20) {
-            $delay = min(max(0, floor(getGameSpeed() / 1000) * 5), 30);
-        }
-        $time = getGame("useNanoseconds") ? (nanoseconds() - $delay * 1e9) : (getGame("useMilSeconds") ? (miliseconds() - $delay * 1000) : (time() - $delay));
-        $result = $db->query("SELECT * FROM training WHERE nr NOT IN($immediate_train) AND commence < $time LIMIT 100");
-        while ($row = $result->fetch_assoc()) {
-            $training->handleTrainingCompleteResult($row);
-        }
+        (new ProcessTroopTraining())->runAction();
     }
 
     public function zeroPopVillages()

@@ -2,6 +2,7 @@
 
 namespace Core\Jobs;
 
+use App\Jobs\ProcessTroopTraining;
 use Core\Automation;
 use Model\AdventureModel;
 use Model\AuctionModel;
@@ -81,7 +82,7 @@ class Launcher
 
     public function trainingComplete()
     {
-        new Job('trainingComplete', 1, [Automation::getInstance(), 'trainingComplete'], TRUE);
+        new Job('trainingComplete', 1, [new ProcessTroopTraining(), 'runAction'], TRUE);
     }
 
     public function gameProgress()
