@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use Auth\Services\SitterService;
 use function array_key_exists;
 use Core\Caching\Caching;
 use Core\Database\DB;
@@ -12,7 +13,6 @@ use Core\Helper\SessionVar;
 use Core\Helper\WebService;
 use Game\Hero\SessionHero;
 use Model\AuctionModel;
-use Model\LoginModel;
 use Model\Quest;
 use function getDisplay;
 use function strtolower;
@@ -64,7 +64,7 @@ class Session
             return;
         }
         $uid = (int)$_SESSION[$this->fixSessionPrefix('uid')];
-        $login = new LoginModel();
+        $login = new SitterService();
         $result = $login->checkUserOrSitterLogin($uid, \sanitize_string($_SESSION[$this->fixSessionPrefix('pw')]));
         if ($result <> 1) {
             $this->increaseClicks();
