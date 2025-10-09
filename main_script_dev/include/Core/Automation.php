@@ -2,6 +2,9 @@
 
 namespace Core;
 
+use App\Jobs\ProcessAttackArrival;
+use App\Jobs\ProcessReinforcementArrival;
+use App\Jobs\ProcessReturnMovement;
 use Core\Database\DB;
 use Core\Database\GlobalDB;
 use Core\Helper\Mailer;
@@ -17,7 +20,6 @@ use Model\AccountDeleter;
 use Model\AllianceBonusModel;
 use Model\ArtefactsModel;
 use Model\AutomationModel;
-use Model\BattleModel;
 use Model\ClubApi;
 use Model\FarmListModel;
 use Model\InfoBoxModel;
@@ -25,11 +27,6 @@ use Model\MarketModel;
 use Model\MarketPlaceProcessor;
 use Model\MasterBuilder;
 use Model\MessageModel;
-use Model\Movements\AdventureProcessor;
-use Model\Movements\EvasionProcessor;
-use Model\Movements\ReinforcementProcessor;
-use Model\Movements\ReturnProcessor;
-use Model\Movements\SettlersProcessor;
 use Model\MovementsModel;
 use Model\MultiAccount;
 use Model\NatarsModel;
@@ -120,29 +117,15 @@ class Automation
             if (!$db->affectedRows()) {
                 continue;
             }
-            if ($row['mode'] == 1) {
-                new ReturnProcessor($row);
+            if ($row['mode'] == MovementsModel::SORTTYPE_RETURN) {
+                (new ProcessReturnMovement($row))->handle();
                 continue;
             }
-            switch ($row['attack_type']) {
-                case MovementsModel::ATTACKTYPE_EVASION:
-                    new EvasionProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_REINFORCEMENT:
-                    new ReinforcementProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_NORMAL:
-                case MovementsModel::ATTACKTYPE_RAID:
-                case MovementsModel::ATTACKTYPE_SPY:
-                    new BattleModel($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_ADVENTURE:
-                    new AdventureProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_SETTLERS:
-                    new SettlersProcessor($row);
-                    break;
+            if ($row['attack_type'] == MovementsModel::ATTACKTYPE_REINFORCEMENT) {
+                (new ProcessReinforcementArrival($row))->handle();
+                continue;
             }
+            (new ProcessAttackArrival($row))->handle();
         }
     }
 
