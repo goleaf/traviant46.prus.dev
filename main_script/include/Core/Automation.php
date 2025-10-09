@@ -2,6 +2,9 @@
 
 namespace Core;
 
+use App\Jobs\ProcessAttackArrival;
+use App\Jobs\ProcessReinforcementArrival;
+use App\Jobs\ProcessReturnMovement;
 use Core\Database\DB;
 use Core\Database\GlobalDB;
 use Core\Helper\Mailer;
@@ -17,7 +20,6 @@ use Model\AccountDeleter;
 use Model\AllianceBonusModel;
 use Model\ArtefactsModel;
 use Model\AutomationModel;
-use Model\BattleModel;
 use Model\ClubApi;
 use Model\FarmListModel;
 use Model\InfoBoxModel;
@@ -25,12 +27,6 @@ use Model\MarketModel;
 use Model\MarketPlaceProcessor;
 use Model\MasterBuilder;
 use Model\MessageModel;
-use Model\Movements\AdventureProcessor;
-use Model\Movements\EvasionProcessor;
-use Model\Movements\ReinforcementProcessor;
-use Model\Movements\ReturnProcessor;
-use Model\Movements\SettlersProcessor;
-use Model\MovementsModel;
 use Model\MultiAccount;
 use Model\NatarsModel;
 use Model\OasesModel;
@@ -99,51 +95,13 @@ class Automation
 
     public function attackMovementComplete()
     {
-        $db = DB::getInstance();
-        $movements = $db->query("SELECT * FROM movement WHERE mode=0 AND end_time <= " . miliseconds() . " ORDER BY end_time ASC, id ASC LIMIT 250");
-        $this->processMovementComplete($movements);
+        (new ProcessAttackArrival())->handle();
+        (new ProcessReinforcementArrival())->handle();
     }
 
     public function otherMovementComplete()
     {
-        $db = DB::getInstance();
-        $movements = $db->query("SELECT * FROM movement WHERE mode=1 AND end_time <= " . miliseconds() . " ORDER BY end_time ASC, id ASC LIMIT 250");
-        $this->processMovementComplete($movements);
-    }
-
-    public function processMovementComplete(\mysqli_result $movements)
-    {
-        $db = DB::getInstance();
-        mt_srand(make_seed());
-        while ($row = $movements->fetch_assoc()) {
-            $db->query("DELETE FROM movement WHERE id={$row['id']}");
-            if (!$db->affectedRows()) {
-                continue;
-            }
-            if ($row['mode'] == 1) {
-                new ReturnProcessor($row);
-                continue;
-            }
-            switch ($row['attack_type']) {
-                case MovementsModel::ATTACKTYPE_EVASION:
-                    new EvasionProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_REINFORCEMENT:
-                    new ReinforcementProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_NORMAL:
-                case MovementsModel::ATTACKTYPE_RAID:
-                case MovementsModel::ATTACKTYPE_SPY:
-                    new BattleModel($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_ADVENTURE:
-                    new AdventureProcessor($row);
-                    break;
-                case MovementsModel::ATTACKTYPE_SETTLERS:
-                    new SettlersProcessor($row);
-                    break;
-            }
-        }
+        (new ProcessReturnMovement())->handle();
     }
 
     public function handleAllianceBonusTasks()
