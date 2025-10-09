@@ -18,7 +18,7 @@
 **Database Schema (90 tables total):**
 1. **User/Auth Tables (6):** users, activation, login_handshake, activation_progress, deleting, newproc
 2. **Village Tables (11):** vdata, fdata, wdata, available_villages, odata, building_upgrade, demolition, smithy, tdata, research, traderoutes
-3. **Alliance Tables (13):** alidata, alistats, allimedal, ali_invite, ali_log, diplomacy, alliance_notification, alliance_bonus_upgrade_queue, forum_forums, forum_edit, forum_options, forum_post, forum_topic, forum_vote, forum_open_players, forum_open_alliances
+3. **Alliance Tables (16):** alidata, alistats, allimedal, ali_invite, ali_log, diplomacy, alliance_notification, alliance_bonus_upgrade_queue, forum_forums, forum_edit, forum_options, forum_post, forum_topic, forum_vote, forum_open_players, forum_open_alliances
 4. **Movement/Combat Tables (8):** movement, a2b (attacks-to-be), enforcement, trapped, units, send
 5. **Hero Tables (6):** hero, face, items, inventory, adventure, accounting
 6. **Artifact Tables (3):** artefacts, artlog
