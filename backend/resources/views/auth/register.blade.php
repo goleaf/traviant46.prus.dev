@@ -2,30 +2,49 @@
 
 @section('title', __('Create account'))
 
+@section('subtitle', __('Launch a new Travian account with secure authentication defaults.'))
+
 @section('content')
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" class="space-y-6">
         @csrf
-        <div>
-            <label for="username">{{ __('Username') }}</label>
-            <input id="username" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username">
-        </div>
-        <div style="margin-top: 1.25rem;">
-            <label for="name">{{ __('Display name') }}</label>
-            <input id="name" type="text" name="name" value="{{ old('name') }}" required>
-        </div>
-        <div style="margin-top: 1.25rem;">
-            <label for="email">{{ __('Email address') }}</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email">
-        </div>
-        <div style="margin-top: 1.25rem;">
-            <label for="password">{{ __('Password') }}</label>
-            <input id="password" type="password" name="password" required autocomplete="new-password">
-        </div>
-        <div style="margin-top: 1.25rem;">
-            <label for="password_confirmation">{{ __('Confirm password') }}</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password">
-        </div>
-        <button type="submit" style="margin-top: 1.5rem;">{{ __('Register') }}</button>
+
+        <flux:field>
+            <flux:label for="username">{{ __('Username') }}</flux:label>
+            <flux:input id="username" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username" />
+            <flux:error name="username" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label for="name">{{ __('Display name') }}</flux:label>
+            <flux:input id="name" type="text" name="name" value="{{ old('name') }}" required />
+            <flux:error name="name" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label for="email">{{ __('Email address') }}</flux:label>
+            <flux:input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" />
+            <flux:error name="email" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label for="password">{{ __('Password') }}</flux:label>
+            <flux:input id="password" type="password" name="password" required autocomplete="new-password" />
+            <flux:error name="password" />
+        </flux:field>
+
+        <flux:field>
+            <flux:label for="password_confirmation">{{ __('Confirm password') }}</flux:label>
+            <flux:input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" />
+        </flux:field>
+
+        <flux:button type="submit" variant="primary" color="sky" class="w-full">
+            {{ __('Register') }}
+        </flux:button>
     </form>
-    <a href="{{ route('login') }}" class="link">{{ __('Already have an account? Sign in') }}</a>
+
+    <div class="flex flex-col items-center gap-2 text-sm">
+        <flux:link href="{{ route('login') }}" class="font-medium">
+            {{ __('Already have an account? Sign in') }}
+        </flux:link>
+    </div>
 @endsection

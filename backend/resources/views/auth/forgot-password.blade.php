@@ -2,14 +2,26 @@
 
 @section('title', __('Reset password'))
 
+@section('subtitle', __('We will email you a secure link to reset your password.'))
+
 @section('content')
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}" class="space-y-6">
         @csrf
-        <div>
-            <label for="email">{{ __('Email address') }}</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus>
-        </div>
-        <button type="submit" style="margin-top: 1.5rem;">{{ __('Send password reset link') }}</button>
+
+        <flux:field>
+            <flux:label for="email">{{ __('Email address') }}</flux:label>
+            <flux:input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email" />
+            <flux:error name="email" />
+        </flux:field>
+
+        <flux:button type="submit" variant="primary" color="sky" class="w-full">
+            {{ __('Send password reset link') }}
+        </flux:button>
     </form>
-    <a href="{{ route('login') }}" class="link">{{ __('Back to login') }}</a>
+
+    <div class="flex justify-center text-sm">
+        <flux:link href="{{ route('login') }}" class="font-medium">
+            {{ __('Back to login') }}
+        </flux:link>
+    </div>
 @endsection
