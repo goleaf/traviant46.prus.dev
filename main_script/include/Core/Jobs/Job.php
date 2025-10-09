@@ -15,6 +15,8 @@ class Job
     private $callback;
     private $name;
     private $daemon = false;
+    private $schedulerDaemon = false;
+    private $schedulerInitialized = false;
 
     /**
      * @param            $name
@@ -34,9 +36,9 @@ class Job
         if ($daemon) {
             global $PIDs, $loop;
             if (!self::supportsProcessControl()) {
-                $this->daemon = false;
                 $this->setInterval($interval);
                 $this->lastReload = time() - $this->interval;
+                $this->schedulerDaemon = true;
                 JobScheduler::getInstance()->register($this);
                 return $this;
             }
@@ -142,7 +144,11 @@ class Job
     public function runAction()
     {
         try {
-            $this->runJob($this->callback, $this->daemon);
+            if ($this->schedulerDaemon) {
+                $this->runSchedulerDaemon();
+            } else {
+                $this->runJob($this->callback, $this->daemon);
+            }
         } catch (\Exception $e) {
             ErrorHandler::getInstance()->handleExceptions($e);
         }
@@ -154,6 +160,64 @@ class Job
             function_exists('pcntl_signal') &&
             function_exists('pcntl_signal_dispatch') &&
             function_exists('posix_kill');
+    }
+
+    private function runSchedulerDaemon()
+    {
+        if (!$this->checkInterval(false)) {
+            return;
+        }
+
+        $db = DB::getInstance();
+        if (!$db->checkConnection()) {
+            return;
+        }
+
+        if (!$this->schedulerInitialized) {
+            $db->query("UPDATE config SET needsRestart=0");
+            gc_enable();
+            $this->schedulerInitialized = true;
+        }
+
+        $config = Config::getInstance();
+        $result = $db->query("SELECT * FROM config LIMIT 1");
+        if (!$result) {
+            return;
+        }
+
+        $row = $result->fetch_assoc();
+        if (!$row) {
+            return;
+        }
+
+        $config->dynamic = (object)$row;
+
+        if (isset($config->dynamic->needsRestart) && (int)$config->dynamic->needsRestart === 1) {
+            return;
+        }
+
+        $exclude = $this->name == 'postService' && isset($config->dynamic->postServiceDone) && $config->dynamic->postServiceDone == 0;
+        if (!empty($config->dynamic->finishStatusSet) && !$exclude) {
+            return;
+        }
+
+        mt_srand(make_seed());
+
+        try {
+            if ($config->dynamic->automationState || $exclude) {
+                $this->runJob($this->callback, TRUE);
+            }
+        } catch (\Exception $e) {
+            ErrorHandler::getInstance()->handleExceptions($e);
+            sleep(2);
+        } catch (\Error $e) {
+            ErrorHandler::getInstance()->handleExceptions($e);
+            sleep(2);
+        }
+
+        if (isset($config->game->start_time) && $config->game->start_time > time()) {
+            sleep(5);
+        }
     }
 
     public function getIntervalSeconds()
