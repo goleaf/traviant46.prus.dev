@@ -1,36 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement(<<<'SQL'
-CREATE TABLE IF NOT EXISTS `autoExtend`
-(
-  `id`          INT(11) UNSIGNED    NOT NULL AUTO_INCREMENT,
-  `uid`         INT(11) UNSIGNED    NOT NULL,
-  `type`        TINYINT(1) UNSIGNED NOT NULL,
-  `commence`    INT(10) UNSIGNED    NOT NULL,
-  `lastChecked` INT(11) UNSIGNED    NOT NULL DEFAULT '0',
-  `enabled`     TINYINT(1) UNSIGNED NOT NULL,
-  `finished`    TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY (`uid`),
-  KEY (`commence`, `enabled`, `finished`),
-  KEY (`type`)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
-SQL
-        );
+        Schema::dropIfExists('autoExtend');
+
+        Schema::create('auto_extend_subscriptions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('feature_key', 32);
+            $table->unsignedTinyInteger('feature_type')->nullable()->index();
+            $table->timestamp('starts_at')->nullable()->index();
+            $table->timestamp('last_checked_at')->nullable()->index();
+            $table->timestamp('expires_at')->nullable();
+            $table->boolean('is_enabled')->default(true);
+            $table->boolean('is_finished')->default(false);
+            $table->timestamp('finished_at')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'feature_key']);
+        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('autoExtend');
+        Schema::dropIfExists('auto_extend_subscriptions');
     }
 };

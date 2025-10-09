@@ -111,6 +111,11 @@ class User extends Authenticatable
         return $this->hasMany(Attack::class, 'defender_id');
     }
 
+    public function autoExtendSubscriptions(): HasMany
+    {
+        return $this->hasMany(AutoExtendSubscription::class);
+    }
+
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);

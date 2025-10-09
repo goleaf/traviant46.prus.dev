@@ -1,32 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement(<<<'SQL'
-CREATE TABLE IF NOT EXISTS `casualties`
-(
-  `id`         INT(10) UNSIGNED    NOT NULL AUTO_INCREMENT,
-  `attacks`    INT(10) UNSIGNED    NOT NULL DEFAULT '0',
-  `casualties` BIGINT(50) UNSIGNED NOT NULL DEFAULT '0',
-  `time`       INT(10) UNSIGNED    NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `time` (`time`)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  AUTO_INCREMENT = 1;
-SQL
-        );
+        Schema::dropIfExists('casualties');
+
+        Schema::create('combat_casualties', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('attacks_count')->default(0);
+            $table->unsignedBigInteger('casualties_count')->default(0);
+            $table->timestamp('recorded_for')->nullable()->index();
+            $table->timestamps();
+
+            $table->index(['attacks_count', 'casualties_count']);
+        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('casualties');
+        Schema::dropIfExists('combat_casualties');
     }
 };

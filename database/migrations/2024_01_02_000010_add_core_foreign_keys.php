@@ -52,10 +52,6 @@ return new class extends Migration
             $table->foreign('to_kid', 'traderoutes_to_kid_fk')->references('kid')->on('vdata')->cascadeOnDelete();
         });
 
-        Schema::table('autoExtend', function (Blueprint $table) {
-            $table->foreign('uid', 'autoextend_uid_fk')->references('id')->on('users')->cascadeOnDelete();
-        });
-
         Schema::table('buyGoldMessages', function (Blueprint $table) {
             $table->foreign('uid', 'buygoldmessages_uid_fk')->references('id')->on('users')->cascadeOnDelete();
         });
@@ -105,10 +101,6 @@ return new class extends Migration
 
         Schema::table('buyGoldMessages', function (Blueprint $table) {
             $table->dropForeign('buygoldmessages_uid_fk');
-        });
-
-        Schema::table('autoExtend', function (Blueprint $table) {
-            $table->dropForeign('autoextend_uid_fk');
         });
 
         Schema::table('traderoutes', function (Blueprint $table) {
