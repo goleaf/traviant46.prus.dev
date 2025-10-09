@@ -44,6 +44,10 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetPasswordView(fn ($request) => view('auth.reset-password', ['request' => $request]));
         Fortify::verifyEmailView(fn () => view('auth.verify-email'));
 
+        Fortify::redirects('login', '/home');
+        Fortify::redirects('register', '/home');
+        Fortify::redirects('logout', '/login');
+
         Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService) {
             $result = $legacyLoginService->attempt(
                 (string) $request->input('login', $request->input('email')), // backwards compatibility

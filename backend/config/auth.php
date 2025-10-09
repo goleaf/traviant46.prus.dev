@@ -41,14 +41,12 @@ return [
             'provider' => 'users',
         ],
         'admin' => [
-            'driver' => 'legacy-session',
+            'driver' => 'session',
             'provider' => 'users',
-            'legacy_uid' => 0,
         ],
         'multihunter' => [
-            'driver' => 'legacy-session',
+            'driver' => 'session',
             'provider' => 'users',
-            'legacy_uid' => 2,
         ],
     ],
 
