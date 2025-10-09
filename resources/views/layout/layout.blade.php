@@ -186,7 +186,7 @@ use Core\Config;
                 <div class="clear"></div>
             </div>
             <div id="contentOuterContainer" class="size1">
-                @livewire('stock-bar', [
+                @include('layout.partials.stock-bar', [
                     'showStockbar' => !empty($vars['showStockbar']) && !empty($vars['stockBar']),
                     'stockBar' => $vars['stockBar'] ?? [],
                     'bodyCssClass' => $vars['bodyCssClass'] ?? '',
