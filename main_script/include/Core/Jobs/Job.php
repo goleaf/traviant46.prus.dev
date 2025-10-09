@@ -14,6 +14,7 @@ class Job
     private $interval;
     private $callback;
     private $name;
+    private $daemon = false;
 
     /**
      * @param            $name
@@ -29,8 +30,16 @@ class Job
         $prgName = $name;
         $this->name = $name;
         $this->callback = $callBack;
+        $this->daemon = (bool)$daemon;
         if ($daemon) {
             global $PIDs, $loop;
+            if (!self::supportsProcessControl()) {
+                $this->daemon = false;
+                $this->setInterval($interval);
+                $this->lastReload = time() - $this->interval;
+                JobScheduler::getInstance()->register($this);
+                return $this;
+            }
             $PIDs[$name] = pcntl_fork();
             $loop = TRUE;
             pcntl_signal(SIGTERM,
@@ -133,9 +142,27 @@ class Job
     public function runAction()
     {
         try {
-            $this->runJob($this->callback);
+            $this->runJob($this->callback, $this->daemon);
         } catch (\Exception $e) {
             ErrorHandler::getInstance()->handleExceptions($e);
         }
+    }
+
+    private static function supportsProcessControl()
+    {
+        return function_exists('pcntl_fork') &&
+            function_exists('pcntl_signal') &&
+            function_exists('pcntl_signal_dispatch') &&
+            function_exists('posix_kill');
+    }
+
+    public function getIntervalSeconds()
+    {
+        return $this->interval ?: 0;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 }

@@ -6,11 +6,21 @@ declare(ticks=1);
 
 use Core\ErrorHandler;
 use Core\Jobs;
+use Core\Jobs\JobScheduler;
 
 require(__DIR__ . "/bootstrap.php");
 $automationLogFile = dirname(ERROR_LOG_FILE) . "/automation.log";
+$processControl = function_exists('pcntl_fork') && function_exists('posix_setsid') && function_exists('pcntl_signal') && function_exists('posix_kill');
+
 global $PIDs, $loop;
 $PIDs = [];
+
+if (!$processControl) {
+    Jobs\Launcher::lunchJobs();
+    JobScheduler::getInstance()->run();
+    return;
+}
+
 $autoPID = pcntl_fork();
 fclose(STDIN);
 fclose(STDOUT);
