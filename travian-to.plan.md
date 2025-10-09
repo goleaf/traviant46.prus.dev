@@ -507,3 +507,63 @@ Migrate `main_script/include/admin/` to Laravel:
 6. **Redis Sessions:** Maintain existing session structure initially
 7. **IP Logging:** Preserve multi-account detection system
 8. **Sitter System:** Account delegation must work identically
+
+---
+
+## Phase 11: Documentation, Training & Launch Readiness (Week 28)
+
+### 11.1 Developer & Operations Playbooks
+
+- Draft "day-one" runbooks covering deployment, queue scaling, cache purges, and rollback.
+- Capture troubleshooting guides for battle resolution, stuck jobs, Redis outages, and slow queries.
+- Produce ER diagrams and sequence diagrams that map the redesigned schema to major user flows.
+
+### 11.2 Support & Community Enablement
+
+- Update customer support macros to match new terminology (alliances, sitter invites, etc.).
+- Record short screencasts demonstrating the Livewire UI for village management, hero adventures, and alliance forums.
+- Prepare FAQ entries covering login changes, email verification, and how to report suspected bugs during the stabilisation window.
+
+### 11.3 Launch Checklist & Go/No-Go Gates
+
+- Establish objective success metrics (p95 response time < 250ms, queue latency < 2s, zero critical errors).
+- Run final chaos drills (Redis restart, DB failover, queue saturation) using staging data.
+- Hold go/no-go meeting with engineering, operations, community managers, and stakeholders to sign-off before cutover.
+
+---
+
+## Risk Register & Mitigation Strategies
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| **Schema migration data loss** | Medium | Critical | Dry-run migrations on production snapshot, automated diff checks, transaction-scoped imports per table. |
+| **Performance regression under load** | High | High | Early load testing with realistic troop movements, enable Laravel Telescope + Blackfire profiling, cache hot paths. |
+| **Queue backlog after cutover** | Medium | High | Scale Supervisor workers horizontally, configure Horizon alerts, pre-warm Redis. |
+| **Legacy client incompatibility** | Low | Medium | Maintain compatibility endpoints, versioned API responses, staged rollout for classic clients. |
+| **Team unfamiliarity with Laravel 11** | Medium | Medium | Formal Livewire & Horizon workshops, pair migration sessions, internal wiki for patterns. |
+| **Security regressions** | Low | Critical | Fortify hardening review, mandatory code reviews, OWASP ZAP scan before launch. |
+
+---
+
+## Resource Planning Snapshot
+
+- **People:**
+  - 1x Technical Lead (overall ownership)
+  - 2x Backend Engineers (schema, services, jobs)
+  - 2x Frontend Engineers (Livewire, Flux UI, Blade)
+  - 1x DevOps Engineer (infrastructure, CI/CD, monitoring)
+  - 1x QA Engineer (automation, load testing)
+  - 1x Community/Support Liaison (communication, documentation)
+- **Tooling Budget:** Allocate credits/licenses for Blackfire, Sentry, and Mailhog/SMTP testing.
+- **Environment Matrix:** Production, Staging (full data), QA (sanitised subset), Developer sandboxes (per engineer with seed data).
+- **Time Buffers:** Reserve 15% of each phase for bug-fixing and regression testing to absorb unknowns without derailing critical path.
+
+---
+
+## Success Metrics & Post-Launch Monitoring
+
+- **Stability KPIs:** Error rate < 0.1%, zero failed queued jobs > 5 minutes, uptime ≥ 99.9% during first 30 days.
+- **Performance KPIs:** Average resource tick execution < 120ms, hero adventure resolution < 2s, map view load time < 1.5s.
+- **Engagement KPIs:** Daily active users parity with legacy platform by week two, 95%+ successful login rate, reduction in support tickets week-over-week.
+- **Monitoring Stack:** Horizon alerts (queue backlog), Prometheus/Grafana dashboards (PHP-FPM, Redis, DB), Sentry alerting for high-severity exceptions.
+- **Feedback Loop:** Daily triage stand-ups for first two weeks post-launch, single Slack channel for bug reports, weekly retrospective summarising fixes and learnings.
