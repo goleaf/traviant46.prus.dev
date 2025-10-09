@@ -31,6 +31,18 @@ class Autoloder
             }
         }
 
+        if (strpos($className, 'App\\Http\\Controllers\\') === 0) {
+            $relative = substr($className, strlen('App\\Http\\Controllers\\'));
+            $basePath = dirname(ROOT_PATH);
+            $controllerPath = $basePath . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+            if (is_file($controllerPath)) {
+                require_once $controllerPath;
+                if (class_exists($className, false)) {
+                    return TRUE;
+                }
+            }
+        }
+
         $fullpath = self::getFullPath($className);
         if(is_file($fullpath)) {
             require($fullpath);
