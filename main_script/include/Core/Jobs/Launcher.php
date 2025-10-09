@@ -2,214 +2,154 @@
 
 namespace Core\Jobs;
 
-use Core\Automation;
+use Core\Queue\QueueManager;
 use Model\AdventureModel;
 use Model\AuctionModel;
 use Model\AutoExtendModel;
 use Model\DailyQuestModel;
 use Model\FakeUserModel;
-use Model\inactiveModel;
 use Model\MedalsModel;
 use Model\NatarsModel;
+use Model\inactiveModel;
 
 class Launcher
 {
-    private static $_self;
+    private static ?self $instance = null;
 
-    public static function lunchJobs()
+    public static function lunchJobs(): void
     {
         set_time_limit(0);
-        ini_set("memory_limit", -1);
-        self::getInstance()->buildComplete();
-        self::getInstance()->movementComplete();
-        self::getInstance()->trainingComplete();
-        self::getInstance()->gameProgress();
-        self::getInstance()->routineJobs();
-        self::getInstance()->AIProgress();
-        self::getInstance()->postService();
+        ini_set('memory_limit', -1);
+        QueueManager::boot();
+
+        foreach (self::getInstance()->allJobs() as $job) {
+            $job->dispatch();
+        }
     }
 
-    public function buildComplete()
+    private function allJobs(): array
+    {
+        return array_merge(
+            $this->buildComplete(),
+            $this->movementComplete(),
+            $this->trainingComplete(),
+            $this->gameProgress(),
+            $this->routineJobs(),
+            $this->AIProgress(),
+            $this->postService()
+        );
+    }
+
+    public static function getInstance(): self
+    {
+        if (!self::$instance instanceof self) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function buildComplete(): array
+    {
+        $jobs = [
+            Job::automation('marketComplete:tradeRoute', 5, 'tradeRoutes'),
+            Job::automation('marketComplete:researchComplete', 3, 'researchComplete'),
+            Job::automation('marketComplete:marketComplete', 2, 'marketComplete'),
+            Job::model('auctionComplete:doAuction', 5, AuctionModel::class, 'doAuction'),
+            Job::model('routineJobs:fakeAuction', 600, AuctionModel::class, 'fakeAuction'),
+            Job::automation('buildComplete:buildComplete', 1, 'buildComplete'),
+        ];
+
+        if (function_exists('getCustom') && getCustom('autoRaidEnabled')) {
+            $jobs[] = Job::automation('autoFarmlist', 30, 'autoFarmlist');
+        }
+
+        return $jobs;
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function movementComplete(): array
+    {
+        return [
+            Job::automation('movementComplete:attackMovementComplete', 0, 'attackMovementComplete'),
+            Job::automation('movementComplete:otherMovementComplete', 0, 'otherMovementComplete'),
+        ];
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function trainingComplete(): array
+    {
+        return [
+            Job::automation('trainingComplete:trainingComplete', 1, 'trainingComplete'),
+        ];
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function gameProgress(): array
+    {
+        return [
+            Job::automation('gameProgress:checkAutoFinish', 30, 'checkAutoFinish'),
+            Job::automation('gameProgress:setUpNewServer', 60, 'setUpNewServer'),
+            Job::automation('gameProgress:boughtGoldMessage', 10, 'boughtGoldMessage'),
+            Job::automation('gameProgress:banProgress', 120, 'banProgress'),
+            Job::automation('gameProgress:referenceCheck', 30, 'referenceCheck'),
+            Job::model('gameProgress:ArtifactReleases', 30, NatarsModel::class, 'runJobs'),
+            Job::model('gameProgress:resetMedals', 30, MedalsModel::class, 'resetMedals'),
+            Job::model('gameProgress:resetDailyQuest', 30, DailyQuestModel::class, 'resetDailyQuest'),
+            Job::model('generalProgress:autoExtend', 60, AutoExtendModel::class, 'processAutoExtend'),
+            Job::automation('generalProgress:updateFoolArtifact', 120, 'updateFoolArtifact'),
+            Job::automation('generalProgress:checkForArtifactActivation', 5, 'checkForArtifactActivation'),
+            Job::automation('generalProgress:cleanupServer', 300, 'cleanupServer'),
+            Job::automation('loyaltyAndCulturePoint:deleteOasisComplete', 60, 'deleteOasisComplete'),
+            Job::automation('gameProgress:allianceBonus', 60, 'handleAllianceBonusTasks'),
+            Job::automation('generalProgress:zeroPopVillages', 10, 'zeroPopVillages'),
+        ];
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function routineJobs(): array
+    {
+        return [
+            Job::model('routineJobs:checkForNewAdventures', 10, AdventureModel::class, 'checkForNewAdventures'),
+            Job::automation('checkIndexFunctions:checkGameFinish', 30, 'checkGameFinish'),
+            Job::model('checkIndexFunctions:clearAndDeleting', 30, inactiveModel::class, 'startWorker'),
+            Job::automation('checkIndexFunctions:cleanupIndex', 600, 'cleanupIndex'),
+            Job::automation('mayExitJobs:refreshCountryFlag', 100, 'refreshCountryFlag'),
+            Job::automation('mayExitJobs:resetDailyGold', 45, 'resetDailyGold'),
+            Job::automation('mayExitJobs:backup', 360, 'backup'),
+        ];
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function AIProgress(): array
     {
         $jobs = [];
-        {
-            $job = [Automation::getInstance(), 'tradeRoutes'];
-            $jobs[] = new Job('marketComplete:tradeRoute', 5, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'researchComplete'];
-            $jobs[] = new Job('marketComplete:researchComplete', 3, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'marketComplete'];
-            $jobs[] = new Job('marketComplete:marketComplete', 2, $job);
-        }
-        {
-            $job = [new AuctionModel(), 'doAuction'];
-            $jobs[] = new Job('auctionComplete:doAuction', 5, $job);
-        }
-        {
-            $job = [new AuctionModel(), 'fakeAuction'];
-            $jobs[] = new Job('routineJobs:fakeAuction', 600, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'buildComplete'];
-            $jobs[] = new Job('buildComplete:buildComplete', 1, $job);
-        }
-        if(getCustom('autoRaidEnabled')){
-            {
-                $job = [Automation::getInstance(), 'autoFarmlist'];
-                $jobs[] = new Job('autoFarmlist', 30, $job);
-            }
-        }
-        new Job('buildComplete', 1, $jobs, TRUE);
+
+        $jobs[] = Job::model('AIProgress:handleFakeUsers', 45, FakeUserModel::class, 'handleFakeUsers');
+        $jobs[] = Job::model('AIProgress:handleFakeUserExpands', 45, FakeUserModel::class, 'handleFakeUserExpands');
+        $jobs[] = Job::model('AIProgress:handleNatarVillages', 15, NatarsModel::class, 'handleNatarVillages');
+        $jobs[] = Job::model('AIProgress:handleNatarExpansion', 15, NatarsModel::class, 'handleNatarExpansion');
+
+        return $jobs;
     }
 
-    public static function getInstance()
+    /**
+     * @return Job[]
+     */
+    private function postService(): array
     {
-        if (!(self::$_self instanceof self)) {
-            self::$_self = new self();
-        }
-        return self::$_self;
-    }
-
-    public function movementComplete()
-    {
-        new Job('movementComplete', 0, [Automation::getInstance(), 'attackMovementComplete'], TRUE);
-        new Job('movementComplete', 0, [Automation::getInstance(), 'otherMovementComplete'], TRUE);
-    }
-
-    public function trainingComplete()
-    {
-        new Job('trainingComplete', 1, [Automation::getInstance(), 'trainingComplete'], TRUE);
-    }
-
-    public function gameProgress()
-    {
-        $jobs = [];
-        {
-            $job = [Automation::getInstance(), 'checkAutoFinish'];
-            $jobs[] = new Job('gameProgress:checkAutoFinish', 30, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'setUpNewServer'];
-            $jobs[] = new Job('gameProgress:setUpNewServer', 60, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'boughtGoldMessage'];
-            $jobs[] = new Job('gameProgress:boughtGoldMessage', 10, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'banProgress'];
-            $jobs[] = new Job('gameProgress:banProgress', 120, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'referenceCheck'];
-            $jobs[] = new Job('gameProgress:referenceCheck', 30, $job);
-        }
-        {
-            $job = [new NatarsModel(), 'runJobs'];
-            $jobs[] = new Job('gameProgress:ArtifactReleases', 30, $job);
-        }
-        {
-            $job = [new MedalsModel(), 'resetMedals'];
-            $jobs[] = new Job('gameProgress:resetMedals', 30, $job);
-        }
-        {
-            $job = [new DailyQuestModel(), 'resetDailyQuest'];
-            $jobs[] = new Job('gameProgress:resetDailyQuest', 30, $job);
-        }
-        {
-            $job = [new AutoExtendModel(), 'processAutoExtend'];
-            $jobs[] = new Job('generalProgress:autoExtend', 60, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'updateFoolArtifact'];
-            $jobs[] = new Job('generalProgress:updateFoolArtifact', 120, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'checkForArtifactActivation'];
-            $jobs[] = new Job('generalProgress:checkForArtifactActivation', 5, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'cleanupServer'];
-            $jobs[] = new Job('generalProgress:cleanupServer', 300, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'deleteOasisComplete'];
-            $jobs[] = new Job('loyaltyAndCulturePoint:deleteOasisComplete', 60, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'handleAllianceBonusTasks'];
-            $jobs[] = new Job('gameProgress:allianceBonus', 60, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'zeroPopVillages'];
-            $jobs[] = new Job('generalProgress:zeroPopVillages', 10, $job);
-        }
-        new Job('gameProgress', 10, $jobs, TRUE);
-    }
-
-    public function routineJobs()
-    {
-        $jobs = [];
-        {
-            $job = [new AdventureModel(), 'checkForNewAdventures'];
-            $jobs[] = new Job('routineJobs:checkForNewAdventures', 10, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'checkGameFinish'];
-            $jobs[] = new Job('checkIndexFunctions:checkGameFinish', 30, $job);
-        }
-        {
-            $job = [new inactiveModel(), 'startWorker'];
-            $jobs[] = new Job('checkIndexFunctions:clearAndDeleting', 30, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'cleanupIndex'];
-            $jobs[] = new Job('checkIndexFunctions:cleanupIndex', 600, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'refreshCountryFlag'];
-            $jobs[] = new Job('mayExitJobs:refreshCountryFlag', 100, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'resetDailyGold'];
-            $jobs[] = new Job('mayExitJobs:resetDailyGold', 45, $job);
-        }
-        {
-            $job = [Automation::getInstance(), 'backup'];
-            $jobs[] = new Job('mayExitJobs:backup', 360, $job);
-        }
-        new Job('routineJobs', 20, $jobs, TRUE);
-    }
-
-    public function AIProgress()
-    {
-        $fakeModel = new FakeUserModel();
-        $jobs = [];
-        {
-            $job = [$fakeModel, 'handleFakeUsers'];
-            $jobs[] = new Job('AIProgress:handleFakeUsers', 45, $job);
-        }
-        {
-            $job = [$fakeModel, 'handleFakeUserExpands'];
-            $jobs[] = new Job('AIProgress:handleFakeUserExpands', 45, $job);
-        }
-        $natarsModel = new NatarsModel();
-        {
-            $job = [$natarsModel, 'handleNatarVillages'];
-            $jobs[] = new Job('AIProgress:handleNatarVillages', 15, $job);
-        }
-        {
-            $job = [$natarsModel, 'handleNatarExpansion'];
-            $jobs[] = new Job('AIProgress:handleNatarExpansion', 15, $job);
-        }
-        new Job('AIProgress', 5, $jobs, TRUE);
-    }
-
-    public function postService()
-    {
-        new Job('postService', 100, [Automation::getInstance(), 'postService'], TRUE);
+        return [Job::automation('postService', 100, 'postService')];
     }
 }
