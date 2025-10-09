@@ -1,0 +1,114 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::statement(<<<'SQL'
+CREATE TABLE `fdata`
+(
+  `kid`           INT(6) UNSIGNED     NOT NULL,
+  `f1`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f1t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f2`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f2t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f3`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f3t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f4`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f4t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f5`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f5t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f6`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f6t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f7`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f7t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f8`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f8t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f9`            TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f9t`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f10`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f10t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f11`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f11t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f12`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f12t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f13`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f13t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f14`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f14t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f15`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f15t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f16`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f16t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f17`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f17t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f18`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f18t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f19`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f19t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f20`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f20t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f21`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f21t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f22`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f22t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f23`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f23t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f24`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f24t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f25`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f25t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f26`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f26t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f27`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f27t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f28`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f28t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f29`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f29t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f30`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f30t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f31`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f31t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f32`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f32t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f33`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f33t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f34`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f34t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f35`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f35t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f36`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f36t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f37`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f37t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f38`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f38t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f39`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f39t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f40`           TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f40t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `f99`           TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+  `f99t`          TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
+  `embassy`       TINYINT(2)          NOT NULL DEFAULT '0',
+  `heroMansion`   TINYINT(2)          NOT NULL DEFAULT '0',
+  `lastWWUpgrade` BIGINT(20)          NOT NULL DEFAULT '0',
+  `wwname`        VARCHAR(25)         NOT NULL DEFAULT '',
+  PRIMARY KEY (`kid`),
+  KEY `embassy` (`embassy`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+SQL
+        );
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('fdata');
+    }
+};
