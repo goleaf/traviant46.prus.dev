@@ -12,8 +12,7 @@ return new class extends Migration
 CREATE TABLE `a2b`
 (
   `id`                 BIGINT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `timestamp`          INT(10) UNSIGNED    NOT NULL DEFAULT '0',
-  `queued_at`          TIMESTAMP           GENERATED ALWAYS AS (FROM_UNIXTIME(`timestamp`)) STORED,
+  `queued_at`          TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `timestamp_checksum` VARCHAR(6)          NOT NULL,
   `to_kid`             INT(6) UNSIGNED     NOT NULL,
   `u1`                 BIGINT(50) UNSIGNED NOT NULL,
@@ -30,8 +29,7 @@ CREATE TABLE `a2b`
   `attack_type`        TINYINT(1) UNSIGNED NOT NULL,
   `redeployHero`       TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY (`timestamp`, `timestamp_checksum`),
-  KEY `queued_at` (`queued_at`)
+  KEY `queued_at_checksum` (`queued_at`, `timestamp_checksum`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

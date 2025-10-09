@@ -20,8 +20,7 @@ CREATE TABLE `ndata`
   `type`          TINYINT(2) UNSIGNED  NOT NULL,
   `bounty`        VARCHAR(255)         NOT NULL,
   `data`          TEXT                 NOT NULL,
-  `time`          INT(10) UNSIGNED     NOT NULL,
-  `sent_at`       TIMESTAMP            GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
+  `sent_at`       TIMESTAMP            NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `private_key`   VARCHAR(12)          NOT NULL,
   `viewed`        TINYINT(1) UNSIGNED  NOT NULL,
   `archive`       TINYINT(1) UNSIGNED  NOT NULL,
@@ -56,10 +55,8 @@ CREATE TABLE IF NOT EXISTS `surrounding`
   `y`      SMALLINT(4)         NOT NULL,
   `type`   TINYINT(2) UNSIGNED NOT NULL,
   `params` TEXT,
-  `time`   INT(10) UNSIGNED    NOT NULL,
-  `updated_at` TIMESTAMP       GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
+  `updated_at` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `time` (`time`),
   KEY `kid` (`kid`, `x`, `y`),
   KEY `updated_at` (`updated_at`)
 )
