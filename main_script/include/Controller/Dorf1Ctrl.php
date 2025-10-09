@@ -2,6 +2,8 @@
 
 namespace Controller;
 
+use App\Livewire\ResourceProduction;
+use App\Livewire\VillageOverview;
 use Core\Config;
 use Core\Dispatcher;
 use Core\Helper\PreferencesHelper;
@@ -12,12 +14,12 @@ use Game\Formulas;
 use function getDifMilisecondsToSeconds;
 use Model\Dorf1Model;
 use PDO;
+use resources\View\FluxView;
 use resources\View\GameView;
-use resources\View\PHPBatchView;
 
 class Dorf1Ctrl extends GameCtrl
 {
-    private $dorf1View;
+    private array $overviewState = [];
     private $field_maps = [
         "RTL" => [
             "coordinates" => [
@@ -134,36 +136,40 @@ class Dorf1Ctrl extends GameCtrl
             return;
         }
         $m = new Dorf1Model();
-        $this->dorf1View = new PHPBatchView("dorf1/main");
         $this->areaMapsAction();
         $this->unitsAction($m);
         $this->movementsAction($m);
         $session = $this->session;
-        $this->dorf1View->vars['onLoadBuildings'] = Dispatcher::getInstance()->dispatch("onLoadBuildingsDorfCtrl",
-            FALSE);
-        $this->dorf1View->vars['production'] = $this->session->village->getProduction();
-        $this->dorf1View->vars['productionBoost'] = [
+        $production = $this->session->village->getProduction();
+        $productionBoost = [
             $session->hasProductionBoost(1),
             $session->hasProductionBoost(2),
             $session->hasProductionBoost(3),
             $session->hasProductionBoost(4),
         ];
-        $this->dorf1View->vars['goldProductionBoostButton'] = getButton([
-            "type"  => "button",
-            "class" => "gold productionBoostButton",
-            "title" => T("Dorf1",
-                'production.productionBoostButton'),
-        ],
-            [
-                "data" => [
-                    "name"                  => '',
-                    "onclick"               => '',
-                    "confirm"               => '',
-                    'productionBoostDialog' => ['infoIcon' => 'http://t4.answers.travian.ir/index.php?aid=0#go2answer',],
-                ],
+        $resourceProduction = new ResourceProduction([
+            'production' => $production,
+            'productionBoost' => $productionBoost,
+            'goldProductionBoostButton' => getButton([
+                "type"  => "button",
+                "class" => "gold productionBoostButton",
+                "title" => T("Dorf1",
+                    'production.productionBoostButton'),
             ],
-            '+25%');
-        $this->view->vars['content'] = $this->dorf1View->output();
+                [
+                    "data" => [
+                        "name"                  => '',
+                        "onclick"               => '',
+                        "confirm"               => '',
+                        'productionBoostDialog' => ['infoIcon' => 'http://t4.answers.travian.ir/index.php?aid=0#go2answer',],
+                    ],
+                ],
+                '+25%'),
+        ]);
+        $this->overviewState['resourceProduction'] = $resourceProduction->render();
+        $this->overviewState['buildingQueue'] = Dispatcher::getInstance()->dispatch("onLoadBuildingsDorfCtrl", FALSE) ?: '';
+        $overview = new VillageOverview($this->overviewState);
+        $this->view->vars['content'] = $overview->render();
     }
 
     private function proc()
@@ -205,11 +211,13 @@ class Dorf1Ctrl extends GameCtrl
     {
         $direction = getDirection();
         $village = $this->session->village;
-        $this->dorf1View->vars['fieldType'] = $village->getFieldType();
-        $this->dorf1View->vars['showColored'] = PreferencesHelper::getPreference("t4level") == 0;
+        $this->overviewState['fieldType'] = $village->getFieldType();
+        $this->overviewState['showColored'] = PreferencesHelper::getPreference("t4level") == 0;
+        $this->overviewState['areas'] = [];
+        $this->overviewState['maps'] = [];
         for ($i = 1; $i <= 18; ++$i) {
             $max = Formulas::buildingMaxLvl($village->getField($i)['item_id'], $village->isCapital());
-            $this->dorf1View->vars['areas'][] = [
+            $this->overviewState['areas'][] = [
                 "coordinates" => $this->field_maps[$direction]['coordinates'][$i],
                 "title"       => $village->getFieldTitleAsString($i),
                 'alt'         => T("Buildings", "{$village->getField($i)['item_id']}.title") . ' ' . T("Buildings", "level") . ' ' . $village->getField($i)['level'] . '.',
@@ -229,7 +237,7 @@ class Dorf1Ctrl extends GameCtrl
                     $color = 'good';
                 }
             }
-            $this->dorf1View->vars['maps'][] = [
+            $this->overviewState['maps'][] = [
                 "color"        => $color,
                 "item_id"      => $village->getField($i)['item_id'],
                 "level"        => $village->getField($i)['level'],
@@ -245,8 +253,13 @@ class Dorf1Ctrl extends GameCtrl
         $animals = [];
         $kid = $this->session->village->getKid();
         $unitsSummary = 0;
+        $this->overviewState['units'] = [];
+        $this->overviewState['unitsSummary'] = 0;
+        $this->overviewState['heroOnly'] = false;
         $units = $m->getUnits($kid);
-        if(!$units) return;
+        if(!$units) {
+            return;
+        }
         foreach($units['units'] as $i => $num) {
             if ($num <= 0) {
                 continue;
@@ -286,9 +299,9 @@ class Dorf1Ctrl extends GameCtrl
             $assoc_units = $temp + $assoc_units;
         }
         $assoc_units = $assoc_units + $animals;
-        $this->dorf1View->vars['heroOnly'] = $heroOnly;
-        $this->dorf1View->vars['unitsSummary'] = $unitsSummary;
-        $this->dorf1View->vars['units'] = $assoc_units;
+        $this->overviewState['heroOnly'] = $heroOnly;
+        $this->overviewState['unitsSummary'] = $unitsSummary;
+        $this->overviewState['units'] = $assoc_units;
     }
 
     private function movementsAction(Dorf1Model $m)
@@ -375,9 +388,9 @@ class Dorf1Ctrl extends GameCtrl
             $movements['numIncomingTroops'] = 1;
         }
         if (empty($movements['inComingContent']) && empty($movements['outGoingContent'])) {
-            $this->dorf1View->vars['movements'] = '';
+            $this->overviewState['movements'] = '';
         } else {
-            $this->dorf1View->vars['movements'] = PHPBatchView::render("dorf1/movements", $movements);
+            $this->overviewState['movements'] = FluxView::render('components/movements', $movements);
         }
     }
 
