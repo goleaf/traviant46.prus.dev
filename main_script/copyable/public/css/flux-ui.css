@@ -1,0 +1,390 @@
+:root {
+    --flux-color-primary: #6366f1;
+    --flux-color-primary-strong: #4f46e5;
+    --flux-color-surface: rgba(15, 23, 42, 0.82);
+    --flux-color-surface-strong: rgba(15, 23, 42, 0.95);
+    --flux-color-border: rgba(99, 102, 241, 0.35);
+    --flux-color-text: #f8fafc;
+    --flux-color-muted: #94a3b8;
+    --flux-color-success: #22c55e;
+    --flux-color-warning: #f97316;
+    --flux-color-danger: #ef4444;
+    --flux-shadow-lg: 0 18px 40px -22px rgba(99, 102, 241, 0.65);
+}
+
+body.flux-enabled {
+    background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.14), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(59, 130, 246, 0.12), transparent 55%),
+        #0f172a;
+    color: var(--flux-color-text);
+    font-family: "Inter", "Segoe UI", sans-serif;
+    letter-spacing: 0.01em;
+}
+
+body.flux-enabled a {
+    color: #a5b4fc;
+}
+
+body.flux-enabled table {
+    color: inherit;
+}
+
+body.flux-enabled button {
+    font-family: inherit;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+body.flux-enabled button .button-container,
+body.flux-enabled button.flux-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    background: linear-gradient(135deg, var(--flux-color-primary) 0%, var(--flux-color-primary-strong) 100%);
+    border-radius: 999px;
+    padding: 0.6rem 1.6rem;
+    color: var(--flux-color-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    min-height: 2.5rem;
+    box-shadow: var(--flux-shadow-lg);
+    transition: transform 0.15s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+body.flux-enabled button .button-container:hover,
+body.flux-enabled button.flux-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -18px rgba(99, 102, 241, 0.8);
+}
+
+body.flux-enabled button .button-container:active,
+body.flux-enabled button.flux-button:active {
+    transform: translateY(1px);
+}
+
+body.flux-enabled button .button-background,
+body.flux-enabled button .buttonStart,
+body.flux-enabled button .buttonEnd,
+body.flux-enabled button .buttonMiddle {
+    display: none !important;
+}
+
+body.flux-enabled button .button-content {
+    color: inherit;
+}
+
+body.flux-enabled button.icon,
+body.flux-enabled button.icon .button-container {
+    background: rgba(15, 23, 42, 0.65);
+    box-shadow: none;
+    border-radius: 16px;
+    padding: 0.4rem 0.8rem;
+}
+
+body.flux-enabled .flux-form {
+    background: var(--flux-color-surface);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 18px 50px -30px rgba(15, 23, 42, 0.7);
+}
+
+body.flux-enabled .flux-form legend,
+body.flux-enabled .flux-form h2,
+body.flux-enabled .flux-form h3 {
+    color: var(--flux-color-text);
+    font-weight: 600;
+}
+
+body.flux-enabled .flux-input {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(15, 23, 42, 0.35);
+    color: var(--flux-color-text);
+    padding: 0.65rem 0.95rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+body.flux-enabled .flux-input::placeholder {
+    color: var(--flux-color-muted);
+}
+
+body.flux-enabled .flux-input:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.8);
+    background: rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+body.flux-enabled select.flux-input {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--flux-color-primary) 50%),
+        linear-gradient(135deg, var(--flux-color-primary) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 1.3rem, calc(100% - 15px) 1.3rem;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 2.5rem;
+}
+
+body.flux-enabled textarea.flux-input {
+    min-height: 120px;
+    resize: vertical;
+}
+
+body.flux-enabled label {
+    color: var(--flux-color-muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+body.flux-enabled #topBar {
+    background: linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(14, 165, 233, 0.15));
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 20px;
+    padding: 0.65rem 1.2rem;
+    box-shadow: 0 15px 45px -25px rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+}
+
+body.flux-enabled #topBar #logo svg path {
+    fill: #a5b4fc;
+}
+
+body.flux-enabled #topBar .playerName,
+body.flux-enabled #topBar .goldSilver {
+    background: rgba(15, 23, 42, 0.45);
+    border-radius: 14px;
+    padding: 0.5rem 0.9rem;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+body.flux-enabled .stockBarButton {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 14px;
+    padding: 0.55rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    transition: transform 0.15s ease, box-shadow 0.3s ease;
+}
+
+body.flux-enabled .stockBarButton .value {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--flux-color-text);
+}
+
+body.flux-enabled .stockBarButton .barBox {
+    background: rgba(148, 163, 184, 0.18);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+body.flux-enabled .stockBarButton .bar {
+    height: 6px;
+    border-radius: 999px;
+    transition: width 0.4s ease, background 0.4s ease;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(79, 70, 229, 0.8));
+}
+
+body.flux-enabled .stockBarButton.flux-resource-alert .value {
+    color: var(--flux-color-warning);
+}
+
+body.flux-enabled .stockBarButton.flux-resource-alert .bar {
+    background: linear-gradient(135deg, var(--flux-color-warning), #fb923c);
+}
+
+body.flux-enabled .stockBarButton.flux-resource-danger .value {
+    color: var(--flux-color-danger);
+}
+
+body.flux-enabled .stockBarButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px -24px rgba(79, 70, 229, 0.8);
+}
+
+body.flux-enabled .dialogOverlay {
+    background: rgba(10, 12, 25, 0.65);
+    backdrop-filter: blur(6px);
+}
+
+body.flux-enabled .flux-modal .dialog {
+    background: var(--flux-color-surface-strong);
+    border-radius: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 24px 80px -35px rgba(15, 23, 42, 0.95);
+}
+
+body.flux-enabled .flux-modal .dialogContents {
+    padding: 1.75rem;
+    color: var(--flux-color-text);
+}
+
+body.flux-enabled .flux-modal .dialogDragBar {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.6), rgba(59, 130, 246, 0.6));
+    height: 4px;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+}
+
+body.flux-enabled .flux-modal .title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+body.flux-enabled .flux-modal .buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+body.flux-enabled .flux-resource-ticker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.flux-toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.flux-toast {
+    pointer-events: auto;
+    min-width: 240px;
+    max-width: 320px;
+    padding: 0.9rem 1.1rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 25px 45px -28px rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--flux-color-text);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    animation: flux-toast-in 0.2s ease, flux-toast-out 0.35s ease 4.8s forwards;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.flux-toast::before {
+    content: "";
+    width: 6px;
+    border-radius: 6px;
+    background: var(--flux-color-primary);
+}
+
+.flux-toast--success::before {
+    background: var(--flux-color-success);
+}
+
+.flux-toast--warning::before {
+    background: var(--flux-color-warning);
+}
+
+.flux-toast--danger::before {
+    background: var(--flux-color-danger);
+}
+
+.flux-toast__title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.flux-toast__body {
+    font-size: 0.85rem;
+    color: var(--flux-color-muted);
+    line-height: 1.4;
+}
+
+.flux-toast__close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.65;
+    transition: opacity 0.2s ease;
+}
+
+.flux-toast__close:hover {
+    opacity: 1;
+}
+
+@keyframes flux-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes flux-toast-out {
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+}
+
+body.flux-enabled .timer {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--flux-color-primary);
+}
+
+body.flux-enabled .timer.timer--critical {
+    color: var(--flux-color-warning);
+}
+
+body.flux-enabled .timer.timer--finished {
+    color: var(--flux-color-success);
+}
+
+body.flux-enabled .goldSilver,
+body.flux-enabled .heroResources,
+body.flux-enabled .villageList .village {
+    background: rgba(15, 23, 42, 0.45);
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.08);
+}
+
+body.flux-enabled .villageList .village:hover {
+    background: rgba(99, 102, 241, 0.18);
+}
+
+body.flux-enabled .quest .questReward {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--flux-color-success);
+    border-radius: 12px;
+    padding: 0.4rem 0.7rem;
+}
+
+@media (max-width: 1024px) {
+    body.flux-enabled .flux-form {
+        padding: 1rem;
+    }
+    .flux-toast {
+        min-width: 200px;
+        max-width: calc(100% - 2.5rem);
+    }
+}

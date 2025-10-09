@@ -19,6 +19,8 @@ use Core\Helper\PreferencesHelper;
         <link href="https://gpack.example.com/29c89d54/mainPage/css/default_compressed.css" rel="stylesheet" type="text/css"/>
     <?php endif; ?>
 
+    <link href="css/flux-ui.css" rel="stylesheet" type="text/css"/>
+
 
 
 
@@ -34,7 +36,8 @@ use Core\Helper\PreferencesHelper;
 	<script type="text/javascript" src="js/default/ChartJs/Chart.min.js" data-cmp-info="2" data-cmp-ab="1"></script>
 	<script type="text/javascript" src="js/default/gsap/minified/TweenMax.min.js" data-cmp-info="2" data-cmp-ab="1"></script>
 	<script type="text/javascript" src="js/default/gsap/minified/plugins/MorphSVGPlugin.min.js" data-cmp-info="2" data-cmp-ab="1"></script>
-	<script type="text/javascript" src="js/Game/General/General.js" data-cmp-info="2" data-cmp-ab="1"></script>
+        <script type="text/javascript" src="js/Game/General/General.js" data-cmp-info="2" data-cmp-ab="1"></script>
+        <script type="text/javascript" src="js/flux/flux-ui.js" defer></script>
     <script type="text/javascript">
         <?php
         $data = [

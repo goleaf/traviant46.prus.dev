@@ -6,7 +6,7 @@ use Core\Helper\TimezoneHelper;
 
 ?>
 <?php require __DIR__ . "/head.php"; ?>
-<body class="v35 webkit blink chrome <?=get_locale();?> <?= Config::getProperty("settings", "global_css_class"); ?> <?= $vars['colorBlind'] ? 'colorBlind' : ''; ?> <?=$vars['bodyCssClass']; ?> <?= (getDirection() == 'RTL' ? 'rtl' : 'ltr'); ?> season-<?= detect_season(); ?> buildingsV3">
+<body class="v35 webkit blink chrome <?=get_locale();?> <?= Config::getProperty("settings", "global_css_class"); ?> <?= $vars['colorBlind'] ? 'colorBlind' : ''; ?> <?=$vars['bodyCssClass']; ?> <?= (getDirection() == 'RTL' ? 'rtl' : 'ltr'); ?> season-<?= detect_season(); ?> buildingsV3 flux-enabled">
 <div id="reactDialogWrapper"></div>
 <div id="background">
     <?php
@@ -164,6 +164,11 @@ use Core\Helper\TimezoneHelper;
                             "l2": <?=$vars['stockBar']['maxstore'];?>,
                             "l3": <?=$vars['stockBar']['maxstore'];?>,
                             "l4": <?=$vars['stockBar']['maxcrop'];?>
+                        };
+                        window.FluxResourceConfig = {
+                            production: Object.assign({}, resources.production),
+                            storage: Object.assign({}, resources.storage),
+                            maxStorage: Object.assign({}, resources.maxStorage)
                         };
                     </script>
                 <?php endif; ?>
