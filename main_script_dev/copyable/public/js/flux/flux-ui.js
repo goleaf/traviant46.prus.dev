@@ -163,8 +163,39 @@
         stylizeModals(root);
     };
 
-    function initialiseResourceElements() {
+    function readLatestResourceSnapshot() {
         const resources = window.FluxResourceConfig || window.resources;
+        if (!resources || !resources.production) {
+            return null;
+        }
+        const snapshot = {
+            production: {},
+            storage: {},
+            maxStorage: {},
+            freeCrop: resources.production.l5 !== undefined ? Number(resources.production.l5) : 0
+        };
+        ['l1', 'l2', 'l3', 'l4'].forEach(function (key) {
+            snapshot.production[key] = Number(resources.production[key] || 0);
+            snapshot.storage[key] = Number(resources.storage && resources.storage[key] !== undefined ? resources.storage[key] : resources[`l${key}`] || 0);
+            snapshot.maxStorage[key] = Number(resources.maxStorage && resources.maxStorage[key] !== undefined ? resources.maxStorage[key] : resources[`max${key}`] || 0);
+            if (Number.isNaN(snapshot.production[key])) {
+                snapshot.production[key] = 0;
+            }
+            if (Number.isNaN(snapshot.storage[key])) {
+                snapshot.storage[key] = 0;
+            }
+            if (Number.isNaN(snapshot.maxStorage[key])) {
+                snapshot.maxStorage[key] = 0;
+            }
+        });
+        if (Number.isNaN(snapshot.freeCrop)) {
+            snapshot.freeCrop = 0;
+        }
+        return snapshot;
+    }
+
+    function initialiseResourceElements() {
+        const snapshot = readLatestResourceSnapshot();
         const valueIds = ['l1', 'l2', 'l3', 'l4'];
         const elements = {};
         valueIds.forEach(function (id) {
@@ -184,23 +215,44 @@
                 value: freeCrop
             };
         }
-        if (!Object.keys(elements).length || !resources || !resources.production) {
+        if (!Object.keys(elements).length || !snapshot) {
             return null;
         }
-        const config = {
-            production: {},
-            storage: {},
-            maxStorage: {},
-            freeCrop: resources.production.l5 !== undefined ? Number(resources.production.l5) : 0
-        };
-        ['l1', 'l2', 'l3', 'l4'].forEach(function (key) {
-            config.production[key] = Number(resources.production[key] || 0);
-            config.storage[key] = Number(resources.storage && resources.storage[key] !== undefined ? resources.storage[key] : resources[`l${key}`] || 0);
-            config.maxStorage[key] = Number(resources.maxStorage && resources.maxStorage[key] !== undefined ? resources.maxStorage[key] : resources[`max${key}`] || 0);
-        });
-        state.resourceConfig = config;
+        state.resourceConfig = snapshot;
         state.resourceElements = elements;
-        return config;
+        if (elements.freeCrop && !Number.isNaN(snapshot.freeCrop)) {
+            elements.freeCrop.value.textContent = formatNumber(snapshot.freeCrop);
+            elements.freeCrop.value.setAttribute('data-flux-value', snapshot.freeCrop.toFixed(2));
+        }
+        return snapshot;
+    }
+
+    function refreshResourceSnapshot(config, current, elements) {
+        const latest = readLatestResourceSnapshot();
+        if (!latest) {
+            return;
+        }
+        ['l1', 'l2', 'l3', 'l4'].forEach(function (key) {
+            if (!Number.isNaN(latest.production[key])) {
+                config.production[key] = latest.production[key];
+            }
+            if (!Number.isNaN(latest.maxStorage[key])) {
+                config.maxStorage[key] = latest.maxStorage[key];
+            }
+            if (!Number.isNaN(latest.storage[key])) {
+                if (Math.abs(latest.storage[key] - (config.storage[key] || 0)) > 0.5) {
+                    current[key] = latest.storage[key];
+                }
+                config.storage[key] = latest.storage[key];
+            }
+        });
+        if (!Number.isNaN(latest.freeCrop)) {
+            config.freeCrop = latest.freeCrop;
+            if (elements.freeCrop && elements.freeCrop.value) {
+                elements.freeCrop.value.textContent = formatNumber(latest.freeCrop);
+                elements.freeCrop.value.setAttribute('data-flux-value', latest.freeCrop.toFixed(2));
+            }
+        }
     }
 
     function updateResourceToast(resourceKey, percent, production, amount) {
@@ -241,14 +293,12 @@
             l3: config.storage.l3,
             l4: config.storage.l4
         };
-        if (elements.freeCrop && !Number.isNaN(config.freeCrop)) {
-            elements.freeCrop.value.textContent = formatNumber(config.freeCrop);
-        }
         state.resourceLastTick = performance.now();
         state.resourceTicker = window.setInterval(function () {
             if (!document.body) {
                 return;
             }
+            refreshResourceSnapshot(config, current, elements);
             const now = performance.now();
             const deltaSeconds = Math.min(5, (now - (state.resourceLastTick || now)) / 1000);
             state.resourceLastTick = now;
