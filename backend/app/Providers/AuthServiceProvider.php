@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    protected $policies = [];
+    protected $policies = [
+        \App\Models\Village::class => \App\Policies\VillagePolicy::class,
+        \App\Models\Hero::class => \App\Policies\HeroPolicy::class,
+        \App\Models\Alliance::class => \App\Policies\AlliancePolicy::class,
+    ];
 
     public function boot(): void
     {
