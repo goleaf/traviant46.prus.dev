@@ -75,9 +75,9 @@ class Hero extends Model
     protected function power(): Attribute
     {
         return Attribute::get(function (): int {
-            $attributes = $this->attributes ?? [];
-            $base = (int) ($attributes['strength'] ?? 0);
-            $bonus = (int) ($attributes['offence_bonus'] ?? 0);
+            $stats = $this->getAttribute('attributes') ?? [];
+            $base = (int) ($stats['strength'] ?? 0);
+            $bonus = (int) ($stats['offence_bonus'] ?? 0);
 
             return $base + $bonus + ($this->level * 5);
         });
