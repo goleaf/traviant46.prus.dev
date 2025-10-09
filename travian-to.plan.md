@@ -91,6 +91,12 @@
 
 ---
 
+## Phase 0: Alignment & Inventory (Pre-Execution)
+
+- Finalize an authoritative inventory of legacy modules (controllers under `main_script/include/Controller`, services in `main_script/include/Game`, queue workers, templates) and map each artifact to its Laravel replacement. Capture the mappings and migration status in shared spreadsheets and/or ADR documents to preserve traceability.
+- Audit database dependencies currently used by the Laravel bridge code (including sitter-related columns and activation tables) to determine the schema updates that must land first for Eloquent parity.
+- Provide the whole backend team with a shared `backend/.env` file that points to a cloned production database so the legacy stack and Laravel share identical data during the transition.
+
 ## Phase 1: Foundation & Setup (Week 1-2)
 
 ### 1.1 Laravel Installation
