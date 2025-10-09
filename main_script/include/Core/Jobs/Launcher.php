@@ -2,13 +2,15 @@
 
 namespace Core\Jobs;
 
+use App\Jobs\BackupDatabase;
+use App\Jobs\CleanupInactivePlayers;
+use App\Jobs\ProcessAdventures;
+use App\Jobs\ProcessAuctions;
 use Core\Automation;
-use Model\AdventureModel;
 use Model\AuctionModel;
 use Model\AutoExtendModel;
 use Model\DailyQuestModel;
 use Model\FakeUserModel;
-use Model\inactiveModel;
 use Model\MedalsModel;
 use Model\NatarsModel;
 
@@ -45,7 +47,7 @@ class Launcher
             $jobs[] = new Job('marketComplete:marketComplete', 2, $job);
         }
         {
-            $job = [new AuctionModel(), 'doAuction'];
+            $job = [new ProcessAuctions(), 'handle'];
             $jobs[] = new Job('auctionComplete:doAuction', 5, $job);
         }
         {
@@ -154,7 +156,7 @@ class Launcher
     {
         $jobs = [];
         {
-            $job = [new AdventureModel(), 'checkForNewAdventures'];
+            $job = [new ProcessAdventures(), 'handle'];
             $jobs[] = new Job('routineJobs:checkForNewAdventures', 10, $job);
         }
         {
@@ -162,7 +164,7 @@ class Launcher
             $jobs[] = new Job('checkIndexFunctions:checkGameFinish', 30, $job);
         }
         {
-            $job = [new inactiveModel(), 'startWorker'];
+            $job = [new CleanupInactivePlayers(), 'handle'];
             $jobs[] = new Job('checkIndexFunctions:clearAndDeleting', 30, $job);
         }
         {
@@ -178,7 +180,7 @@ class Launcher
             $jobs[] = new Job('mayExitJobs:resetDailyGold', 45, $job);
         }
         {
-            $job = [Automation::getInstance(), 'backup'];
+            $job = [new BackupDatabase(), 'handle'];
             $jobs[] = new Job('mayExitJobs:backup', 360, $job);
         }
         new Job('routineJobs', 20, $jobs, TRUE);
