@@ -2,13 +2,14 @@
 
 namespace Core;
 
+use App\Jobs\ProcessBuildingCompletion;
+use App\Jobs\ProcessResearchCompletion;
 use Core\Database\DB;
 use Core\Database\GlobalDB;
 use Core\Helper\Mailer;
 use Core\Helper\Notification;
 use Exception;
 use Game\AllianceBonus\AllianceBonus;
-use Game\Buildings\BuildingAction;
 use Game\Formulas;
 use Game\NoticeHelper;
 use function logError;
@@ -23,7 +24,6 @@ use Model\FarmListModel;
 use Model\InfoBoxModel;
 use Model\MarketModel;
 use Model\MarketPlaceProcessor;
-use Model\MasterBuilder;
 use Model\MessageModel;
 use Model\Movements\AdventureProcessor;
 use Model\Movements\EvasionProcessor;
@@ -73,27 +73,7 @@ class Automation
 
     public function buildComplete()
     {
-        $db = DB::getInstance();
-        $m = new MasterBuilder();
-        $result = $db->query("SELECT * FROM building_upgrade WHERE commence<=" . (time()) . " ORDER BY commence ASC, id ASC LIMIT 100");
-        while ($row = $result->fetch_assoc()) {
-            if ($row['isMaster']) {
-                $m->process($row);
-            } else {
-                $db->query("DELETE FROM building_upgrade WHERE id={$row['id']}");
-                if ($db->affectedRows()) {
-                    BuildingAction::upgrade($row['kid'], $row['building_field']);
-                }
-            }
-        }
-        $db = DB::getInstance();
-        $result = $db->query("SELECT * FROM demolition WHERE end_time <= " . (time()) . " ORDER BY end_time ASC, id ASC LIMIT 50");
-        while ($row = $result->fetch_assoc()) {
-            $db->query("DELETE FROM demolition WHERE id={$row['id']}");
-            if ($db->affectedRows()) {
-                BuildingAction::downgrade($row['kid'], $row['building_field'], 1, $row['complete']);
-            }
-        }
+        (new ProcessBuildingCompletion())->handle();
     }
 
 
@@ -182,16 +162,7 @@ class Automation
 
     public function researchComplete()
     {
-        $db = DB::getInstance();
-        $result = $db->query("SELECT id, kid, nr, mode FROM research WHERE end_time <= " . (time()) . " ORDER BY end_time ASC, id ASC LIMIT 100");
-        while ($row = $result->fetch_assoc()) {
-            $db->query("DELETE FROM research WHERE id={$row['id']}");
-            if ($row['mode'] == 1) {
-                $db->query("UPDATE tdata SET u{$row['nr']}=1 WHERE kid={$row['kid']}");
-            } else {
-                $db->query("UPDATE smithy SET u{$row['nr']}=IF(u{$row['nr']}+1>20, 20, u{$row['nr']}+1) WHERE kid={$row['kid']}");
-            }
-        }
+        (new ProcessResearchCompletion())->handle();
     }
 
     public function trainingComplete()
