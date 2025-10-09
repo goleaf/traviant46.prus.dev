@@ -120,6 +120,75 @@
 - `ali_*` tables → `alliances`, `alliance_*` pattern
 - All game mechanics tables need proper relationships
 
+#### User/Auth Tables Detailed Redesign
+
+**Goals:** Align all authentication-related tables with Laravel's guard/session expectations, preserve legacy data, and prepare for Fortify- and Sanctum-based flows.
+
+**Shared Design Decisions:**
+- Use `bigIncrements`/`unsignedBigInteger` for primary and foreign keys.
+- Introduce `created_at`/`updated_at` everywhere (fall back to manual timestamps where the game stores UNIX times that must be preserved).
+- Replace integer flag columns with expressive booleans/enums when migrating Eloquent models, while keeping compatibility columns for backfill scripts.
+- Add cascading foreign keys referencing `users.id` to replace manual cleanup jobs.
+
+**Table-by-Table Plan:**
+
+- **`users`**
+  - *Purpose:* Primary player accounts, sitter relations, alliance membership metadata.
+  - *Issues:* Dozens of legacy INT columns storing timestamps, varchar CSV preferences, weak password storage (`VARCHAR(40)` for SHA1), no audit trail.
+  - *Redesign:*
+    - Core auth columns: `email`, `password`, `remember_token`, `email_verified_at`, `two_factor_secret` (Fortify), `banned_at`, `last_login_at` (as TIMESTAMPs).
+    - Move alliance- and sitter-specific data into dedicated tables (`alliance_user`, `user_sitters`) to normalize later; keep read-only compatibility columns temporarily.
+    - Introduce JSON columns for UI preferences (`display_preferences`, `report_filters`).
+    - Store gold/silver balances as unsigned integers with descriptive names (`gold_balance`, `silver_balance`).
+    - Migration strategy: create a new Laravel-aligned `users` table, import legacy data via migration script, keep raw columns in shadow tables for phased deprecation.
+
+- **`activation`**
+  - *Purpose:* Tracks activation codes and timers for new registrations.
+  - *Issues:* Duplicates email verification info stored in `activation_progress`; stores raw codes without expiry index.
+  - *Redesign:*
+    - Merge into `email_verifications` table with columns `user_id`, `token`, `expires_at`, `completed_at`, `ip_address`.
+    - Enforce unique constraint on `user_id` and `token`.
+    - Backfill existing rows by mapping `activation.code` → `token` and computing expiry from current UNIX timestamp fields.
+    - Decommission original table after all pending activations resolved.
+
+- **`login_handshake`**
+  - *Purpose:* Stores temporary hashes for “stay logged in” and sitter handshakes.
+  - *Issues:* No expiration, uses VARCHAR(40) tokens, lacks relation to devices.
+  - *Redesign:*
+    - Replace with `personal_access_tokens` (Laravel Sanctum) where `tokenable_id` references `users.id`.
+    - Introduce `expires_at`, `last_used_at`, and `ip_address` columns for audit.
+    - Provide migration script that copies valid handshakes into Sanctum tokens with generated 80-char secrets.
+
+- **`activation_progress`**
+  - *Purpose:* Temporary storage for email change/verification flow.
+  - *Issues:* No foreign keys, manual cleanup required, stores plaintext email/token pairs.
+  - *Redesign:*
+    - Fold into `email_verifications` (shared with activation above) with status enum (`pending`, `completed`, `expired`).
+    - Add `metadata` JSON column to capture IP, user agent, locale for security checks.
+    - Convert UNIX `time` column to TIMESTAMP; add automatic pruning job using `expires_at`.
+
+- **`deleting`**
+  - *Purpose:* Schedules account deletions with countdown timers.
+  - *Issues:* Uses `uid` without FK, stores `timestamp` integers, lacks reason tracking.
+  - *Redesign:*
+    - Rename to `account_deletions` with `user_id`, `initiated_at`, `scheduled_for`, `cancelled_at`, `reason`, `initiated_by_admin_id`.
+    - Add FK to `users.id` and `users` alias for admin actions.
+    - Provide soft delete column to track cancellations.
+
+- **`newproc`**
+  - *Purpose:* Flags users currently going through tutorial/activation processes.
+  - *Issues:* Essentially a status table with `uid`, `stage`, `started` integers.
+  - *Redesign:*
+    - Merge into `user_onboarding_states` with `user_id`, `current_stage`, `step_data` (JSON), `started_at`, `completed_at`.
+    - Replace game checks with Eloquent relationships and events.
+    - Backfill `stage` into `current_stage`; use JSON to store additional metrics now kept in scattered columns.
+
+**Implementation Checklist:**
+- Draft new Laravel migrations reflecting the redesign (using schema builder instead of raw SQL).
+- Write data-migration command to port legacy rows into the new structures while keeping IDs stable.
+- Update Fortify/Livewire flows to read/write from redesigned tables.
+- Decommission legacy tables after validation, leaving archival backups.
+
 ### 1.3 Migration Files Creation
 
 - Create ~70+ migration files following Laravel naming conventions
