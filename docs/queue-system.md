@@ -62,9 +62,10 @@ discoverable by the scheduler.
 ## Worker management
 
 Run the queue worker with `php artisan queue:work` (or
-`php artisan queue:work redis --queue=high,default`).  In production, supervise
-workers with a process manager such as Supervisor or systemd.  Use the Laravel
-horizon dashboard when Redis is available for additional monitoring.
+`php artisan queue:work redis --queue=high,default`).  In production, run these
+workers under Supervisor so they auto-restart and can be scaled horizontally.
+Use the Laravel Horizon dashboard when Redis is available for additional
+monitoring.
 
 ## Failure handling
 
