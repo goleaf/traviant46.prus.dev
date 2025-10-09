@@ -1,8 +1,8 @@
 <?php
 namespace Controller\Ajax\map;
 
+use App\Livewire\Map\MapView;
 use Controller\Ajax\AjaxBase;
-use Controller\KarteCtrl;
 use Model\MapModel;
 
 class info extends AjaxBase
@@ -10,9 +10,12 @@ class info extends AjaxBase
     public function dispatch()
     {
         $mapModel = new MapModel();
-        $this->response['elements' => [], 'blocks' => []];
+        $mapView = new MapView();
         $zoomLevel = isset($_POST['zoomLevel']) ? (int)$_POST['zoomLevel'] : 1;
-        KarteCtrl::getAttackReinforceOtherElements($this->response['data']);
+        $this->response['data'] = [
+            'elements' => $mapView->getMovementAndReinforcementElements(),
+            'blocks' => [],
+        ];
         foreach ($_POST['data'] as $block) {
             if (!isset($block['position']['x0'])) continue;
             $tx0 = $block['position']['x0'];
@@ -25,7 +28,7 @@ class info extends AjaxBase
             } else {
                 $version = $block[1];
             }
-            $this->response['blocks'][$tx0][$ty0][$tx1][$ty1]['version'] = (int)$version;
+            $this->response['data']['blocks'][$tx0][$ty0][$tx1][$ty1]['version'] = (int)$version;
         }
     }
 }

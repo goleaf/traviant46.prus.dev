@@ -78,6 +78,13 @@ class MapView
         ];
     }
 
+    public function getMovementAndReinforcementElements(): array
+    {
+        $result = ['elements' => []];
+        $this->appendMovementAndReinforcementElements($result);
+        return $result['elements'];
+    }
+
     private function resolveMapMarkSettings(Session $session): array
     {
         $raw = explode(',', $session->getMapSettings());
