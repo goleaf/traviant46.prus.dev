@@ -17,7 +17,15 @@ enjoy if anyone does want instructions to insstall figure it out and make a pull
 this is a fan made recreation and not a part of any offical trvian company source etc etc.
 
 
-search for 
+search for
 YOUR_DOMAIN
 USERNAME_HERE
 REDACTED
+
+### 8.3 Testing
+
+- Unit tests for game formulas
+- Feature tests for critical flows (battle, building, trading)
+- Integration tests for job system
+- Load testing for concurrent users
+- Test all 5 tribes (Romans, Teutons, Gauls, Egyptians, Huns)
