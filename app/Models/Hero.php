@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Hero extends Model
 {
@@ -65,6 +67,31 @@ class Hero extends Model
     public function homeVillage(): BelongsTo
     {
         return $this->belongsTo(Village::class, 'home_village_id');
+    }
+
+    public function face(): HasOne
+    {
+        return $this->hasOne(HeroFace::class);
+    }
+
+    public function inventory(): HasOne
+    {
+        return $this->hasOne(HeroInventory::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(HeroItem::class);
+    }
+
+    public function adventures(): HasMany
+    {
+        return $this->hasMany(HeroAdventure::class);
+    }
+
+    public function accountEntries(): HasMany
+    {
+        return $this->hasMany(HeroAccountEntry::class);
     }
 
     protected function isAlive(): Attribute
