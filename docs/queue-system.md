@@ -1,88 +1,68 @@
-# Queue and Scheduler Architecture
+# Background task and scheduler overview
 
-This document describes the new background processing system that moves the
-project to Laravel's native queue and scheduler tooling.  The goal is to
-standardise all background work, replace ad-hoc cron jobs, and provide a
-single place to monitor long-running tasks.
+This project does **not** use Laravel's queue features. Instead, background
+work is coordinated by the custom TaskWorker that ships with the repository.
+The worker polls the MySQL `taskQueue` table for pending tasks and executes
+them through the provisioning logic found under `TaskWorker/include/Core`.
 
-## Queue driver
+The components involved are:
 
-Laravel's queue configuration (`config/queue.php`) should be updated so that
-the default connection uses either the database or Redis driver:
+- **Task queue database table** – Each entry in `taskQueue` represents a unit
+  of work created by the control panel. New rows default to the `pending`
+  status until processed by the worker, which will mark them as either `done`
+  or `failed`.
+- **Task worker service** – `TaskWorker/runTasks.php` boots the framework,
+  connects to the global database configured in `globalConfig.php`, and loops
+  forever. Every five seconds it selects pending tasks, instantiates
+  `Core\Task`, and forwards the work to `Core\ServerManager`.
+- **Server actions** – `ServerManager` implements the concrete task handlers
+  for job types such as `install`, `uninstall`, `flushTokens`,
+  `restart-engine`, `start-engine`, and `stop-engine`.
+- **Maintenance cron** – The `Manager/sync.sh` helper installs a cron entry
+  that runs `travian --cron` daily. The cron mode performs housekeeping by
+  deleting leftover archive files under `/travian` and `/home`.
 
-- **Database driver** – creates a `jobs` table for queued work and a
-  `failed_jobs` table for failures.  Run `php artisan queue:table` followed by
-  `php artisan migrate` to create the schema.
-- **Redis driver** – requires the `redis` PHP extension and a running Redis
-  instance.  Configure the connection in `config/database.php` and set
-  `QUEUE_CONNECTION=redis` in the environment.
+## Installing the worker
 
-Both drivers are supported so environments without Redis can fall back to the
-database queue while production can take advantage of Redis' performance.
+Deployment is driven by `Manager/sync.sh`. Running
 
-## Job classes
-
-Each background task is implemented as a dedicated job class stored in
-`app/Jobs`.  Jobs encapsulate the work that needs to be executed, keep the
-`handle()` method small, and expose any dependencies through constructor
-injection.  Create a new class with `php artisan make:job ExampleJob` and move
-existing logic from legacy scripts into the job's `handle()` method.
-
-To dispatch work, call the job's static `dispatch()` helper from controllers,
-commands, or services:
-
-```php
-ExampleJob::dispatch($payload)->onQueue('high');
+```bash
+sudo ./Manager/sync.sh --install
 ```
 
-Use queue names to separate critical work from low-priority tasks.
+(from the project root) links the packaged systemd unit files in
+`services/main` and ensures the TaskWorker script is executable. The critical
+unit is `TravianTaskWorker.service`, which launches the PHP worker located at
+`/travian/TaskWorker/runTasks.php` and restarts it automatically if it exits.
 
-## Scheduled tasks
+After installation the usual systemd commands can be used to control the
+worker:
 
-All recurring background work should be defined in `app/Console/Kernel.php`'s
-`schedule()` method.  Replace crontab entries with scheduler definitions that
-invoke queued jobs or artisan commands:
-
-```php
-protected function schedule(Schedule $schedule): void
-{
-    $schedule->job(new ProcessExpiredAuctionsJob())
-        ->name('process-expired-auctions')
-        ->everyTenMinutes();
-
-    $schedule->command('reports:generate --type=daily')
-        ->withoutOverlapping()
-        ->dailyAt('01:00');
-}
+```bash
+sudo systemctl status TravianTaskWorker.service
+sudo systemctl restart TravianTaskWorker.service
 ```
 
-Register any custom artisan commands under `app/Console/Kernel.php` so they are
-discoverable by the scheduler.
+Running the service is required for any background provisioning tasks to
+complete.
 
-## Worker management
+## Adding new task types
 
-Run the queue worker with `php artisan queue:work` (or
-`php artisan queue:work redis --queue=high,default`).  In production, supervise
-workers with a process manager such as Supervisor or systemd.  Use the Laravel
-horizon dashboard when Redis is available for additional monitoring.
+1. Insert pending rows into the `taskQueue` table with the desired `type`,
+   JSON `data`, and optional description. The worker processes tasks in the
+   order they appear in the table.
+2. Extend `Core\\ServerManager` with a method that handles the new `type` and
+   updates the task via `setAsCompleted()` or `setAsFailed()`.
+3. Update the `switch` statement inside `TaskWorker/runTasks.php` so the new
+   type is routed to the method you created.
 
-## Failure handling
+The worker automatically picks up the new type the next time it polls the
+queue; no additional configuration is required.
 
-Configure the `failed` queue connection in `config/queue.php` so failed jobs are
-logged to the database.  Implement the `failed()` method on job classes when the
-application needs to react to permanent failures (for example, to alert on a
-critical task).
+## Housekeeping and scheduling
 
-## Environment variables
-
-Add the following keys to `.env` to support the queue and scheduler:
-
-```
-QUEUE_CONNECTION=database
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-```
-
-Update deployment documentation so that migrations run and the queue worker is
-started after each release.
+The cron entry installed by `Manager/sync.sh` invokes `travian --cron` daily at
+midnight. This mode only performs maintenance (removing stale archives) and
+runs independently from the task queue. Additional recurring jobs should be
+implemented as new cron modes inside `sync.sh` so that they can share the same
+operational path.

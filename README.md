@@ -8,9 +8,10 @@ redis php extension
 
 ## Background processing
 
-Background jobs and scheduled tasks are handled through Laravel's queue and
-scheduler tooling.  See [docs/queue-system.md](docs/queue-system.md) for the
-architecture and deployment requirements.
+Background jobs and scheduled tasks are handled by the bundled TaskWorker and
+its accompanying systemd service. See
+[docs/queue-system.md](docs/queue-system.md) for the architecture and
+deployment requirements.
 
 everything is here to install and setup servers
 all generic domain has example.com feel free to replace to your domain
