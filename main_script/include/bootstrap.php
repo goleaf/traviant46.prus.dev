@@ -33,33 +33,86 @@ if (!property_exists($config, 'db')) {
     die("Installation is not completed.");
 }
 $db = DB::getInstance();
+
+function initialize_world_config(DB $db)
+{
+    $columns = $db->query('SHOW COLUMNS FROM config');
+    if ($columns === false) {
+        logError('Unable to fetch config table structure.');
+        return false;
+    }
+    $fields = [];
+    while ($column = $columns->fetch_assoc()) {
+        if ($column['Field'] === 'id' && strpos($column['Extra'] ?? '', 'auto_increment') !== false) {
+            continue;
+        }
+        if ($column['Default'] !== null) {
+            $fields[$column['Field']] = $column['Default'];
+            continue;
+        }
+        if (preg_match('/int|decimal|double|float|real|bit/i', $column['Type'])) {
+            $fields[$column['Field']] = 0;
+            continue;
+        }
+        $fields[$column['Field']] = '';
+    }
+    if (!$fields) {
+        logError('Config table has no writable columns.');
+        return false;
+    }
+    $fieldNames = '`' . implode('`,`', array_keys($fields)) . '`';
+    $values = [];
+    foreach ($fields as $value) {
+        $values[] = "'" . $db->real_escape_string((string)$value) . "'";
+    }
+    $query = sprintf('INSERT INTO config (%s) VALUES (%s)', $fieldNames, implode(',', $values));
+    if ($db->query($query) === false) {
+        logError('Failed to auto-create config row.');
+        return false;
+    }
+    return true;
+}
+
+function fetch_world_config(DB $db)
+{
+    $result = $db->query('SELECT * FROM config');
+    if ($result === false) {
+        $error = ($db->mysqli instanceof \mysqli) ? $db->mysqli->error : '';
+        logError('Failed to fetch config row: ' . $error);
+        return false;
+    }
+    if (!$result->num_rows) {
+        if (!initialize_world_config($db)) {
+            logError('No config row found.');
+            return false;
+        }
+        $result = $db->query('SELECT * FROM config');
+        if ($result === false || !$result->num_rows) {
+            $error = ($db->mysqli instanceof \mysqli) ? $db->mysqli->error : '';
+            logError('Failed to fetch config row after initialization: ' . $error);
+            return false;
+        }
+    }
+    return $result->fetch_assoc();
+}
+
 {
     $result = null;
     if (php_sapi_name() == 'cli') {
-        $result = $db->query("SELECT * FROM config");
-        if ($result === false) {
-            logError("Failed to fetch config row: " . $db->error);
+        $row = fetch_world_config($db);
+        if ($row === false) {
             exit("We are having issues, please try again in a moment. E1");
         }
-        if (!$result->num_rows) {
-            logError("No config row found.");
-            exit("We are having issues, please try again in a moment. E1");
-        }
-        $config->dynamic = (object)$result->fetch_assoc();
+        $config->dynamic = (object)$row;
     } else {
         if (($_cache = $cache->get("WorldConfig"))) {
             $config->dynamic = $_cache;
         } else {
-            $result = $db->query("SELECT * FROM config");
-            if ($result === false) {
-                logError("Failed to fetch config row: " . $db->error);
+            $row = fetch_world_config($db);
+            if ($row === false) {
                 exit("We are having issues, please try again in a moment. E1");
             }
-            if (!$result->num_rows) {
-                logError("No config row found.");
-                exit("We are having issues, please try again in a moment. E1");
-            }
-            $config->dynamic = (object)$result->fetch_assoc();
+            $config->dynamic = (object)$row;
             $cache->set('WorldConfig', $config->dynamic, 300);
         }
     }
