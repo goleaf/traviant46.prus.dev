@@ -200,16 +200,32 @@ class Automation
         $training = new TrainingModel();
         $delay = 0;
         $time = getGame("useNanoseconds") ? (nanoseconds() - $delay * 1e9) : (getGame("useMilSeconds") ? (miliseconds() - $delay * 1000) : (time() - $delay));
-        $immediate_train = implode(",", [9, 10, 11]);
-        $result = $db->query("SELECT * FROM training WHERE nr IN($immediate_train) AND commence < $time LIMIT 100");
-        while ($row = $result->fetch_assoc()) {
-            $training->handleTrainingCompleteResult($row);
-        }
+        $immediateTrain = [9, 10, 11];
+        $this->processTroopTraining($db, $training, $immediateTrain, $time, TRUE);
         if (getGameSpeed() > 20) {
             $delay = min(max(0, floor(getGameSpeed() / 1000) * 5), 30);
         }
         $time = getGame("useNanoseconds") ? (nanoseconds() - $delay * 1e9) : (getGame("useMilSeconds") ? (miliseconds() - $delay * 1000) : (time() - $delay));
-        $result = $db->query("SELECT * FROM training WHERE nr NOT IN($immediate_train) AND commence < $time LIMIT 100");
+        $this->processTroopTraining($db, $training, $immediateTrain, $time, FALSE);
+    }
+
+    private function processTroopTraining(DB $db, TrainingModel $training, array $unitIds, $time, $include = TRUE, $limit = 100)
+    {
+        $limit = max(1, (int)$limit);
+        $time = (int)$time;
+        $unitIds = array_map('intval', $unitIds);
+        $unitIds = array_values(array_filter($unitIds, function ($id) {
+            return $id > 0;
+        }));
+        if (empty($unitIds) && $include) {
+            return;
+        }
+        if (empty($unitIds)) {
+            $condition = '1';
+        } else {
+            $condition = sprintf('nr %s(%s)', $include ? 'IN' : 'NOT IN', implode(',', $unitIds));
+        }
+        $result = $db->query("SELECT * FROM training WHERE {$condition} AND commence < {$time} LIMIT {$limit}");
         while ($row = $result->fetch_assoc()) {
             $training->handleTrainingCompleteResult($row);
         }
