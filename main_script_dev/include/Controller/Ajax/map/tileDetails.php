@@ -36,33 +36,28 @@ class tileDetails extends AjaxBase
         if (!Session::getInstance()->isValid()) {
             return;
         }
-        $x = Formulas::coordinateFixer($_POST['x']);
-        $y = Formulas::coordinateFixer($_POST['y']);
-        $m = new KarteModel();
-        $tile = $m->getMapTileByCoordinates($x, $y);
-        if ($tile['landscape']) {
-            $this->response['html'] = $this->dispatchLandscape($tile, FALSE);
-        } else if ($tile['oasistype']) {
-            $this->response['html'] = $this->dispatchOasis($tile, FALSE);
-        } else {
-            $this->response['html'] = $this->dispatchField($tile, FALSE);
-        }
+        $this->response['html'] = $this->renderForCoordinates($_POST['x'], $_POST['y'], TRUE);
     }
 
     public function render($x, $y)
+    {
+        return $this->renderForCoordinates($x, $y, FALSE);
+    }
+
+    public function renderForCoordinates($x, $y, $asAjax = FALSE)
     {
         $m = new KarteModel();
         $x = Formulas::coordinateFixer($x);
         $y = Formulas::coordinateFixer($y);
         $tile = $m->getMapTileByCoordinates($x, $y);
+        $noCoordinateText = !$asAjax;
         if ($tile['landscape']) {
-            $HTML = $this->dispatchLandscape($tile, TRUE);
+            return $this->dispatchLandscape($tile, $noCoordinateText);
         } else if ($tile['oasistype']) {
-            $HTML = $this->dispatchOasis($tile, TRUE);
+            return $this->dispatchOasis($tile, $noCoordinateText);
         } else {
-            $HTML = $this->dispatchField($tile, TRUE);
+            return $this->dispatchField($tile, $noCoordinateText);
         }
-        return $HTML;
     }
 
     private function dispatchField($tile, $noCoordinateText)
