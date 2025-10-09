@@ -21,8 +21,8 @@ class layoutButton extends AjaxBase
 		if (!Session::getInstance()->isValid()) {
             return;
         }
-        $boxId = filter_var($_POST['boxId'], FILTER_SANITIZE_STRING);
-        $buttonId = filter_var($_POST['buttonId'], FILTER_SANITIZE_STRING);
+        $boxId = \sanitize_string($_POST['boxId']);
+        $buttonId = \sanitize_string($_POST['buttonId']);
         if ($boxId === 'hero') {
             if ($buttonId === 'adventure') {
                 $this->response['result'] = FALSE;

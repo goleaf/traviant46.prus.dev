@@ -19,7 +19,7 @@ class recipients extends AjaxBase
         $languages = array();
         $db = DB::getInstance();
 		foreach($_POST['recipients'] as $search){
-			$search = $db->real_escape_string(filter_var(htmlspecialchars($search, ENT_QUOTES), FILTER_SANITIZE_STRING));
+			$search = $db->real_escape_string(\sanitize_string(htmlspecialchars($search, ENT_QUOTES)));
 			$players = $db->query("SELECT countryFlag FROM users WHERE name = '{$search}' LIMIT " . self::AUTO_COMPLETE_LIMIT);
 			while ($row = $players->fetch_assoc()) {
 				$languages[] = '<div class="flags"><img src="img/x.gif" class="flag_'.$row['countryFlag'].'" title="'.$row['countryFlag'].'" alt="'.$row['countryFlag'].'"></div>';

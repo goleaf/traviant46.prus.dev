@@ -71,7 +71,7 @@ class HeroAuctionCtrl extends GameCtrl
         $canTakePlaceInAuction = Session::getInstance()->getSuccessAdventuresCount() >= 10;
       
         $action = !isset($_REQUEST['action']) || !in_array($_REQUEST['action'],
-            ['buy', 'sell', 'bids', 'accounting',]) ? 'buy' : filter_var($_REQUEST['action'], FILTER_SANITIZE_STRING);
+            ['buy', 'sell', 'bids', 'accounting',]) ? 'buy' : \sanitize_string($_REQUEST['action']);
         //adding menus.
         $view = new PHPBatchView("hero/AuctionMenu");
         $view->vars['action'] = $action;

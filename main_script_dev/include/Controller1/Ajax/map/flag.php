@@ -26,7 +26,7 @@ class flag extends AjaxBase
     }
 	
 	public function performDelete($data){
-		$owner = filter_var(data['owner'], FILTER_SANITIZE_STRING);
+		$owner = \sanitize_string(data['owner']);
         $dataId = (int)$data['dataId'];
         $db = DB::getInstance();
         if ($owner == 'alliance' && !Session::getInstance()->hasAlliancePermission(AllianceModel::MANAGE_MARKS)) {
@@ -78,7 +78,7 @@ class flag extends AjaxBase
             $this->response['message'] = T("map", "colour_does_not_exists");
             return;
         }
-        $data['text'] = isset($data['text']) ? filter_var($data['text'], FILTER_SANITIZE_STRING) : '';
+        $data['text'] = isset($data['text']) ? \sanitize_string($data['text']) : '';
         if($data['text'] == "") {
             $this->response['error'] = TRUE;
             $this->response['message'] = T("map", "please_resend_all_data");
@@ -121,7 +121,7 @@ class flag extends AjaxBase
 		$dataId = $data['dataId'];
 		$index = $data['index'];
 		$owner = $data['owner'];
-		$text = filter_var($data['text'], FILTER_SANITIZE_STRING);
+		$text = \sanitize_string($data['text']);
 		if($index < ($data['owner'] == 'player' ? 0 : 10) || $index > ($data['owner'] == 'player' ? 10 : 20)) {
 			$this->response['error'] = TRUE;
 			$this->response['message'] = T("map", "colour_does_not_exists");

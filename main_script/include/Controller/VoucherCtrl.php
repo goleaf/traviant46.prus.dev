@@ -82,8 +82,7 @@ class VoucherCtrl extends GameCtrl
                     }
                 }
             } else if (isset($_GET['voucherCode']) && isset($_GET['c']) && $_GET['c'] == Session::getInstance()->getChecker()) {
-                $voucherCode = filter_var(strip_tags(htmlspecialchars($_GET['voucherCode'], ENT_QUOTES)),
-                    FILTER_SANITIZE_STRING);
+                $voucherCode = \sanitize_string(strip_tags(htmlspecialchars($_GET['voucherCode'], ENT_QUOTES)));
                 $voucherDetails = Voucher::getVoucherWithCode($voucherCode, Session::getInstance()->getEmail());
                 if ($voucherDetails->num_rows) {
                     $voucherDetails = $voucherDetails->fetch_assoc();

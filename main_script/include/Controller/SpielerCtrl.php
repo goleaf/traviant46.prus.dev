@@ -98,7 +98,7 @@ class SpielerCtrl extends GameCtrl
                     $this->selectedPlayerData['showCountryFlag'] = isset($_POST['showCountryFlag']) && (int)$_POST['showCountryFlag'] == 1 && $this->serverIsPromoted ? 1 : 0;
                     foreach ($_POST['dname'] as $kid => $name) {
                         $name = str_replace("'", '`', $name);
-                        $name = filter_var($name, FILTER_SANITIZE_STRING);
+                        $name = \sanitize_string($name);
                         if (empty($name)) {
                             continue;
                         }

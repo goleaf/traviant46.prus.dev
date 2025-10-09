@@ -5,6 +5,26 @@ namespace Controller;
 use Core\Session;
 use const DIRECTORY_SEPARATOR;
 
+if (!function_exists('sanitize_string')) {
+    function sanitize_string($value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if (is_bool($value)) {
+            $value = $value ? '1' : '';
+        } elseif (!is_scalar($value)) {
+            $value = '';
+        }
+        $value = strip_tags((string)$value);
+        $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        if ($sanitized === null) {
+            return '';
+        }
+        return $sanitized;
+    }
+}
+
 function response($response)
 {
     header("Content-Type: application/json; charset=UTF-8;");
@@ -22,7 +42,7 @@ class AjaxCtrl extends AnyCtrl
         parent::__construct();
         $response = ["response" => ['error' => FALSE, 'errorMsg' => NULL, 'data' => [],],];
         if (isset($_GET['cmd'])) {
-            $cmd = filter_var($_GET['cmd'], FILTER_SANITIZE_STRING);
+            $cmd = \sanitize_string($_GET['cmd']);
             $response = ["response" => ['error' => FALSE, 'errorMsg' => NULL, 'data' => [],],];
 			if(strpos($cmd,'-')!=false){
 				$tmp = explode('-',$cmd);
@@ -54,8 +74,7 @@ class AjaxCtrl extends AnyCtrl
     function checkAjaxToken(&$response)
     {
         return true;
-        if (!isset($_POST['ajaxToken']) || filter_var($_POST['ajaxToken'],
-                FILTER_SANITIZE_STRING) != $this->session->getAjaxToken()) {
+        if (!isset($_POST['ajaxToken']) || \sanitize_string($_POST['ajaxToken']) != $this->session->getAjaxToken()) {
             $response['ajaxToken'] = NULL;
             $response['response']['error'] = TRUE;
             $response['response']['errorMsg'] = 'Invalid token.';

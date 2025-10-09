@@ -27,7 +27,7 @@ class multiMark extends AjaxBase
 	}
 	
 	public function performDelete($data){
-		$owner = filter_var(data['owner'], FILTER_SANITIZE_STRING);
+		$owner = \sanitize_string(data['owner']);
         $dataId = (int)$data['dataId'];
         $db = DB::getInstance();
         if ($owner == 'alliance' && !Session::getInstance()->hasAlliancePermission(AllianceModel::MANAGE_MARKS)) {
@@ -125,7 +125,7 @@ class multiMark extends AjaxBase
             $this->response['markId'] = $kid;
             $this->response['owner'] = $owner;
             $this->response['position'] = $kid;
-            $this->response['text'] = filter_var($targetName, FILTER_SANITIZE_STRING);
+            $this->response['text'] = \sanitize_string($targetName);
 			$this->response['result'] = TRUE;
             if ($owner == 'alliance') {
                 Map::removeMapCacheForAlliance(Session::getInstance()->getAllianceId(), $type, $targetId);

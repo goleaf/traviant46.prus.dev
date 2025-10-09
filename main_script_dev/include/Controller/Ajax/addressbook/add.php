@@ -17,7 +17,7 @@ class add extends addressbook
             $total = 20 - $m->getTotalFriendListCount(Session::getInstance()->getPlayerId());
             for ($i = 0; $i <= 19; ++$i) {
                 if (!empty($_POST['friend'][$i]) && $total) {
-					$name = filter_var($_POST['friend'][$i], FILTER_SANITIZE_STRING);
+					$name = \sanitize_string($_POST['friend'][$i]);
                     $uid = $m->getPlayerIdByName($name);
                     if ($uid !== FALSE && $uid != Session::getInstance()->getPlayerId() && !$m->isPlayerInFriendList($uid)) {
                         $m->addFriendList(Session::getInstance()->getPlayerId(), $uid);

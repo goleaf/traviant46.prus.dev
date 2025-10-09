@@ -12,7 +12,7 @@
 	<div class="playerName"><?=$vars['playerName']; ?></div>
 	<div id="villageName" class="boxTitle editable">
 	   <form>
-		  <input class="villageInput" type="text" maxlength="20" name="villageName" value="<?=filter_var($vars['villageName'], FILTER_SANITIZE_STRING); ?>">
+		  <input class="villageInput" type="text" maxlength="20" name="villageName" value="<?=\sanitize_string($vars['villageName']); ?>">
 		  <svg viewBox="0 0 12.79 18.77" class="rename">
 			 <path d="M4 15.61l1.68.9L.8 18.77 0 13.42l1.75.95zm8.25-13.39L8.36.12A1 1 0 0 0 7 .55L1.19 11.22a1 1 0 0 0 .42 1.41l3.89 2.1a1.05 1.05 0 0 0 1.41-.42l5.76-10.68a1 1 0 0 0-.42-1.41z"></path>
 		  </svg>
