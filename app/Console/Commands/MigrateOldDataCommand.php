@@ -207,7 +207,26 @@ class MigrateOldDataCommand extends Command
             return;
         }
 
+        if (empty($uniqueKey)) {
+            throw new RuntimeException(sprintf(
+                'Cannot migrate %s: no unique key columns were resolved for the target table.',
+                $table,
+            ));
+        }
+
         foreach ($payload as $row) {
+            $missingColumns = array_values(array_filter($uniqueKey, static function (string $column) use ($row) {
+                return ! array_key_exists($column, $row);
+            }));
+
+            if (! empty($missingColumns)) {
+                throw new RuntimeException(sprintf(
+                    'Cannot migrate %s: missing unique key column(s) [%s] in the mapped payload.',
+                    $table,
+                    implode(', ', $missingColumns),
+                ));
+            }
+
             $attributes = Arr::only($row, $uniqueKey);
             $values = Arr::except($row, $uniqueKey);
 
