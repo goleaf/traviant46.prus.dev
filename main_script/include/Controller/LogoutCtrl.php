@@ -2,18 +2,21 @@
 
 namespace Controller;
 
+use Auth\Session\SessionManager;
 use Core\Session;
-use Core\Locale;
 use resources\View\OutOfGameView;
 use resources\View\PHPBatchView;
 
 class LogoutCtrl extends OutOfGameCtrl
 {
+    private $sessionManager;
+
     public function __construct()
     {
         if (!Session::getInstance()->isValid()) {
             $this->innerRedirect("LoginCtrl");
         }
+        $this->sessionManager = new SessionManager();
         $this->view = new OutOfGameView();
         $this->view->vars['titleInHeader'] = T("Logout", "Logout");
         $this->view->vars['bodyCssClass'] = 'perspectiveBuildings';
@@ -24,8 +27,8 @@ class LogoutCtrl extends OutOfGameCtrl
                 'username' => Session::getInstance()->getName(),
                 'lowRes'   => isset($_COOKIE['lowRes']) && $_COOKIE['lowRes'] == 1 ? 1 : 0,
             ]);
-        if (!Session::getInstance()->logout()) {
+        if (!$this->sessionManager->logout()) {
             $this->redirect('dorf1.php');
         }
     }
-} 
+}
