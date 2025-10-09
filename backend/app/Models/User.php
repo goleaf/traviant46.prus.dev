@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -79,6 +80,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(User::class, 'sitter_assignments', 'sitter_id', 'account_id')
             ->withPivot(['permissions', 'expires_at'])
             ->withTimestamps();
+    }
+
+    public function player(): HasOne
+    {
+        return $this->hasOne(Player::class);
     }
 
     public function isAdmin(): bool

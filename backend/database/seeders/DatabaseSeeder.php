@@ -40,5 +40,9 @@ class DatabaseSeeder extends Seeder
 
         $player->sitters()->attach($admin->id);
         $player->sitters()->attach($multihunter->id);
+
+        $this->call([
+            GameplayMetadataSeeder::class,
+        ]);
     }
 }
