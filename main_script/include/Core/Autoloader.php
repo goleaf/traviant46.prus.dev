@@ -13,9 +13,24 @@ class Autoloder
 
     public static function autoload($className)
     {
-        if(class_exists($className)) {
+        if (class_exists($className, false) || interface_exists($className, false) || trait_exists($className, false)) {
             return TRUE;
         }
+
+        if (strpos($className, 'App\\Http\\Controllers\\Admin\\') === 0) {
+            $legacyClass = substr($className, strlen('App\\Http\\Controllers\\Admin\\'));
+            $legacyPath = ROOT_PATH . 'include' . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'include' . DIRECTORY_SEPARATOR . 'Controllers' . DIRECTORY_SEPARATOR . $legacyClass . '.php';
+            if (is_file($legacyPath)) {
+                require_once $legacyPath;
+                if (!class_exists($className, false) && class_exists($legacyClass, false)) {
+                    class_alias($legacyClass, $className);
+                }
+                if (class_exists($className, false)) {
+                    return TRUE;
+                }
+            }
+        }
+
         $fullpath = self::getFullPath($className);
         if(is_file($fullpath)) {
             require($fullpath);
