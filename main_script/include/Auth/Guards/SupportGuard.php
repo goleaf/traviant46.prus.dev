@@ -55,7 +55,7 @@ class SupportGuard
         if (empty($password)) {
             return false;
         }
-        if ($hash !== null && $hash !== sha1($password)) {
+        if ($hash === null || $hash !== sha1($password)) {
             return false;
         }
         Session::getInstance()->login($uid, $name, $password);
