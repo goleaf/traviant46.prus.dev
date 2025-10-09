@@ -11,6 +11,26 @@ use Core\Session;
 use Model\DailyQuestModel;
 use Model\Quest;
 
+if (!function_exists('sanitize_string')) {
+    function sanitize_string($value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if (is_bool($value)) {
+            $value = $value ? '1' : '';
+        } elseif (!is_scalar($value)) {
+            $value = '';
+        }
+        $value = strip_tags((string)$value);
+        $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        if ($sanitized === null) {
+            return '';
+        }
+        return $sanitized;
+    }
+}
+
 function imagecreatetransparent($width, $height)
 {
     $block = imagecreatetruecolor($width, $height);

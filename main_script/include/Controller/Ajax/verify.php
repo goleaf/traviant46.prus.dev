@@ -6,7 +6,6 @@ use Core\Database\DB;
 use Core\Session;
 use Game\EmailVerification;
 use const FILTER_SANITIZE_EMAIL;
-use const FILTER_SANITIZE_STRING;
 
 class verify extends AjaxBase
 {
@@ -84,7 +83,7 @@ class verify extends AjaxBase
             return;
         }
         if (isset($_REQUEST['code'])) {
-            $code = filter_var($_REQUEST['code'], FILTER_SANITIZE_STRING);
+            $code = \sanitize_string($_REQUEST['code']);
             if (empty($code)) {
                 $this->setError("emptyCode");
             } else {

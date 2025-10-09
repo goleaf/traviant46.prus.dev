@@ -18,12 +18,12 @@ class playername extends AjaxBase
         $db = DB::getInstance();
         if (is_array($_POST['search'])) {
             foreach ($_POST['search'] as $str) {
-                $str = $db->real_escape_string(filter_var(htmlspecialchars($str, ENT_QUOTES), FILTER_SANITIZE_STRING));
+                $str = $db->real_escape_string(\sanitize_string(htmlspecialchars($str, ENT_QUOTES)));
                 $this->search($str);
             }
         } else {
             $str = $_POST['search'];
-            $str = $db->real_escape_string(filter_var(htmlspecialchars($str, ENT_QUOTES), FILTER_SANITIZE_STRING));
+            $str = $db->real_escape_string(\sanitize_string(htmlspecialchars($str, ENT_QUOTES)));
             $this->search($str);
         }
         $this->response = array_values(array_unique($this->response));

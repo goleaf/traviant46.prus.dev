@@ -2,6 +2,25 @@
 ini_set("display_errors", 1);
 global $globalConfig;
 require(dirname(__DIR__, 2) . '/globalConfig.php');
+if (!function_exists('sanitize_string')) {
+    function sanitize_string($value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+        if (is_bool($value)) {
+            $value = $value ? '1' : '';
+        } elseif (!is_scalar($value)) {
+            $value = '';
+        }
+        $value = strip_tags((string)$value);
+        $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        if ($sanitized === null) {
+            return '';
+        }
+        return $sanitized;
+    }
+}
 global $proxy_main_url, $filter_domain;
 $proxy_main_url = $globalConfig['staticParameters']['answersUrl'];
 $filter_domain = '';
@@ -58,7 +77,7 @@ function get_gpack_cdn_url()
 }
 
 $query = $_SERVER["QUERY_STRING"];
-$query = filter_var($query, FILTER_SANITIZE_STRING);
+$query = \sanitize_string($query);
 $query = str_replace(['ssl', 'http', 'https', 'ftp', 'cpanel', 'bash', '.com', '.ir', '.org'], '', $query);
 if ((!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')) {
     $file = requestWithAjax("$proxy_main_url/?$query");

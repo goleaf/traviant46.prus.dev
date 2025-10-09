@@ -24,7 +24,7 @@ class MedalsBBCode
     public function BBCodeMedals($matches)
     {
         $db = DB::getInstance();
-        $key = filter_var($matches[1], FILTER_SANITIZE_STRING);
+        $key = \sanitize_string($matches[1]);
         if (isset($this->processed[$key])) {
             return $matches[0];
         }
@@ -81,7 +81,7 @@ class MedalsBBCode
         if ($this->data['isAlliance']) {
             return $matches[0];
         }
-        $key = filter_var($matches[1], FILTER_SANITIZE_STRING);
+        $key = \sanitize_string($matches[1]);
         if (isset($this->processed[$key])) {
             return $matches[0];
         }
@@ -368,7 +368,7 @@ class AllianceBBCode
     public function losses($match)
     {
         $db = DB::getInstance();
-        $tag = $db->real_escape_string(filter_var($match[1], FILTER_SANITIZE_STRING));
+        $tag = $db->real_escape_string(\sanitize_string($match[1]));
         $find = $db->query("SELECT id FROM alidata WHERE tag='$tag'");
         if (!$find->num_rows) {
             return T("BBCode", "This alliance cannot be found");
@@ -834,7 +834,7 @@ class BBCode
     private static function BBCodePlayer($matches)
     {
         $db = DB::getInstance();
-        $name = filter_var($matches[1], FILTER_SANITIZE_STRING);
+        $name = \sanitize_string($matches[1]);
         if(is_numeric($name)){
             $name = (int) $name;
             $find = $db->query("SELECT id, name FROM users WHERE id=$name");
@@ -851,7 +851,7 @@ class BBCode
 
     private static function BBCodeAlliance($matches)
     {
-        $name = filter_var($matches[1], FILTER_SANITIZE_STRING);
+        $name = \sanitize_string($matches[1]);
         $db = DB::getInstance();
         if(is_numeric($name)){
             $name = (int) $name;
@@ -869,7 +869,7 @@ class BBCode
 
     private static function BBCodeReport($matches)
     {
-        $url = filter_var($matches[1], FILTER_SANITIZE_STRING);
+        $url = \sanitize_string($matches[1]);
         $reportMatch = [];
         $url = parse_url($url);
         if (!isset($url['query'])) {
@@ -885,7 +885,7 @@ class BBCode
         if (!$id) {
             return $matches[0];
         }
-        $private_key = filter_var($data[1], FILTER_SANITIZE_STRING);
+        $private_key = \sanitize_string($data[1]);
         $db = DB::getInstance();
         $report = $db->query("SELECT * FROM ndata WHERE id=" . (int)$id);
         if (!$report->num_rows) {
@@ -905,7 +905,7 @@ class BBCode
         $title = null;
         if (sizeof($matches) == 3) {
             $title = str_replace("'", '', $matches[1]);
-            $title = filter_var($title, FILTER_SANITIZE_STRING);
+            $title = \sanitize_string($title);
             $url = trim($matches[2]);
         } else {
             $url = $matches[1];
@@ -923,7 +923,7 @@ class BBCode
     private static function BBCodeColor($matches)
     {
         $color = str_replace("'", '', $matches[1]);
-        $color = filter_var($color, FILTER_SANITIZE_STRING);
+        $color = \sanitize_string($color);
         $text = $matches[2];
         if (strtolower($color) == 'white' || strtoupper($color) == '#FFFFFF') {
             return $text;

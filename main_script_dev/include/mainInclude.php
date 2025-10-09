@@ -8,11 +8,14 @@ use Game\ResourcesHelper;
 use Model\ArtefactsModel;
 
 require __DIR__ . DIRECTORY_SEPARATOR . "bootstrap.php";
-$uri = $_SERVER['REQUEST_URI'];
+$uri = $_SERVER['REQUEST_URI'] ?? '/';
+$queryString = $_SERVER['QUERY_STRING'] ?? '';
 //die(print_r($uri));
-$page = pathinfo(explode('?', $uri)[0], PATHINFO_BASENAME);
+$pageSource = explode('?', $uri, 2)[0];
+$page = pathinfo($pageSource, PATHINFO_BASENAME);
 //basename($uri, '?' . $_SERVER['QUERY_STRING']);
-if ($page == ('?' . $_SERVER['QUERY_STRING'])) {
+$suffix = $queryString === '' ? '' : '?' . $queryString;
+if ($page == $suffix) {
     $page = '/';
 }
 /*$uriCheck = str_replace(['?'.$_SERVER['QUERY_STRING'], '/'], '', $uri) == $page;
@@ -70,7 +73,7 @@ if ($page == 'myInfo') {
 }
 
 if ($uri == '/info') {
-    $httpMethod = strtoupper($_SERVER['REQUEST_METHOD']);
+    $httpMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     if ($httpMethod == 'OPTIONS') {
         header("Access-Control-Allow-Origin: *");
         header('Access-Control-Allow-Methods: POST, GET, OPTIONS');

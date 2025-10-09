@@ -774,8 +774,8 @@ class premium extends AjaxBase
         if (Session::getInstance()->getTotalPopulation() >= $config->gold->changeName->impossibleAfterPopulation) {
             return;
         }
-        $newName = filter_var($_POST['accountNewName'], FILTER_SANITIZE_STRING);
-        $password = sha1(filter_var($_POST['accountPassword'], FILTER_SANITIZE_STRING));
+        $newName = \sanitize_string($_POST['accountNewName']);
+        $password = sha1(\sanitize_string($_POST['accountPassword']));
         if (empty($newName) || empty($password)) {
             $this->response['error'] = TRUE;
             $this->response['message'] = T("Options", "Please enter a new account name and confirmation password");

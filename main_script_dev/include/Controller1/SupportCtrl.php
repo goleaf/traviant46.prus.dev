@@ -39,7 +39,7 @@ class SupportCtrl extends OutOfGameCtrl
             }
             $this->data['gameWorld']['error'] = '';
             if(WebService::isPost()){
-                $this->data['gameWorld']['value'] = filter_var(trim($_POST['support']['gameworld']), FILTER_SANITIZE_STRING);
+                $this->data['gameWorld']['value'] = \sanitize_string(trim($_POST['support']['gameworld']));
                 if(!in_array($this->data['gameWorld']['value'], $this->data['gameWorld']['valid_values'])){
                     $this->data['gameWorld']['error'] = T("Support", "errors.please select");
                     $countErrors++;
@@ -48,7 +48,7 @@ class SupportCtrl extends OutOfGameCtrl
             $this->data['username']['value'] = '';
             $this->data['username']['error'] = '';
             if(WebService::isPost()){
-                $this->data['username']['value'] = filter_var(trim($_POST['support']['username']), FILTER_SANITIZE_STRING);
+                $this->data['username']['value'] = \sanitize_string(trim($_POST['support']['username']));
                 if(empty($this->data['username']['value'])){
                     $this->data['username']['error'] = T("Support", "errors.This field is necessary");
                     $countErrors++;
@@ -78,7 +78,7 @@ class SupportCtrl extends OutOfGameCtrl
             $this->data['message']['value'] = '';
             $this->data['message']['error'] = '';
             if(WebService::isPost()){
-                $this->data['message']['value'] = filter_var(trim(strip_tags($_POST['support']['message'])), FILTER_SANITIZE_STRING);
+                $this->data['message']['value'] = \sanitize_string(trim(strip_tags($_POST['support']['message'])));
                 if(empty($this->data['message']['value'])){
                     $this->data['message']['error'] = T("Support", "errors.This field is necessary");
                     $countErrors++;

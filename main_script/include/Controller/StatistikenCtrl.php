@@ -1152,10 +1152,10 @@ class StatistikenCtrl extends GameCtrl
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getPlayerRankByName(filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+            $selectedRank = $statistics->getPlayerRankByName(\sanitize_string($_REQUEST['name']));
             if (!$selectedRank) {
                 $this->content->vars['error'] = sprintf(T("Statistics", "errors.userNotFound"),
-                    filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                    \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];
@@ -1265,11 +1265,11 @@ HTML;
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getPlayersPointsByName(filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING),
+            $selectedRank = $statistics->getPlayersPointsByName(\sanitize_string($_REQUEST['name']),
                 $isDefender);
             if (!$selectedRank) {
                 $this->content->vars['error'] = sprintf(T("Statistics", "errors.userNotFound"),
-                    filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                    \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];
@@ -1670,10 +1670,10 @@ HTML;
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getAllianceRankByName(filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+            $selectedRank = $statistics->getAllianceRankByName(\sanitize_string($_REQUEST['name']));
             if (!$selectedRank) {
                 $this->content->vars['error'] = sprintf(T("Statistics", "errors.allianceNotFound"),
-                    filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                    \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];
@@ -1747,12 +1747,11 @@ HTML;
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getAlliancePointsRankByName(filter_var($_REQUEST['name'],
-                FILTER_SANITIZE_STRING),
+            $selectedRank = $statistics->getAlliancePointsRankByName(\sanitize_string($_REQUEST['name']),
                 $isDefender);
             if (!$selectedRank) {
                 $this->content->vars['error'] = sprintf(T("Statistics", "errors.allianceNotFound"),
-                    filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                    \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];
@@ -1821,10 +1820,10 @@ HTML;
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getVillageRankByName(filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+            $selectedRank = $statistics->getVillageRankByName(\sanitize_string($_REQUEST['name']));
             if (!$selectedRank) {
                 $this->content->vars['error'] = sprintf(T("Statistics", "errors.villageNotFound"),
-                    filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                    \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];
@@ -1893,9 +1892,9 @@ HTML;
         $statistics = new StatisticsModel();
         $selectedRank = 0;
         if (isset($_REQUEST['name']) && trim($_REQUEST['name']) != "") {
-            $selectedRank = $statistics->getHeroRankByName(filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+            $selectedRank = $statistics->getHeroRankByName(\sanitize_string($_REQUEST['name']));
             if (!$selectedRank) {
-                $this->content->vars['error'] = sprintf(T("Statistics", "errors.userNotFound"), filter_var($_REQUEST['name'], FILTER_SANITIZE_STRING));
+                $this->content->vars['error'] = sprintf(T("Statistics", "errors.userNotFound"), \sanitize_string($_REQUEST['name']));
             }
         } else if (isset($_REQUEST['rank']) && is_numeric($_REQUEST['rank'])) {
             $selectedRank = (int)$_REQUEST['rank'];

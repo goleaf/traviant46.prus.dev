@@ -28,8 +28,8 @@ class AjaxCtrl extends AnyCtrl
         parent::__construct();
         $response = ["reload" => false, "error" => false, "success" => true, "message" => "","reloadOnClose" => false];
         if (isset($_GET['cmd'])) {
-			$cmd = filter_var($_GET['cmd'], FILTER_SANITIZE_STRING);
-			$section = filter_has_var(INPUT_GET, 'section')?filter_var($_GET['section'], FILTER_SANITIZE_STRING):'';
+			$cmd = \sanitize_string($_GET['cmd']);
+			$section = filter_has_var(INPUT_GET, 'section')?\sanitize_string($_GET['section']):'';
 			$cmd = str_replace(' ', '', ucwords(str_replace('-', ' ', $cmd)));
 			$cmd[0] = strtolower($cmd[0]);
 			$section = str_replace(' ', '', ucwords(str_replace('-', ' ', $section)));
@@ -50,10 +50,10 @@ class AjaxCtrl extends AnyCtrl
 				foreach($tmpPOST as $index=>$post){
 					if(is_array($post)){
 						foreach($post as $level_index=>$level_post){
-							$_POST[$index][$level_index] = filter_var($level_post, FILTER_SANITIZE_STRING);
+							$_POST[$index][$level_index] = \sanitize_string($level_post);
 						}
 					}else {
-						$_POST[$index] = filter_var($post, FILTER_SANITIZE_STRING);
+						$_POST[$index] = \sanitize_string($post);
 					}
 				}				
 				

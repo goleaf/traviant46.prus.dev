@@ -523,7 +523,7 @@ class BuildCtrl extends GameCtrl
                 if (isset($_POST['ww_name']) && StringChecker::isValidName($_POST['ww_name'])) {
                     if (getDisplay("allowWWUnusualRename") || $village->getField($this->selectedBuildingIndex)['level'] <= 10) {
                         if (strlen($_POST['ww_name']) <= 20) {
-                            $wwName = $db->real_escape_string(filter_var($_POST['ww_name'], FILTER_SANITIZE_STRING));
+                            $wwName = $db->real_escape_string(\sanitize_string($_POST['ww_name']));
                             $db->query("UPDATE fdata SET wwname='$wwName' WHERE kid=" . $this->session->getKid());
                         }
                     }

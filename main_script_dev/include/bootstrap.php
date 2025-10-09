@@ -19,7 +19,7 @@ if (php_sapi_name() != 'cli') {
 }
 define("GLOBAL_CACHING_KEY", get_current_user());
 define("ROOT_PATH", dirname(__DIR__) . DIRECTORY_SEPARATOR);
-define("PUBLIC_INTERNAL_PATH", dirname(__DIR__) . "copyable/public/");
+define("PUBLIC_INTERNAL_PATH", dirname(__DIR__) . DIRECTORY_SEPARATOR . 'copyable/public/');
 define("INCLUDE_PATH", __DIR__ . DIRECTORY_SEPARATOR);
 define("RESOURCES_PATH", INCLUDE_PATH . "resources" . DIRECTORY_SEPARATOR);
 define("LOCALE_PATH", RESOURCES_PATH . "Translation" . DIRECTORY_SEPARATOR);

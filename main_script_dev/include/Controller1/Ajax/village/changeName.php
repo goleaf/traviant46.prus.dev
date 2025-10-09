@@ -41,7 +41,7 @@ fail:
             $this->response['message'] = 'As a sitter you don`t have access to this part.';
             return;
         }
-        $name = clean_string_from_white(filter_var($_POST['name'], FILTER_SANITIZE_STRING));
+        $name = clean_string_from_white(\sanitize_string($_POST['name']));
         $did = filter_var($_POST['did'], FILTER_SANITIZE_NUMBER_INT);
         if($did <> Village::getInstance()->getKid()) {
             $this->response['error'] = TRUE;
