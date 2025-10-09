@@ -5,6 +5,10 @@ use Core\Config;
 use Core\Database\DB;
 use Core\Database\GlobalDB;
 use Core\Helper\WebService;
+$vendorAutoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+if (is_file($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
 if (!extension_loaded("redis")) {
     die("Redis extension not available.");
 }
