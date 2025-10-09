@@ -1,31 +1,93 @@
 # Travian T4.6 → Laravel 11 Complete Migration Plan
+## ULTRA-DETAILED IMPLEMENTATION GUIDE
+
+---
 
 ## Project Analysis Summary
 
-**Current State:**
+### Current State (Detailed Inventory)
 
-- Custom MVC framework (non-standard)
-- PHP 7.3-7.4 requirement
-- ~45 Model files, ~80+ Controller files, extensive template system
-- Custom autoloader, custom database wrapper (mysqli)
-- Redis caching, sessions
-- Systemd services for game automation engine
-- Custom job system with pcntl_fork for background workers
-- ~70+ database tables (estimated from schema)
-- Template-based views (PHP files)
-- Multi-language support (Persian, Arabic, English, Greek)
-- Complex game mechanics: buildings, troops, battles, artifacts, heroes, alliances
+**Architecture:**
+- Custom MVC framework (non-Laravel, non-standard)
+- PHP 7.3-7.4 requirement (needs upgrade to 8.2+)
+- Custom autoloader (`Core\Autoloader.php`) with namespace-to-file mapping
+- Custom database wrapper (`Core\Database\DB.php`) using mysqli
+- Custom session handler with Redis backend
+- Custom routing via `Controller\*Ctrl.php` pattern
 
-**Target State:**
+**Database Schema (90 tables total):**
+1. **User/Auth Tables (6):** users, activation, login_handshake, activation_progress, deleting, newproc
+2. **Village Tables (11):** vdata, fdata, wdata, available_villages, odata, building_upgrade, demolition, smithy, tdata, research, traderoutes
+3. **Alliance Tables (13):** alidata, alistats, allimedal, ali_invite, ali_log, diplomacy, alliance_notification, alliance_bonus_upgrade_queue, forum_forums, forum_edit, forum_options, forum_post, forum_topic, forum_vote, forum_open_players, forum_open_alliances
+4. **Movement/Combat Tables (8):** movement, a2b (attacks-to-be), enforcement, trapped, units, send
+5. **Hero Tables (6):** hero, face, items, inventory, adventure, accounting
+6. **Artifact Tables (3):** artefacts, artlog
+7. **Communication Tables (4):** mdata (messages), ndata (reports), messages_report, notes
+8. **Marketplace Tables (3):** market, auction, bids, raidlist
+9. **Map Tables (7):** map_block, map_mark, mapflag, marks, blocks, surrounding
+10. **Quest/Medal Tables (3):** daily_quest, medal, allimedal
+11. **Farmlist Tables (3):** farmlist, raidlist, farmlist_last_reports
+12. **Admin/Log Tables (9):** general_log, admin_log, log_ip, transfer_gold_log, ban_history, banQueue, multiaccount_log, multiaccount_users
+13. **Game Config Tables (4):** config, summary, casualties, autoExtend
+14. **Misc Tables (11):** links, infobox, infobox_read, infobox_delete, ignoreList, friendlist, changeEmail, notificationQueue, voting_reward_queue, buyGoldMessages, player_references
 
-- Laravel 11 (latest version)
-- PHP 8.2+
-- Livewire 3 + Flux UI
-- Eloquent ORM with redesigned schema
-- Laravel Queue system (database/Redis driver)
-- Modern authentication (Laravel Breeze/Fortify)
-- Blade components
-- Service-oriented architecture
+**Identified Issues with Current Schema:**
+- Generic column names (`u1-u10` for units, `f1-f40` for buildings)
+- No proper foreign keys
+- Mixed naming conventions (snake_case, camelCase)
+- Timestamps stored as INT(10) instead of TIMESTAMP
+- No `created_at`/`updated_at` audit fields
+- Large TEXT/LONGTEXT fields without optimization
+
+**Code Structure (Detailed):**
+- **45 Model Files** in `main_script/include/Model/`
+- **80+ Controller Files** in `main_script/include/Controller/` (including 60+ AJAX endpoints)
+- **200+ Template Files** in `main_script/include/resources/Templates/`
+- **30+ Service/Helper Files** in `main_script/include/Game/`
+- **Custom Job System** with pcntl_fork spawning worker processes
+- **Multi-language System** with translation files in `resources/Translation/`
+
+**Dependencies:**
+- PHP Redis extension (required)
+- PHP GeoIP extension
+- Nginx web server
+- MariaDB/MySQL database
+- SystemD services (3): TravianIndex, TravianMail, TravianTaskWorker
+
+### Target State (Detailed Requirements)
+
+**Framework:**
+- Laravel 11.x (latest stable)
+- PHP 8.2+ (ideally 8.3 for performance)
+- Composer 2.x for dependency management
+
+**Frontend Stack:**
+- Livewire 3.x for reactivity
+- Flux UI library for components
+- Alpine.js (bundled with Livewire)
+- Vite for asset compilation
+- Tailwind CSS (if Flux UI uses it)
+
+**Backend Stack:**
+- Eloquent ORM for database
+- Laravel Queue (Redis driver)
+- Laravel Fortify for authentication
+- Laravel Sanctum for API tokens (if needed)
+- Laravel Horizon for queue monitoring
+- Spatie packages for permissions/activity log (if needed)
+
+**Database:**
+- MariaDB 10.6+ or MySQL 8.0+
+- Redesigned schema following Laravel conventions
+- Proper foreign key constraints
+- Indexed columns for performance
+- JSON columns for flexible data
+
+**Infrastructure:**
+- Nginx (keep existing)
+- Supervisor for queue workers (replace SystemD services)
+- Laravel Octane (optional, for performance boost)
+- Redis 6.0+ for cache/queue/sessions
 
 ---
 
