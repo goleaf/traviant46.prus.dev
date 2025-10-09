@@ -2,14 +2,17 @@
 
 namespace Core\Jobs;
 
+use App\Jobs\CheckGameFinish;
+use App\Jobs\ProcessAllianceBonus;
+use App\Jobs\ProcessArtifacts;
+use App\Jobs\ProcessDailyQuests;
+use App\Jobs\ProcessMedals;
 use Core\Automation;
 use Model\AdventureModel;
 use Model\AuctionModel;
 use Model\AutoExtendModel;
-use Model\DailyQuestModel;
 use Model\FakeUserModel;
 use Model\inactiveModel;
-use Model\MedalsModel;
 use Model\NatarsModel;
 
 class Launcher
@@ -108,16 +111,13 @@ class Launcher
             $jobs[] = new Job('gameProgress:referenceCheck', 30, $job);
         }
         {
-            $job = [new NatarsModel(), 'runJobs'];
-            $jobs[] = new Job('gameProgress:ArtifactReleases', 30, $job);
+            $jobs[] = new Job('gameProgress:ArtifactReleases', 30, new ProcessArtifacts());
         }
         {
-            $job = [new MedalsModel(), 'resetMedals'];
-            $jobs[] = new Job('gameProgress:resetMedals', 30, $job);
+            $jobs[] = new Job('gameProgress:resetMedals', 30, new ProcessMedals());
         }
         {
-            $job = [new DailyQuestModel(), 'resetDailyQuest'];
-            $jobs[] = new Job('gameProgress:resetDailyQuest', 30, $job);
+            $jobs[] = new Job('gameProgress:resetDailyQuest', 30, new ProcessDailyQuests());
         }
         {
             $job = [new AutoExtendModel(), 'processAutoExtend'];
@@ -140,8 +140,7 @@ class Launcher
             $jobs[] = new Job('loyaltyAndCulturePoint:deleteOasisComplete', 60, $job);
         }
         {
-            $job = [Automation::getInstance(), 'handleAllianceBonusTasks'];
-            $jobs[] = new Job('gameProgress:allianceBonus', 60, $job);
+            $jobs[] = new Job('gameProgress:allianceBonus', 60, new ProcessAllianceBonus());
         }
         {
             $job = [Automation::getInstance(), 'zeroPopVillages'];
@@ -158,8 +157,7 @@ class Launcher
             $jobs[] = new Job('routineJobs:checkForNewAdventures', 10, $job);
         }
         {
-            $job = [Automation::getInstance(), 'checkGameFinish'];
-            $jobs[] = new Job('checkIndexFunctions:checkGameFinish', 30, $job);
+            $jobs[] = new Job('checkIndexFunctions:checkGameFinish', 30, new CheckGameFinish());
         }
         {
             $job = [new inactiveModel(), 'startWorker'];
