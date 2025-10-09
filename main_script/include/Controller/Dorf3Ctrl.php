@@ -2,6 +2,7 @@
 
 namespace Controller;
 
+use App\Livewire\VillageList;
 use Core\Caching\Caching;
 use Core\Caching\ProfileCache;
 use Core\Config;
@@ -61,8 +62,7 @@ class Dorf3Ctrl extends GameCtrl
 
     private function showOverview()
     {
-        $view = new PHPBatchView("dorf3/overview");
-        $content = &$view->vars['content'];
+        $content = '';
         $m = new villageOverviewModel();
         $d1 = new Dorf1Model();
 
@@ -219,7 +219,8 @@ class Dorf3Ctrl extends GameCtrl
             $content .= ($free_merchants) . '‬‬/‭‭' . $total_merchants . '</a></td>';
             $content .= '</tr>';
         }
-        $this->view->vars['content'] .= $view->output();
+        $component = new VillageList(['content' => $content]);
+        $this->view->vars['content'] .= $component->render();
     }
 
     private function getPlayerVillages()

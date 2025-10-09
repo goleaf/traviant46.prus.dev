@@ -1,12 +1,13 @@
 <?php
 namespace Controller;
+
+use App\Livewire\VillageBuilding;
 use Core\Config;
 use Core\Dispatcher;
 use Core\Helper\PreferencesHelper;
 use Game\Formulas;
 use Model\Quest;
 use resources\View\GameView;
-use resources\View\PHPBatchView;
 use function htmlspecialchars;
 
 class Dorf2Ctrl extends GameCtrl
@@ -53,12 +54,14 @@ class Dorf2Ctrl extends GameCtrl
                 'class' => $this->getBuildingImgClass($index),
             ];
         }
-        $this->view->vars['content'] = PHPBatchView::render('dorf2/main2', [
+        $buildingQueue = Dispatcher::getInstance()->dispatch("onLoadBuildingsDorfCtrl", FALSE) ?: '';
+        $component = new VillageBuilding([
             'isWW' => $village->isWW(),
             'levelsActive' => PreferencesHelper::getPreference("t4level") == 1,
-            'onLoadBuildings' => Dispatcher::getInstance()->dispatch("onLoadBuildingsDorfCtrl", FALSE),
-            "maps" => $maps
+            'buildingQueue' => $buildingQueue,
+            'maps' => $maps,
         ]);
+        $this->view->vars['content'] = $component->render();
     }
 
     private function proc()

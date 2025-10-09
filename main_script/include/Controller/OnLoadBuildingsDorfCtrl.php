@@ -2,6 +2,7 @@
 
 namespace Controller;
 
+use App\Livewire\BuildingQueue;
 use Core\Caching\Caching;
 use Core\Config;
 use Core\Helper\TimezoneHelper;
@@ -9,7 +10,6 @@ use Core\Session;
 use Core\Village;
 use Game\Formulas;
 use Game\GoldHelper;
-use resources\View\PHPBatchView;
 
 class OnLoadBuildingsDorfCtrl extends AnyCtrl
 {
@@ -114,13 +114,12 @@ HTML;
                 $HTML .= '</ul>';
             }
             $helper = new GoldHelper();
-            $this->view = new PHPBatchView('dorf1/buildingQueue');
-            $this->view->vars = [
+            $this->view = new BuildingQueue([
                 'normal' => sizeof($village->onLoadBuildings['normal']),
                 'buildings' => $HTML,
                 'finishNowButton' => $helper->finishNowButton(),
                 'buildsJson' => json_encode($json),
-            ];
+            ]);
         }
     }
-} 
+}
