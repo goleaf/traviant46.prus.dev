@@ -6,6 +6,13 @@ php 7.3-7.4
 geoip php extension
 redis php extension
 
+For details on the ongoing Laravel rebuild, see the following docs:
+
+- [`docs/backend-stack.md`](docs/backend-stack.md) – backend technology stack
+  and operational guidelines.
+- [`docs/queue-system.md`](docs/queue-system.md) – background job and scheduler
+  architecture.
+
 ## Background processing
 
 Background jobs and scheduled tasks are handled through Laravel's queue and
