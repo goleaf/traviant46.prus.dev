@@ -132,12 +132,13 @@ CREATE TABLE `general_log`
   `id`       BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `uid`      INT(11)             NOT NULL,
   `type`     VARCHAR(50)         NOT NULL,
-  `log_info` LONGTEXT            NOT NULL,
+  `log_info` MEDIUMTEXT          NOT NULL,
   `time`     INT(11)             NOT NULL,
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   KEY `type` (`type`),
-  KEY `time` (`time`)
+  KEY `time` (`time`),
+  FULLTEXT KEY `log_info_text` (`log_info`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -709,7 +710,7 @@ CREATE TABLE `forum_post`
   `uid`     INT(11) UNSIGNED    NOT NULL,
   `forumId` INT(11) UNSIGNED    NOT NULL,
   `topicId` INT(11) UNSIGNED    NOT NULL,
-  `post`    LONGTEXT            NOT NULL,
+  `post`    MEDIUMTEXT          NOT NULL,
   `time`    INT(10) UNSIGNED    NOT NULL,
   `deleted` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -718,7 +719,8 @@ CREATE TABLE `forum_post`
   KEY `time` (`time`),
   KEY `forumId` (`forumId`),
   KEY `topicId` (`topicId`),
-  KEY `deleted` (`deleted`)
+  KEY `deleted` (`deleted`),
+  FULLTEXT KEY `post_content` (`post`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -932,7 +934,7 @@ CREATE TABLE `mdata`
   `uid`             INT(11) UNSIGNED     NOT NULL,
   `to_uid`          INT(11) UNSIGNED     NOT NULL,
   `topic`           VARCHAR(100)         NOT NULL,
-  `message`         LONGTEXT             NOT NULL,
+  `message`         MEDIUMTEXT           NOT NULL,
   `viewed`          TINYINT(1) UNSIGNED  NOT NULL DEFAULT '0',
   `archived`        TINYINT(1) UNSIGNED  NOT NULL DEFAULT '0',
   `delete_receiver` SMALLINT(1) UNSIGNED NOT NULL DEFAULT '0',
@@ -946,7 +948,8 @@ CREATE TABLE `mdata`
   PRIMARY KEY (`id`),
   KEY (`uid`),
   KEY (`to_uid`),
-  KEY `search` (`uid`, `to_uid`, `viewed`, `delete_receiver`)
+  KEY `search` (`uid`, `to_uid`, `viewed`, `delete_receiver`),
+  FULLTEXT KEY `message_content` (`message`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -1016,8 +1019,8 @@ CREATE TABLE IF NOT EXISTS `config`
   `needsRestart`                TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `isRestore`                   TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `loginInfoTitle`              VARCHAR(100)        NOT NULL,
-  `loginInfoHTML`               LONGTEXT            NOT NULL,
-  `message`                     LONGTEXT            NOT NULL,
+  `loginInfoHTML`               TEXT                NOT NULL,
+  `message`                     TEXT                NOT NULL,
   PRIMARY KEY (`id`)
 )
   ENGINE = InnoDB
@@ -1504,9 +1507,9 @@ CREATE TABLE IF NOT EXISTS `users`
   `birthday`                                         VARCHAR(50)           NOT NULL DEFAULT '0',
   `location`                                         VARCHAR(30)           NOT NULL DEFAULT '0',
   `language`                                         VARCHAR(30)           NOT NULL DEFAULT '0',
-  `desc1`                                            LONGTEXT              NOT NULL,
-  `desc2`                                            LONGTEXT              NOT NULL,
-  `note`                                             LONGTEXT              NOT NULL,
+  `desc1`                                            TEXT                  NOT NULL,
+  `desc2`                                            TEXT                  NOT NULL,
+  `note`                                             TEXT                  NOT NULL,
   `sit1Uid`                                          INT(11) UNSIGNED      NOT NULL DEFAULT '0',
   `sit1Permissions`                                  SMALLINT(3) UNSIGNED  NOT NULL DEFAULT '87',
   `sit2Uid`                                          INT(11) UNSIGNED      NOT NULL DEFAULT '0',

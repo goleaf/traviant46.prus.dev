@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS `config`
   `needsRestart`                TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `isRestore`                   TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `loginInfoTitle`              VARCHAR(100)        NOT NULL,
-  `loginInfoHTML`               LONGTEXT            NOT NULL,
-  `message`                     LONGTEXT            NOT NULL,
+  `loginInfoHTML`               TEXT                NOT NULL,
+  `message`                     TEXT                NOT NULL,
   PRIMARY KEY (`id`)
 )
   ENGINE = InnoDB
