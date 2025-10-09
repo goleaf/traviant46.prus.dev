@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -29,6 +30,13 @@ CREATE TABLE `activation`
   DEFAULT CHARSET = utf8mb4;
 SQL
         );
+
+        Schema::table('activation', function (Blueprint $table): void {
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
+            $table->index('created_at');
+            $table->index('updated_at');
+        });
     }
 
     public function down(): void
