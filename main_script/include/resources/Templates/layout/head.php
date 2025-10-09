@@ -20,6 +20,7 @@ use Core\Helper\PreferencesHelper;
 
     <?php endif; ?>
     <link href="<?=get_gpack_link_and_hash("fixes.css", false); ?>?rev13" rel="stylesheet" type="text/css"/>
+    <link href="css/flux-ui.css" rel="stylesheet" type="text/css"/>
 
     <script type="text/javascript">
         window.ajaxToken = '<?=(isset($vars['ajaxToken']) ? $vars['ajaxToken'] : null);?>';
@@ -33,6 +34,7 @@ use Core\Helper\PreferencesHelper;
     <script type="text/javascript" src="js/default/gsap/minified/TweenMax.min.js"></script>
     <script type="text/javascript" src="js/default/gsap/minified/plugins/MorphSVGPlugin.min.js"></script>
     <script type="text/javascript" src="js/Game/General/General.js"></script>
+    <script type="text/javascript" src="js/flux/flux-ui.js" defer></script>
     <script type="text/javascript">
         <?php
         $data = [
