@@ -111,13 +111,16 @@ class Launcher
             $jobs[] = new Job('gameProgress:referenceCheck', 30, $job);
         }
         {
-            $jobs[] = new Job('gameProgress:ArtifactReleases', 30, new ProcessArtifacts());
+            $job = [new ProcessArtifacts(), 'runAction'];
+            $jobs[] = new Job('gameProgress:ArtifactReleases', 30, $job);
         }
         {
-            $jobs[] = new Job('gameProgress:resetMedals', 30, new ProcessMedals());
+            $job = [new ProcessMedals(), 'runAction'];
+            $jobs[] = new Job('gameProgress:resetMedals', 30, $job);
         }
         {
-            $jobs[] = new Job('gameProgress:resetDailyQuest', 30, new ProcessDailyQuests());
+            $job = [new ProcessDailyQuests(), 'runAction'];
+            $jobs[] = new Job('gameProgress:resetDailyQuest', 30, $job);
         }
         {
             $job = [new AutoExtendModel(), 'processAutoExtend'];
@@ -140,7 +143,8 @@ class Launcher
             $jobs[] = new Job('loyaltyAndCulturePoint:deleteOasisComplete', 60, $job);
         }
         {
-            $jobs[] = new Job('gameProgress:allianceBonus', 60, new ProcessAllianceBonus());
+            $job = [new ProcessAllianceBonus(), 'runAction'];
+            $jobs[] = new Job('gameProgress:allianceBonus', 60, $job);
         }
         {
             $job = [Automation::getInstance(), 'zeroPopVillages'];
