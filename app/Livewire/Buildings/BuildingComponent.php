@@ -14,8 +14,8 @@ abstract class BuildingComponent extends Component
     public function render(): View
     {
         return view('livewire.buildings.building', [
-            'buildingId' => static::buildingId(),
-            'buildingName' => static::buildingName(),
+            'building_id' => static::buildingId(),
+            'building_name' => static::buildingName(),
         ]);
     }
 }
