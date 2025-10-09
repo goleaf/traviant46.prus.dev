@@ -16,8 +16,10 @@ CREATE TABLE `alliance_notification`
   `to_uid` INT(11) UNSIGNED    NOT NULL,
   `type`   TINYINT(1) UNSIGNED NOT NULL,
   `time`   INT(10) UNSIGNED    NOT NULL,
+  `sent_at` TIMESTAMP          GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
   PRIMARY KEY (`id`),
-  KEY (`aid`, `to_uid`, `type`, `time`)
+  KEY (`aid`, `to_uid`, `type`, `time`),
+  KEY `sent_at` (`sent_at`)
 )
   ENGINE = InnoDB
   AUTO_INCREMENT = 1

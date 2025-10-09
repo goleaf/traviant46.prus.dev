@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS `accounting`
   `reserve` INT(10)          NOT NULL,
   `balance` INT(10) UNSIGNED NOT NULL,
   `time`    INT(10) UNSIGNED NOT NULL,
+  `recorded_at` TIMESTAMP    GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
   PRIMARY KEY (`id`),
-  KEY `uid` (`uid`, `balance`, `time`)
+  KEY `uid` (`uid`, `balance`, `time`),
+  KEY `recorded_at` (`recorded_at`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4

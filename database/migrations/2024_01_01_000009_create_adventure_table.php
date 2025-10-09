@@ -16,11 +16,13 @@ CREATE TABLE `adventure`
   `kid`  INT(6) UNSIGNED     NOT NULL,
   `dif`  TINYINT(1)          NOT NULL,
   `time` INT(10) UNSIGNED    NOT NULL,
+  `available_at` TIMESTAMP   GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
   `end`  TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`),
   KEY `kid` (`kid`),
   KEY `time` (`time`),
+  KEY `available_at` (`available_at`),
   KEY `end` (`end`)
 )
   ENGINE = InnoDB

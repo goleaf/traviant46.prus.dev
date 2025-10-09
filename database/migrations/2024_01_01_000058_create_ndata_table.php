@@ -21,6 +21,7 @@ CREATE TABLE `ndata`
   `bounty`        VARCHAR(255)         NOT NULL,
   `data`          TEXT                 NOT NULL,
   `time`          INT(10) UNSIGNED     NOT NULL,
+  `sent_at`       TIMESTAMP            GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
   `private_key`   VARCHAR(12)          NOT NULL,
   `viewed`        TINYINT(1) UNSIGNED  NOT NULL,
   `archive`       TINYINT(1) UNSIGNED  NOT NULL,
@@ -37,7 +38,8 @@ CREATE TABLE `ndata`
   KEY `losses` (`losses`),
   KEY `viewed` (`viewed`),
   KEY `count` (`uid`, `archive`, `deleted`, `type`),
-  KEY `search` (`uid`, `viewed`, `deleted`)
+  KEY `search` (`uid`, `viewed`, `deleted`),
+  KEY `sent_at` (`sent_at`)
 )
   ROW_FORMAT = COMPRESSED
   ENGINE = InnoDB
@@ -55,9 +57,11 @@ CREATE TABLE IF NOT EXISTS `surrounding`
   `type`   TINYINT(2) UNSIGNED NOT NULL,
   `params` TEXT,
   `time`   INT(10) UNSIGNED    NOT NULL,
+  `updated_at` TIMESTAMP       GENERATED ALWAYS AS (FROM_UNIXTIME(`time`)) STORED,
   PRIMARY KEY (`id`),
   KEY `time` (`time`),
-  KEY `kid` (`kid`, `x`, `y`)
+  KEY `kid` (`kid`, `x`, `y`),
+  KEY `updated_at` (`updated_at`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4

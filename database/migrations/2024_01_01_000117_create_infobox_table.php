@@ -20,8 +20,11 @@ CREATE TABLE IF NOT EXISTS `infobox`
   `del`        TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `showFrom`   INT(10) UNSIGNED    NOT NULL,
   `showTo`     INT(10) UNSIGNED    NOT NULL,
+  `show_from_at` TIMESTAMP         GENERATED ALWAYS AS (FROM_UNIXTIME(`showFrom`)) STORED,
+  `show_to_at`   TIMESTAMP         GENERATED ALWAYS AS (IF(`showTo` = 0, NULL, FROM_UNIXTIME(`showTo`))) STORED,
   PRIMARY KEY (`id`),
   KEY `uid` (`uid`, `forAll`, `readStatus`, `del`, `showFrom`, `showTo`),
+  KEY `visibility_window` (`show_from_at`, `show_to_at`),
   KEY `type` (`type`)
 )
   ENGINE = InnoDB
