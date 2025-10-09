@@ -56,9 +56,9 @@ For each component:
 ## 10.2 Deployment Preparation
 
 - **Nginx**: Provide updated server block templates that route `/admin` to the Laravel app and proxy legacy static assets as needed.
-- **Supervisor**: Create process definitions for `queue:work`, `schedule:run`, and Telescope pruning.
+- **Supervisor**: Create process definitions for `queue:work`, `schedule:run`, Telescope pruning, and (optionally) Octane.
 - **Laravel Octane (Optional)**: Evaluate using Swoole mode in staging; document required system packages and fallbacks if incompatibilities arise.
-- **Systemd Services**: Update or add unit files for Octane/Horizon with `Restart=always` and proper environment file references.
+- **Nginx**: Verify existing server blocks proxy to Octane or PHP-FPM appropriately after Supervisor-managed processes are in place.
 
 ## 10.3 Cutover Plan
 

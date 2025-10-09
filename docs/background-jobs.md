@@ -36,14 +36,16 @@ Laravel supports multiple worker strategies:
 - **Foreground worker (local development):** `php artisan queue:work` or
   `php artisan queue:listen` while developing. You can pass `--queue=high,default`
   when you need to prioritise different queues.
-- **Daemon worker (production):** Configure Supervisor, systemd, Docker health
+- **Daemon worker (production):** Configure Supervisor, Docker health
   checks, or Laravel Horizon to ensure the worker process is always restarted on
   failure. A minimal Supervisor config looks like this:
 
   ```ini
   [program:laravel-queue]
-  command=php /var/www/html/artisan queue:work --sleep=1 --tries=3
+  command=php /var/www/html/artisan queue:work --sleep=1 --tries=3 --max-time=3600
   user=www-data
+  numprocs=2
+  process_name=%(program_name)s_%(process_num)02d
   autostart=true
   autorestart=true
   stopwaitsecs=3600

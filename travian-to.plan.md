@@ -52,7 +52,7 @@
 - PHP GeoIP extension
 - Nginx web server
 - MariaDB/MySQL database
-- SystemD services (3): TravianIndex, TravianMail, TravianTaskWorker
+- Process supervision: systemd for web/mail services, Supervisor for Laravel queue workers
 
 ### Target State (Detailed Requirements)
 
@@ -467,9 +467,9 @@ Migrate `main_script/include/admin/` to Laravel:
 ### 10.2 Deployment
 
 - Update nginx configuration
-- Supervisor for queue workers
+- Roll out Supervisor-managed queue workers and scheduler processes
 - Laravel Octane (optional for performance)
-- Update systemd services
+- Ensure Redis 6+ is provisioned for cache/queue/session drivers
 
 ### 10.3 Cutover Plan
 

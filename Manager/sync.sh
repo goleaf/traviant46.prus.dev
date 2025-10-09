@@ -52,26 +52,30 @@ function stop(){
 function install(){
     systemctl disable --quiet TravianIndex.service && systemctl stop --quiet TravianIndex.service
     systemctl disable --quiet TravianMail.service && systemctl stop --quiet TravianMail.service
-    systemctl disable --quiet TravianTaskWorker.service && systemctl stop --quiet TravianTaskWorker.service
 
     rm -rf /etc/systemd/system/TravianIndex.service
     rm -rf /etc/systemd/system/TravianMail.service
-    rm -rf /etc/systemd/system/TravianTaskWorker.service
 
     ln /travian/services/main/TravianIndex.service /etc/systemd/system/TravianIndex.service
     ln /travian/services/main/TravianMail.service /etc/systemd/system/TravianMail.service
-    ln /travian/services/main/TravianTaskWorker.service /etc/systemd/system/TravianTaskWorker.service
 
     # Ensure the necessary scripts are executable
     chmod +x /travian/angularIndex/server.js
     chmod +x /travian/mailNotify/include/mailNotify.sh
     chmod +x /travian/TaskWorker/runTasks.php
 
+    if [ -f /travian/services/main/laravel-queue.conf ] && command -v supervisorctl >/dev/null
+    then
+        mkdir -p /etc/supervisor/conf.d
+        cp /travian/services/main/laravel-queue.conf /etc/supervisor/conf.d/laravel-queue.conf
+        supervisorctl reread >/dev/null
+        supervisorctl update >/dev/null
+    fi
+
     systemctl daemon-reload
 
     systemctl enable --quiet TravianIndex.service && systemctl start --quiet TravianIndex.service
     systemctl enable --quiet TravianMail.service && systemctl start --quiet TravianMail.service
-    systemctl enable --quiet TravianTaskWorker.service && systemctl start --quiet TravianTaskWorker.service
 
     rm -rf /usr/bin/travian /usr/local/bin/travian
     ln -s /travian/Manager/sync.sh /usr/bin/travian
@@ -87,11 +91,34 @@ function check_service(){
         echo -e "\t$1: ${red}Inactive${reset}"
     fi
 }
+function check_supervisor_program(){
+    program=$1
+    if ! command -v supervisorctl >/dev/null
+    then
+        echo -e "\t$program: ${red}supervisorctl not available${reset}"
+        return
+    fi
+    output=$(supervisorctl status "$program" 2>/dev/null)
+    if [ -z "$output" ]
+    then
+        echo -e "\t$program: ${red}Not configured${reset}"
+        return
+    fi
+    if echo "$output" | grep -q "RUNNING"
+    then
+        echo -e "\t$program: ${green}Running${reset}"
+    else
+        echo -e "\t$program: ${red}Check supervisor status${reset}"
+        echo "$output" | sed 's/^/\t    /'
+    fi
+}
 function status(){
     echo "Main services:"
-    check_service "TravianTaskWorker.service"
     check_service "TravianMail.service"
     check_service "TravianIndex.service"
+    echo "Supervisor programs:"
+    check_supervisor_program "laravel-queue:*"
+    check_supervisor_program "laravel-scheduler"
     for user in ${supported_users[@]}
     do
         echo "$user services:"
