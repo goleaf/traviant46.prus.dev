@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS `notificationQueue`
 (
   `id`      INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `message` TEXT             NOT NULL,
-  `time`    INT(10) UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`)
+  `scheduled_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `scheduled_at` (`scheduled_at`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

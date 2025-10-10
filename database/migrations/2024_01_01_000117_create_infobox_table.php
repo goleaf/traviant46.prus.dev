@@ -18,10 +18,11 @@ CREATE TABLE IF NOT EXISTS `infobox`
   `params`     TEXT                NOT NULL,
   `readStatus` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
   `del`        TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-  `showFrom`   INT(10) UNSIGNED    NOT NULL,
-  `showTo`     INT(10) UNSIGNED    NOT NULL,
+  `show_from_at` TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `show_to_at`   TIMESTAMP         NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `uid` (`uid`, `forAll`, `readStatus`, `del`, `showFrom`, `showTo`),
+  KEY `uid` (`uid`, `forAll`, `readStatus`, `del`, `show_from_at`, `show_to_at`),
+  KEY `visibility_window` (`show_from_at`, `show_to_at`),
   KEY `type` (`type`)
 )
   ENGINE = InnoDB

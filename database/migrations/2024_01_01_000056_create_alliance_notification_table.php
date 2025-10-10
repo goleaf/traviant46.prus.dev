@@ -15,9 +15,9 @@ CREATE TABLE `alliance_notification`
   `aid`    INT(11) UNSIGNED    NOT NULL,
   `to_uid` INT(11) UNSIGNED    NOT NULL,
   `type`   TINYINT(1) UNSIGNED NOT NULL,
-  `time`   INT(10) UNSIGNED    NOT NULL,
+  `sent_at` TIMESTAMP          NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY (`aid`, `to_uid`, `type`, `time`)
+  KEY `aid_to_uid_type_sent_at` (`aid`, `to_uid`, `type`, `sent_at`)
 )
   ENGINE = InnoDB
   AUTO_INCREMENT = 1

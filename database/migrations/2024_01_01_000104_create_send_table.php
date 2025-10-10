@@ -20,9 +20,9 @@ CREATE TABLE `send`
   `crop`     BIGINT(50) UNSIGNED NOT NULL,
   `x`        TINYINT(1) UNSIGNED NOT NULL,
   `mode`     TINYINT(1) UNSIGNED NOT NULL,
-  `end_time` INT(10) UNSIGNED    NOT NULL,
+  `arrives_at` TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `end_time` (`end_time`),
+  KEY `arrives_at` (`arrives_at`),
   KEY `kid` (`kid`),
   KEY `to_kid` (`to_kid`),
   KEY `mode` (`mode`)

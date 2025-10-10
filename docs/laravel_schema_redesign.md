@@ -85,5 +85,6 @@
 ## Migration Considerations
 - Migrate data in phases: create new normalized tables alongside legacy ones, populate via scripts, then cut over application code.
 - Use Laravel migrations to define schema, ensuring indexes cover high-frequency queries (e.g., `movement` end times, alliance rankings).
+- Replace legacy UNIX epoch integer columns with native timestamp fields (`*_at`) so application code and queries use proper temporal typing without on-the-fly conversion.
 - Apply enum tables or configuration-driven dictionaries for unit types, building types, and quest identifiers to replace implicit numbering.
 - Introduce soft deletes (`deleted_at`) where gameplay requires recoverability (messages, logs) while keeping archival tables for audit history.

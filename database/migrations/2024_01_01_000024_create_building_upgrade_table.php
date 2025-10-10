@@ -15,10 +15,12 @@ CREATE TABLE `building_upgrade`
   `kid`            INT(6) UNSIGNED     NOT NULL,
   `building_field` TINYINT(2) UNSIGNED NOT NULL,
   `isMaster`       TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
-  `start_time`     INT(10)             NOT NULL,
-  `commence`       INT(11)             NOT NULL,
+  `started_at`     TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `finishes_at`    TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY (`building_field`, `isMaster`, `commence`)
+  KEY `started_at` (`started_at`),
+  KEY `finishes_at` (`finishes_at`),
+  KEY `building_field_master_finishes_at` (`building_field`, `isMaster`, `finishes_at`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
