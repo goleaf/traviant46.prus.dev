@@ -21,7 +21,7 @@
 3. **Alliance Tables (16):** alidata, alistats, allimedal, ali_invite, ali_log, diplomacy, alliance_notification, alliance_bonus_upgrade_queue, forum_forums, forum_edit, forum_options, forum_post, forum_topic, forum_vote, forum_open_players, forum_open_alliances
 4. **Movement/Combat Tables (8):** movement, a2b (attacks-to-be), enforcement, trapped, units, send
 5. **Hero Tables (6):** hero, face, items, inventory, adventure, accounting
-6. **Artifact Tables (3):** artefacts, artlog
+    6. **Artifact Tables (3):** artefacts, artlog
 7. **Communication Tables (4):** mdata (messages), ndata (reports), messages_report, notes
 8. **Marketplace Tables (3):** market, auction, bids, raidlist
 9. **Map Tables (7):** map_block, map_mark, mapflag, marks, blocks, surrounding
