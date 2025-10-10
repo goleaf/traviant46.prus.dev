@@ -50,7 +50,7 @@ class UnitStatsSeeder extends Seeder
                 $records[] = [
                     'race' => $race,
                     'slot' => (int) $slotIndex,
-                    'unit_type' => $unit['type'] ?? null,
+                    'unit_code' => $unit['type'] ?? null,
                     'attack' => isset($unit['off']) ? (int) $unit['off'] : 0,
                     'defense_infantry' => isset($unit['def_i']) ? (int) $unit['def_i'] : 0,
                     'defense_cavalry' => isset($unit['def_c']) ? (int) $unit['def_c'] : 0,
