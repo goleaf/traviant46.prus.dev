@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\Game\Movement;
 use App\Services\Game\MovementService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -192,6 +193,36 @@ class MovementServiceTest extends TestCase
         $service = new MovementService();
         $this->assertTrue($service->deleteMovement($movement->id));
         $this->assertNull(Movement::query()->find($movement->id));
+    }
+
+    public function testAddMovementNormalizesDateTimeTimestamps(): void
+    {
+        $service = new MovementService();
+
+        $start = Carbon::createFromTimestamp(1_700_100_000);
+        $end = $start->copy()->addMinutes(15);
+
+        $id = $service->addMovement(
+            kid: 42,
+            toKid: 77,
+            race: 1,
+            units: [1 => 5],
+            ctar1: 0,
+            ctar2: 0,
+            spyType: 0,
+            redeployHero: false,
+            mode: MovementService::SORTTYPE_GOING,
+            attackType: MovementService::ATTACKTYPE_RAID,
+            startTime: $start,
+            endTime: $end,
+            data: null,
+        );
+
+        $movement = Movement::query()->find($id);
+
+        $this->assertNotNull($movement);
+        $this->assertSame($start->timestamp, $movement->start_time);
+        $this->assertSame($end->timestamp, $movement->end_time);
     }
 
     /**
