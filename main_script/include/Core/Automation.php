@@ -13,6 +13,7 @@ use Exception;
 use Game\AllianceBonus\AllianceBonus;
 use Game\Buildings\BuildingAction;
 use Game\Formulas;
+use Game\ResourcesHelper;
 use Game\NoticeHelper;
 use function logError;
 use function microtime;
@@ -66,6 +67,36 @@ class Automation
     {
         $m = new FarmListModel();
         $m->processAutoRaid();
+    }
+
+    public function resourceTick(): void
+    {
+        $db = DB::getInstance();
+        $now = miliseconds();
+        $threshold = max(0, $now - 1000);
+        $limit = 250;
+
+        $query = sprintf(
+            'SELECT kid FROM vdata WHERE lastmupdate IS NULL OR lastmupdate <= %d ORDER BY lastmupdate ASC LIMIT %d',
+            $threshold,
+            $limit
+        );
+
+        $result = $db->query($query);
+
+        if ($result === false) {
+            return;
+        }
+
+        while ($row = $result->fetch_assoc()) {
+            $kid = (int)($row['kid'] ?? 0);
+
+            if ($kid <= 0) {
+                continue;
+            }
+
+            ResourcesHelper::updateVillageResources($kid, true);
+        }
     }
 
     public function buildComplete()

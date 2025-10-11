@@ -30,6 +30,7 @@ class Launcher
     private function allJobs(): array
     {
         return array_merge(
+            $this->resourceTick(),
             $this->buildComplete(),
             $this->movementComplete(),
             $this->trainingComplete(),
@@ -152,5 +153,15 @@ class Launcher
     private function postService(): array
     {
         return [Job::automation('postService', 100, 'postService')];
+    }
+
+    /**
+     * @return Job[]
+     */
+    private function resourceTick(): array
+    {
+        return [
+            Job::automation('resources:tick', 1, 'resourceTick'),
+        ];
     }
 }
