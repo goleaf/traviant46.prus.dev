@@ -23,6 +23,7 @@
 2. Database schema aligned with the normalized redesign described below.
 3. Comprehensive automated test suite with integration coverage for migration-critical flows.
 4. Deployment and rollback runbooks updated to reflect new infrastructure.
+5. Stakeholder-approved Laravel 12 migration plan (see `travian-to.plan.md`).
 
 ## Migration Checklist (200+ Items)
 1. Confirm migration window approval from stakeholders.
@@ -293,7 +294,7 @@
 - Each bounded context exposes an internal service interface and optional external API facade.
 
 ### Components
-1. **API Gateway**: Nginx-based ingress routing to context-specific APIs.
+1. **API Gateway**: Kubernetes ingress (Envoy-based) routing to context-specific APIs.
 2. **Accounts Service**: Handles authentication, authorization, and profile management.
 3. **Economy Service**: Manages resource production, storage, and trades with ledger integration.
 4. **Warfare Service**: Processes troop movements, battles, and generates battle reports.
