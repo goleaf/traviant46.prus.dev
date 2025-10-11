@@ -48,6 +48,11 @@ class Village extends Model
         return $this->hasMany(VillageUnit::class);
     }
 
+    public function resources(): HasMany
+    {
+        return $this->hasMany(VillageResource::class);
+    }
+
     public function trainingBatches(): HasMany
     {
         return $this->hasMany(UnitTrainingBatch::class);

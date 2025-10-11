@@ -4,7 +4,10 @@ namespace App\Console;
 
 use App\Jobs\ProcessAdventures;
 use App\Jobs\ProcessBuildingCompletion;
+use App\Jobs\ProcessResourceTick;
 use App\Jobs\ProcessServerTasks;
+use App\Jobs\ProcessStarvation;
+use App\Jobs\ProcessStorageOverflow;
 use App\Jobs\ProcessTroopTraining;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -33,6 +36,24 @@ class Kernel extends ConsoleKernel
 
         $schedule->job(new ProcessServerTasks())
             ->name('automation:server-tasks')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessResourceTick())
+            ->name('automation:resources')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessStarvation())
+            ->name('automation:starvation')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessStorageOverflow())
+            ->name('automation:storage-overflow')
             ->everyMinute()
             ->withoutOverlapping()
             ->runInBackground();
