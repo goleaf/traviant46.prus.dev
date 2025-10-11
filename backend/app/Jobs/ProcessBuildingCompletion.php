@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Game\VillageBuilding;
+use App\Models\Game\Building;
 use App\Models\Game\VillageBuildingUpgrade;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -69,13 +69,13 @@ class ProcessBuildingCompletion implements ShouldQueue
                     ->first();
 
                 if ($building === null) {
-                    $building = new VillageBuilding([
+                    $building = new Building([
                         'village_id' => $lockedUpgrade->village_id,
                         'slot_number' => $lockedUpgrade->slot_number,
                     ]);
                 }
 
-                $building->building_type = $lockedUpgrade->building_type;
+                $building->syncBuildableFromLegacy($lockedUpgrade->building_type);
                 $building->level = $lockedUpgrade->target_level;
                 $building->village_id = $lockedUpgrade->village_id;
                 $building->save();

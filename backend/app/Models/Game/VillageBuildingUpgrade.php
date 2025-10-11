@@ -4,8 +4,8 @@ namespace App\Models\Game;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VillageBuildingUpgrade extends Model
 {
@@ -50,7 +50,12 @@ class VillageBuildingUpgrade extends Model
 
     public function building(): BelongsTo
     {
-        return $this->belongsTo(VillageBuilding::class, 'village_building_id');
+        return $this->belongsTo(Building::class, 'village_building_id');
+    }
+
+    public function buildingType(): BelongsTo
+    {
+        return $this->belongsTo(BuildingType::class, 'building_type', 'gid');
     }
 
     public function scopeDue(Builder $query): Builder
