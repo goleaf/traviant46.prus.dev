@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class WonderOfTheWorld extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 40;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Wonder Of The World';
+        return BuildingType::WONDER_OF_THE_WORLD;
     }
 }

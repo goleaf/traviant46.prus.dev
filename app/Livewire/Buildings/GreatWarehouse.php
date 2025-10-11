@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class GreatWarehouse extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 38;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Great Warehouse';
+        return BuildingType::GREAT_WAREHOUSE;
     }
 }

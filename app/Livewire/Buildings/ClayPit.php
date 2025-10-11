@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class ClayPit extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 2;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Clay Pit';
+        return BuildingType::CLAY_PIT;
     }
 }

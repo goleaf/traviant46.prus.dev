@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UnitType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -25,8 +26,15 @@ class UnitStatsSeeder extends Seeder
                 }
 
                 $race = isset($unit['race']) ? (int) $unit['race'] : (int) $raceIndex;
+                $unitType = UnitType::fromRaceAndSlot($race, (int) $slotIndex);
+
+                if ($unitType === null) {
+                    continue;
+                }
+
                 $cost = $unit['cost'] ?? [];
                 $buildingRequirements = $unit['breq'] ?? [];
+                $legacyCode = $unit['type'] ?? null;
 
                 $attributes = $unit;
                 foreach ([
@@ -47,10 +55,18 @@ class UnitStatsSeeder extends Seeder
                     unset($attributes[$key]);
                 }
 
+                if ($legacyCode !== null) {
+                    $attributes['legacy_unit_code'] = $legacyCode;
+                }
+
+                $attributes['unit_type'] = $unitType->value;
+                $attributes['unit_name'] = $unitType->label();
+                $attributes['unit_slug'] = $unitType->slug();
+
                 $records[] = [
                     'race' => $race,
                     'slot' => (int) $slotIndex,
-                    'unit_code' => $unit['type'] ?? null,
+                    'unit_code' => $legacyCode !== null ? (string) $legacyCode : null,
                     'attack' => isset($unit['off']) ? (int) $unit['off'] : 0,
                     'defense_infantry' => isset($unit['def_i']) ? (int) $unit['def_i'] : 0,
                     'defense_cavalry' => isset($unit['def_c']) ? (int) $unit['def_c'] : 0,
