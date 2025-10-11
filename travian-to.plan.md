@@ -337,6 +337,18 @@
 - Schedule in `Kernel.php` with appropriate frequencies
 - Health monitoring and logging
 
+### 4.3 Migration Services
+
+Maintain the shared service layer between the legacy stack and Laravel so that
+authentication, security, and data import flows stay in lockstep.
+
+17. **Auth/LegacyLoginService** – keep the Fortify integration located at
+    `backend/app/Services/Auth/LegacyLoginService.php`.
+18. **Security/MultiAccountDetector** – reuse the multi-account detection logic
+    under `backend/app/Services/Security/MultiAccountDetector.php`.
+19. **Migration/DataMigrationService** – orchestrate table imports via
+    `backend/app/Services/Migration/DataMigrationService.php`.
+
 ---
 
 ## Phase 5: Controllers & Routes (Week 11-13)
