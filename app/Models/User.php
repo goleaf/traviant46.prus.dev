@@ -131,6 +131,30 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'recipient_id');
     }
 
+    public function sitterAssignments(): HasMany
+    {
+        return $this->hasMany(SitterAssignment::class, 'account_id');
+    }
+
+    public function sitterRoles(): HasMany
+    {
+        return $this->hasMany(SitterAssignment::class, 'sitter_id');
+    }
+
+    public function sitters(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'sitter_assignments', 'account_id', 'sitter_id')
+            ->withPivot(['permissions', 'expires_at'])
+            ->withTimestamps();
+    }
+
+    public function accountsDelegatedToMe(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'sitter_assignments', 'sitter_id', 'account_id')
+            ->withPivot(['permissions', 'expires_at'])
+            ->withTimestamps();
+    }
+
     protected function displayName(): Attribute
     {
         return Attribute::get(fn (): string => $this->nickname ?: $this->username);
