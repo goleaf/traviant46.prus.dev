@@ -345,11 +345,11 @@ Maintain the shared service layer between the legacy stack and Laravel so that
 authentication, security, and data import flows stay in lockstep.
 
 17. **Auth/LegacyLoginService** – keep the Fortify integration located at
-    `backend/app/Services/Auth/LegacyLoginService.php`.
+    `app/Services/Auth/LegacyLoginService.php`.
 18. **Security/MultiAccountDetector** – reuse the multi-account detection logic
-    under `backend/app/Services/Security/MultiAccountDetector.php`.
+    under `app/Services/Security/MultiAccountDetector.php`.
 19. **Migration/DataMigrationService** – orchestrate table imports via
-    `backend/app/Services/Migration/DataMigrationService.php`.
+    `app/Services/Migration/DataMigrationService.php`.
 
 ---
 
@@ -677,7 +677,7 @@ Migrate `main_script/include/admin/` to Laravel:
 
 ## Project Overview
 
-Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework to Laravel 12 with Livewire 3, using the existing `/backend` Laravel auth foundation as the base and merging all old Travian game mechanics.
+Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework to Laravel 12 with Livewire 3, using the existing Laravel auth foundation (formerly under `/backend`) as the base and merging all old Travian game mechanics.
 
 **Key Statistics:**
 
@@ -689,10 +689,10 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 
 ### 1.1 Move Backend Laravel to Root
 
-- Move all Laravel files from `/backend/*` to project root
-- Merge `backend/composer.json` with root `composer.json` (preserve Laravel 12 dependencies)
+- Verify all Laravel files from the former `/backend/*` tree now live in the project root
+- Harmonize the Laravel `composer.json` from the former backend with the root `composer.json` (preserve Laravel 12 dependencies)
 - Update all namespace references and paths in moved files
-- Move `.env.example` from backend to root (if exists)
+- Ensure `.env.example` resides at the project root (copied from the former backend tree)
 
 ### 1.2 Archive Old Travian Files
 
@@ -717,7 +717,7 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 ### 1.4 Git Operations
 
 - Stage all changes
-- Commit with message: "Migrate to Laravel 12: Move backend to root, archive old Travian to _travian/"
+- Commit with message: "Migrate to Laravel 12: Move Laravel module to root, archive old Travian to _travian/"
 - Push to remote repository
 
 ### 1.5 Create AGENT.md
@@ -764,15 +764,15 @@ For EACH table:
 
 **Priority Redesigns:**
 
-1. **users table:** Merge with backend/migrations users, add Fortify columns (email_verified_at, remember_token, two_factor_secret), alliance relationships, gold/silver balances
+1. **users table:** Merge with the Laravel migrations (formerly under `backend/database/migrations`) users, add Fortify columns (email_verified_at, remember_token, two_factor_secret), alliance relationships, gold/silver balances
 2. **villages (vdata):** Redesign with proper relationships to users, coordinates indexed, population, loyalty
 3. **village_buildings (fdata):** Replace `f1-f40` with normalized structure (village_id, building_type_id, level)
 4. **village_units (units):** Replace `u1-u10` with normalized structure (village_id, unit_type_id, count)
 5. **attacks (a2b):** Rename and redesign with readable column names
 6. **movements table:** Add proper relationships, movement types enum
 7. **alliances (alidata):** Merge alliance data with proper relationships
-8. **hero table:** Keep existing backend structure, add missing columns from old schema
-9. **adventures table:** Keep existing backend structure, validate against old schema
+8. **hero table:** Keep the existing Laravel structure (formerly under `backend`), add missing columns from old schema
+9. **adventures table:** Keep the existing Laravel structure (formerly under `backend`), validate against old schema
 
 ### 2.3 Create Migration Files
 
@@ -798,13 +798,13 @@ For EACH table:
 
 ### 3.1 Core Models
 
-- **User** (extend existing backend/app/Models/User.php)
+- **User** (extend `app/Models/User.php`)
 - Add relationships: villages(), alliance(), hero(), messages(), reports()
 - Add accessors: gold_balance, silver_balance, tribe_name
 - Add scopes: active(), banned(), tribe()
 - Preserve Fortify authentication traits
 
-- **Village** (enhance existing backend/app/Models/Game/Village.php)
+- **Village** (enhance `app/Models/Game/Village.php`)
 - Relationships: owner(), buildings(), units(), movements(), resources()
 - Accessors: coordinates, total_population, production_rates
 - Scopes: capital(), byCoordinates(), inRadius()
@@ -813,20 +813,20 @@ For EACH table:
 - Relationships: members(), diplomacy(), forum(), bonuses()
 - Accessors: total_population, total_villages, rank
 
-- **Building** (redesign from backend VillageBuilding)
+- **Building** (redesign from the existing Laravel VillageBuilding implementation (formerly in the backend module))
 - Polymorphic relationship to building types
 - Methods: upgrade(), demolish(), canBuild()
 
-- **Unit** (redesign from backend VillageUnit)
+- **Unit** (redesign from the existing Laravel VillageUnit implementation (formerly in the backend module))
 - Relationships: unitType(), village(), movements()
 - Methods: train(), merge(), split()
 
 ### 3.2 Game Mechanics Models
 
 - **Attack** (from a2b table)
-- **Movement** (keep backend structure, enhance)
-- **Hero** (merge backend with old schema)
-- **HeroInventory**, **HeroItem**, **HeroAdventure** (keep backend, enhance)
+- **Movement** (keep the existing Laravel structure (formerly in the backend module), enhance)
+- **Hero** (merge the existing Laravel module (formerly under backend) with the old schema)
+- **HeroInventory**, **HeroItem**, **HeroAdventure** (keep the existing Laravel module (formerly under backend), enhance)
 - **Artifact**, **ArtifactLog**
 - **Message**, **Report** (from mdata, ndata)
 - **Market**, **Auction**, **Bid**, **TradeRoute**
@@ -838,8 +838,8 @@ For EACH table:
 - **BuildingType**, **UnitType**, **ResearchLevel**
 - **AllianceForum**, **ForumTopic**, **ForumPost**
 - **MapTile** (from wdata), **Oasis** (from odata)
-- **LoginActivity** (keep from backend), **MultiAccountAlert** (keep)
-- **SitterAssignment** (keep from backend)
+- **LoginActivity** (retain from the Laravel module (formerly under backend)), **MultiAccountAlert** (keep)
+- **SitterAssignment** (retain from the Laravel module (formerly under backend))
 
 ## Phase 4: Service Layer (30+ Services)
 
@@ -898,15 +898,15 @@ Migrate logic from `/_travian/services/` and `/_travian/models/`:
 
 ### 4.3 Migration Services
 
-17. **Auth/LegacyLoginService** (keep from backend Services/Auth/)
-18. **Security/MultiAccountDetector** (keep from backend Services/Security/)
-19. **Migration/DataMigrationService** (keep from backend Services/Migration/)
+17. **Auth/LegacyLoginService** (retain from the Laravel module (formerly under backend) Services/Auth/)
+18. **Security/MultiAccountDetector** (retain from the Laravel module (formerly under backend) Services/Security/)
+19. **Migration/DataMigrationService** (retain from the Laravel module (formerly under backend) Services/Migration/)
 
 ## Phase 5: Background Jobs & Queue System
 
-### 5.1 Core Jobs (keep existing from backend, add more)
+### 5.1 Core Jobs (retain the existing Laravel jobs from the former backend module, add more)
 
-Existing (from backend/app/Jobs/):
+Existing (from app/Jobs/):
 
 - ProcessAdventures.php
 - ProcessBuildingCompletion.php
@@ -1063,7 +1063,7 @@ Convert 200+ PHP templates from `/_travian/views/Templates/` to Blade:
 **Layouts:**
 
 - `resources/views/layouts/game.blade.php` (main game layout with header, sidebar, footer)
-- `resources/views/layouts/guest.blade.php` (login/register from backend)
+- `resources/views/layouts/guest.blade.php` (login/register from the Laravel module formerly under backend)
 - `resources/views/layouts/admin.blade.php`
 
 **Components:**
@@ -1076,7 +1076,7 @@ Convert 200+ PHP templates from `/_travian/views/Templates/` to Blade:
 
 ### 7.2 Flux UI Integration
 
-Use Flux UI components (already in backend dependencies):
+Use Flux UI components (already provided by the Laravel module's dependencies):
 
 - Buttons, forms, modals, dropdowns
 - Toast notifications for game events
@@ -1088,7 +1088,7 @@ Use Flux UI components (already in backend dependencies):
 - Preserve sprite sheets, building images, unit icons
 - Copy CSS from `/_travian/public/css/` to `resources/css/` (convert to Tailwind if possible)
 - Copy JavaScript from `/_travian/public/js/` to `resources/js/`
-- Configure Vite for asset bundling (already setup in backend)
+- Configure Vite for asset bundling (already set up in the Laravel module)
 
 ### 7.4 Angular Frontend
 
@@ -1130,7 +1130,7 @@ Create `config/units.php` for all 5 tribes:
 
 ### 8.4 Keep Existing Backend Config
 
-Preserve from `backend/config/`:
+Preserve from `config/` (formerly `backend/config`):
 
 - auth.php, fortify.php (authentication)
 - database.php, redis.php
@@ -1171,7 +1171,7 @@ Create `app/Console/Commands/MigrateOldDataCommand.php`:
 
 Update `routes/web.php`:
 
-- Keep backend auth routes (login, register, logout, verification)
+- Keep the Laravel auth routes (login, register, logout, verification) supplied by the module formerly under backend
 - Add game routes (ALL using Livewire components, NO controllers)
 - Middleware: auth, verified, game.running, ban.check
 
@@ -1185,7 +1185,7 @@ Create custom middleware:
 - `UpdateResources`: Update resources on each request
 - `CheckVillageOwnership`: Verify user owns village
 
-### 10.3 Guards (keep from backend)
+### 10.3 Guards (retain from the Laravel module (formerly under backend))
 
 - default (regular players)
 - admin (uid=0)
@@ -1259,7 +1259,7 @@ Configure Supervisor to run:
 
 | Old Path | New Path | Type |
 |----------|----------|------|
-| `backend/*` | `/` (root) | Laravel Base |
+| `app/*` (formerly `backend/*`) | `/` (root) | Laravel Base |
 | `main_script/include/Model/PlayerModel.php` | `app/Models/User.php` | Model |
 | `main_script/include/Model/VillageModel.php` | `app/Models/Village.php` | Model |
 | `main_script/include/Controller/Dorf1Ctrl.php` | `app/Livewire/Village/Overview.php` | Livewire |

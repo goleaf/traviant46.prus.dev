@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +10,6 @@ class LoginActivity extends Model
 {
     use HasFactory;
 
-    /**
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'acting_sitter_id',
@@ -23,9 +18,6 @@ class LoginActivity extends Model
         'via_sitter',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'via_sitter' => 'boolean',
     ];

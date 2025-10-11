@@ -1,9 +1,9 @@
 # Travian T4.6 → Laravel 12 Complete Migration Plan
 
 ## 0. Executive Overview
-- **Objective:** Replace the legacy TravianT4.6 PHP 7.3–7.4 codebase with a unified Laravel 12 application that combines the existing `/backend` Fortify-powered authentication stack with the full set of Travian game mechanics.
+- **Objective:** Replace the legacy TravianT4.6 PHP 7.3–7.4 codebase with a unified Laravel 12 application that combines the former `/backend` Fortify-powered authentication stack with the full set of Travian game mechanics.
 - **Modern Stack:** PHP 8.3, Laravel 12, Livewire 3, Vite, TailwindCSS/Flux UI, Redis, MariaDB 10.6+/MySQL 8.0+.
-- **Key Drivers:** Security, maintainability, horizontal scalability, Livewire-driven reactive UI, and reuse of the proven `/backend` Laravel components (multi-account detection, sitter system, Fortify guards).
+- **Key Drivers:** Security, maintainability, horizontal scalability, Livewire-driven reactive UI, and reuse of the proven Laravel components (multi-account detection, sitter system, Fortify guards) that originated in the `/backend` module.
 - **Migration Strategy:** Iterative “strangler” approach with schema redesign, dual-running critical services, automated regression suites, and staged cutovers.
 
 ---
@@ -16,8 +16,8 @@
 - ~45 models, 80+ controllers, and 200+ templates distributed across `main_script/include`.
 - Custom job system using `pcntl_fork`, Redis-backed session layer, handcrafted localization files in `resources/Translation/`.
 
-### 1.2 Existing Laravel `/backend`
-- Laravel-based auth, sitter, and anti multi-account features located under `/backend` with Fortify integration and Redis queue workers.
+### 1.2 Existing Laravel Module (formerly `/backend`)
+- Laravel-based auth, sitter, and anti multi-account features now located under `app/` with Fortify integration and Redis queue workers.
 - Eight Laravel migrations defining modernized tables for the sitter/multi-account subsystems.
 - Seven Eloquent models already aligned with Laravel conventions.
 
@@ -39,7 +39,7 @@
 ---
 
 ## 3. Target Architecture Snapshot
-- **Application:** Monolithic Laravel 12 app in project root; `/backend` code merged under `app/` and `database/` namespaces.
+- **Application:** Monolithic Laravel 12 app in project root; code that previously lived in `/backend` now resides under `app/` and `database/` namespaces.
 - **Presentation:** Livewire 3 with Flux UI; Vite handles asset bundling; Tailwind configured via PostCSS.
 - **Domain Layer:** Feature-focused modules grouped by bounded contexts (Accounts, Villages, Map, Alliance, Combat, Economy, Communication).
 - **Persistence:** Eloquent models per bounded context backed by modular migrations; Redis for cache/sessions/queues; Horizon for monitoring.
@@ -56,7 +56,7 @@
 - Introduce CI pipelines (GitHub Actions) running `composer test`, `npm run build`, and static analyzers (Larastan, Pint).
 
 ### Phase 1 (Weeks 1–3): Core Framework Merge
-1. **Backend Merge:** Relocate `/backend/app`, `/backend/config`, and `/backend/database` resources into main Laravel tree, resolving namespace collisions and harmonizing service providers.
+1. **Backend Merge:** Ensure the contents of the former `/backend/app`, `/backend/config`, and `/backend/database` directories are fully harmonized within the main Laravel tree, resolving namespace collisions and service provider configuration gaps.
 2. **Auth & Security:** Enable Fortify, Sanctum, sitter features, and multi-account detection in the unified app; wire Redis session handling.
 3. **Base Livewire Layout:** Create shared layout, nav, and notification Livewire components leveraging Flux UI.
 4. **Localization Pipeline:** Import legacy translation strings into Laravel localization files and create translation loader for JSON/array hybrids.

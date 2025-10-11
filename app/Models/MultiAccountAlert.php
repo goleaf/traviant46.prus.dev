@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +10,6 @@ class MultiAccountAlert extends Model
 {
     use HasFactory;
 
-    /**
-     * @var array<int, string>
-     */
     protected $fillable = [
         'ip_address',
         'primary_user_id',
@@ -23,9 +18,6 @@ class MultiAccountAlert extends Model
         'last_seen_at',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'last_seen_at' => 'datetime',
     ];

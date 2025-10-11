@@ -1,44 +1,29 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="antialiased">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    @hasSection('title')
-        <title>@yield('title') — {{ config('app.name', 'Travian T4.6') }}</title>
-    @else
-        <title>{{ config('app.name', 'Travian T4.6') }}</title>
-    @endif
+    <title>@yield('title', config('app.name', 'Travian T4.6'))</title>
 
-    @yield('meta')
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600;jetbrains-mono:400&display=swap" rel="stylesheet" />
 
-    {{-- Preserve existing asset pipeline: individual screens can push their styles/scripts. --}}
-    @stack('preload')
-    @yield('styles')
-    @stack('styles')
+    @livewireStyles
+    @livewireScriptConfig
+    @fluxAppearance
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @stack('head')
 </head>
-<body class="@yield('body-class', 'bg-dark text-light')">
-    <div id="app" class="min-vh-100 d-flex flex-column">
-        @includeWhen(View::exists('layouts.partials.navigation'), 'layouts.partials.navigation')
-
-        @if (trim($__env->yieldContent('header')))
-            <header>
-                @yield('header')
-            </header>
-        @endif
-
-        <main class="flex-fill">
-            @yield('content')
-        </main>
-
-        @hasSection('footer')
-            <footer>
-                @yield('footer')
-            </footer>
-        @endif
+<body class="font-sans text-slate-100 bg-slate-950 min-h-screen">
+    <div class="min-h-screen flex flex-col" id="app">
+        @yield('content')
     </div>
 
-    @yield('scripts')
+    @livewireScripts
+    @fluxScripts
     @stack('scripts')
 </body>
 </html>

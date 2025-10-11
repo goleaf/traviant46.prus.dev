@@ -1,9 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,39 +12,42 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens;
-    use HasFactory;
-    use Notifiable;
+    private const TRIBE_NAMES = [
+        1 => 'Romans',
+        2 => 'Teutons',
+        3 => 'Gauls',
+        6 => 'Egyptians',
+        7 => 'Huns',
+    ];
+
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
 
     /**
-     * @var array<int, string>
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
      */
     protected $fillable = [
+        'legacy_uid',
         'username',
-        'nickname',
+        'name',
         'email',
         'password',
-        'faction',
-        'language',
-        'timezone',
-        'gold',
-        'silver',
-        'settings',
-        'profile',
-        'is_active',
-        'alliance_id',
-        'active_village_id',
+        'sit1_uid',
+        'sit2_uid',
+        'last_owner_login_at',
         'last_login_at',
+        'last_login_ip',
     ];
 
     /**
-     * @var array<int, string>
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -53,82 +55,18 @@ class User extends Authenticatable
     ];
 
     /**
-     * @var array<string, string>
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
      */
-    protected $casts = [
-        'settings' => 'array',
-        'profile' => 'array',
-        'is_active' => 'boolean',
-        'gold' => 'integer',
-        'silver' => 'integer',
-        'email_verified_at' => 'datetime',
-        'last_login_at' => 'datetime',
-    ];
-
-    protected static function booted(): void
+    protected function casts(): array
     {
-        static::creating(function (User $user): void {
-            $user->username = trim($user->username);
-            $user->nickname ??= $user->username;
-            $user->remember_token ??= Str::random(60);
-        });
-    }
-
-    public function villages(): HasMany
-    {
-        return $this->hasMany(Village::class);
-    }
-
-    public function activeVillage(): BelongsTo
-    {
-        return $this->belongsTo(Village::class, 'active_village_id');
-    }
-
-    public function alliance(): BelongsTo
-    {
-        return $this->belongsTo(Alliance::class);
-    }
-
-    public function hero(): HasOne
-    {
-        return $this->hasOne(Hero::class);
-    }
-
-    public function artifacts(): BelongsToMany
-    {
-        return $this->belongsToMany(Artifact::class)
-            ->withPivot(['assigned_at'])
-            ->withTimestamps();
-    }
-
-    public function attacks(): HasMany
-    {
-        return $this->hasMany(Attack::class, 'attacker_id');
-    }
-
-    public function defences(): HasMany
-    {
-        return $this->hasMany(Attack::class, 'defender_id');
-    }
-
-    public function autoExtendSubscriptions(): HasMany
-    {
-        return $this->hasMany(AutoExtendSubscription::class);
-    }
-
-    public function reports(): HasMany
-    {
-        return $this->hasMany(Report::class);
-    }
-
-    public function sentMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'sender_id');
-    }
-
-    public function receivedMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'recipient_id');
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'last_owner_login_at' => 'datetime',
+            'last_login_at' => 'datetime',
+        ];
     }
 
     public function sitterAssignments(): HasMany
@@ -155,37 +93,90 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    protected function displayName(): Attribute
+    public function villages(): HasMany
     {
-        return Attribute::get(fn (): string => $this->nickname ?: $this->username);
+        return $this->hasMany(Village::class);
     }
 
-    protected function password(): Attribute
+    public function alliance(): BelongsTo
     {
-        return Attribute::set(function (string $value): string {
-            return Hash::needsRehash($value) ? Hash::make($value) : $value;
+        return $this->belongsTo(Alliance::class, 'current_alliance_id');
+    }
+
+    public function hero(): HasOne
+    {
+        return $this->hasOne(Hero::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    protected function goldBalance(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) ($this->attributes['gold_balance'] ?? $this->attributes['gold'] ?? 0));
+    }
+
+    protected function silverBalance(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) ($this->attributes['silver_balance'] ?? $this->attributes['silver'] ?? 0));
+    }
+
+    protected function tribeName(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $tribe = $this->attributes['tribe'] ?? $this->attributes['race'] ?? null;
+
+            if ($tribe === null) {
+                return null;
+            }
+
+            $tribeId = is_numeric($tribe) ? (int) $tribe : null;
+
+            if ($tribeId !== null) {
+                return self::TRIBE_NAMES[$tribeId] ?? null;
+            }
+
+            return ucfirst((string) $tribe);
         });
     }
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('is_active', true);
+        return $query->where('is_banned', false);
     }
 
-    public function scopeWithAlliance(Builder $query): Builder
+    public function scopeBanned(Builder $query): Builder
     {
-        return $query->whereNotNull('alliance_id');
+        return $query->where('is_banned', true);
     }
 
-    public function scopeSearch(Builder $query, string $term): Builder
+    public function scopeTribe(Builder $query, int|string $tribe): Builder
     {
-        $likeTerm = '%' . Str::lower($term) . '%';
+        $tribeId = is_numeric($tribe)
+            ? (int) $tribe
+            : array_search(strtolower((string) $tribe), array_map('strtolower', self::TRIBE_NAMES), true);
 
-        return $query->where(function (Builder $builder) use ($likeTerm): void {
-            $builder
-                ->whereRaw('LOWER(username) LIKE ?', [$likeTerm])
-                ->orWhereRaw('LOWER(nickname) LIKE ?', [$likeTerm])
-                ->orWhereRaw('LOWER(email) LIKE ?', [$likeTerm]);
-        });
+        if ($tribeId === false || $tribeId === null) {
+            return $query;
+        }
+
+        return $query->where('race', $tribeId);
+    }
+
+    public function isAdmin(): bool
+    {
+        return (int) $this->legacy_uid === 0;
+    }
+
+    public function isMultihunter(): bool
+    {
+        return (int) $this->legacy_uid === 2;
     }
 }
