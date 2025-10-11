@@ -35,6 +35,7 @@ class Alliance extends Model
     protected $casts = [
         'diplomacy' => 'array',
         'settings' => 'array',
+        'statistics' => 'array',
     ];
 
     protected static function booted(): void
@@ -49,9 +50,16 @@ class Alliance extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function members(): HasMany
+    public function members(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'alliance_user')
+            ->withPivot([
+                'role',
+                'permissions',
+                'contribution_stats',
+                'joined_at',
+            ])
+            ->withTimestamps();
     }
 
     public function villages(): HasMany
@@ -64,6 +72,33 @@ class Alliance extends Model
         return $this->belongsToMany(Artifact::class)
             ->withPivot(['captured_at'])
             ->withTimestamps();
+    }
+
+    public function diplomacy(): HasMany
+    {
+        $relation = $this->hasMany(AllianceDiplomacy::class, 'aid1');
+
+        $query = $relation->getQuery();
+        $query->wheres = [];
+        if (method_exists($query, 'setBindings')) {
+            $query->setBindings([], 'where');
+        }
+
+        return $relation->where(function (Builder $builder): void {
+            $builder
+                ->where('aid1', $this->getKey())
+                ->orWhere('aid2', $this->getKey());
+        });
+    }
+
+    public function forum(): HasMany
+    {
+        return $this->hasMany(AllianceForum::class, 'aid');
+    }
+
+    public function bonuses(): HasMany
+    {
+        return $this->hasMany(AllianceBonus::class, 'aid');
     }
 
     public function reports(): HasMany
@@ -94,5 +129,60 @@ class Alliance extends Model
     public function scopeTop(Builder $query, int $limit = 10): Builder
     {
         return $query->orderByDesc('victory_points')->limit($limit);
+    }
+
+    protected function totalPopulation(): Attribute
+    {
+        return Attribute::get(function (): int {
+            if ($this->relationLoaded('villages')) {
+                return (int) $this->villages->sum('population');
+            }
+
+            $statistics = $this->statistics;
+            if (is_array($statistics) && array_key_exists('total_population', $statistics)) {
+                return (int) $statistics['total_population'];
+            }
+
+            return (int) $this->villages()->sum('population');
+        });
+    }
+
+    protected function totalVillages(): Attribute
+    {
+        return Attribute::get(function (): int {
+            if ($this->relationLoaded('villages')) {
+                return (int) $this->villages->count();
+            }
+
+            $statistics = $this->statistics;
+            if (is_array($statistics) && array_key_exists('total_villages', $statistics)) {
+                return (int) $statistics['total_villages'];
+            }
+
+            return (int) $this->villages()->count();
+        });
+    }
+
+    protected function rank(): Attribute
+    {
+        return Attribute::get(function (): ?int {
+            $statistics = $this->statistics;
+            if (is_array($statistics) && array_key_exists('rank', $statistics)) {
+                return (int) $statistics['rank'];
+            }
+
+            if (!$this->exists) {
+                return null;
+            }
+
+            $victoryPoints = $this->getAttribute('victory_points');
+            if ($victoryPoints === null) {
+                return null;
+            }
+
+            return (int) (static::query()
+                ->where('victory_points', '>', $victoryPoints)
+                ->count() + 1);
+        });
     }
 }
