@@ -2,6 +2,20 @@
 
 use Illuminate\Support\Str;
 
+$sessionDriver = env('SESSION_DRIVER', 'redis');
+
+if ($sessionDriver === 'redis' && ! extension_loaded('redis')) {
+    $sessionDriver = 'file';
+}
+
+$sessionStore = $sessionDriver === 'redis'
+    ? env('SESSION_STORE', env('REDIS_SESSION_CACHE', 'redis'))
+    : env('SESSION_STORE');
+
+$sessionConnection = $sessionDriver === 'redis'
+    ? env('SESSION_CONNECTION', env('REDIS_SESSION_CACHE', 'session'))
+    : env('SESSION_CONNECTION');
+
 return [
 
     /*
@@ -18,7 +32,7 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'redis'),
+    'driver' => $sessionDriver,
 
     /*
     |--------------------------------------------------------------------------
@@ -73,7 +87,7 @@ return [
     |
     */
 
-    'connection' => env('SESSION_CONNECTION', env('REDIS_SESSION_CACHE', 'default')),
+    'connection' => $sessionConnection,
 
     /*
     |--------------------------------------------------------------------------
@@ -101,7 +115,7 @@ return [
     |
     */
 
-    'store' => env('SESSION_STORE', env('REDIS_SESSION_CACHE', 'default')),
+    'store' => $sessionStore,
 
     /*
     |--------------------------------------------------------------------------
