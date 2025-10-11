@@ -1213,10 +1213,25 @@ Create custom middleware:
 ### 11.3 Integration Tests
 
 - Queue job processing
+  - Use seeded events (building upgrades, troop movements, resource ticks) to populate the `event_queue` table and confirm Laravel queue workers drain the jobs without dead-lettering.
+  - Instrument Horizon dashboard metrics and Redis queue depth to ensure throughput stays within SLA under sustained load (500 jobs/minute baseline, 1,500 jobs/minute burst).
+  - Validate idempotency by replaying the same payload twice and confirming ledger/accounting tables remain consistent.
 - Real-time resource updates
+  - Run the resource tick processor alongside a websocket subscriber to confirm the `village_resources` table updates are broadcast to connected clients within 3 seconds.
+  - Simulate cache invalidation (Redis eviction) to verify clients gracefully refetch from the API without stale totals.
+  - Capture Prometheus metrics (`resource_tick_duration_seconds`) to ensure p95 latency < 200ms and no missed ticks across a 30 minute window.
 - Concurrent attacks
+  - Spin up three attacking villages targeting the same defender via API to observe queue ordering, troop stack deductions, and battle resolution consistency.
+  - Confirm battle reports generate once per engagement and link to the correct participants, even when collisions occur within the same second.
+  - Assert that post-battle resource plundering updates both `resource_ledger` and `village_resources` atomically.
 - Session management
+  - Execute login from two devices for the same account, validating session tokens issuance, revocation on logout, and idle timeout behavior.
+  - Verify session fixation protection by rotating tokens after privilege escalation (e.g., account settings update).
+  - Confirm Redis-backed session storage survives failover by forcing a replica promotion during active gameplay.
 - Multi-account detection
+  - Seed analytics events to trigger IP/device fingerprint correlations and ensure flagged accounts appear in the review queue with supporting evidence.
+  - Validate alert workflow by acknowledging a flagged account and confirming downstream webhook delivery to the moderation tool.
+  - Run a regression scenario where sibling accounts share a network (e.g., campus IP) to ensure heuristics respect allowlists before escalating.
 
 ## Phase 12: Deployment & Cutover
 
