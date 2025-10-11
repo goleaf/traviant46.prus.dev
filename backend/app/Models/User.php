@@ -3,14 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
+    private const TRIBE_NAMES = [
+        1 => 'Romans',
+        2 => 'Teutons',
+        3 => 'Gauls',
+        6 => 'Egyptians',
+        7 => 'Huns',
+    ];
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -79,6 +91,83 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(User::class, 'sitter_assignments', 'sitter_id', 'account_id')
             ->withPivot(['permissions', 'expires_at'])
             ->withTimestamps();
+    }
+
+    public function villages(): HasMany
+    {
+        return $this->hasMany(Village::class);
+    }
+
+    public function alliance(): BelongsTo
+    {
+        return $this->belongsTo(Alliance::class, 'current_alliance_id');
+    }
+
+    public function hero(): HasOne
+    {
+        return $this->hasOne(Hero::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    protected function goldBalance(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) ($this->attributes['gold_balance'] ?? $this->attributes['gold'] ?? 0));
+    }
+
+    protected function silverBalance(): Attribute
+    {
+        return Attribute::get(fn (): int => (int) ($this->attributes['silver_balance'] ?? $this->attributes['silver'] ?? 0));
+    }
+
+    protected function tribeName(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $tribe = $this->attributes['tribe'] ?? $this->attributes['race'] ?? null;
+
+            if ($tribe === null) {
+                return null;
+            }
+
+            $tribeId = is_numeric($tribe) ? (int) $tribe : null;
+
+            if ($tribeId !== null) {
+                return self::TRIBE_NAMES[$tribeId] ?? null;
+            }
+
+            return ucfirst((string) $tribe);
+        });
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_banned', false);
+    }
+
+    public function scopeBanned(Builder $query): Builder
+    {
+        return $query->where('is_banned', true);
+    }
+
+    public function scopeTribe(Builder $query, int|string $tribe): Builder
+    {
+        $tribeId = is_numeric($tribe)
+            ? (int) $tribe
+            : array_search(strtolower((string) $tribe), array_map('strtolower', self::TRIBE_NAMES), true);
+
+        if ($tribeId === false || $tribeId === null) {
+            return $query;
+        }
+
+        return $query->where('race', $tribeId);
     }
 
     public function isAdmin(): bool
