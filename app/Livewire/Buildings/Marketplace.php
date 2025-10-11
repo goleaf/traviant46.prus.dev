@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class Marketplace extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 17;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Marketplace';
+        return BuildingType::MARKETPLACE;
     }
 }

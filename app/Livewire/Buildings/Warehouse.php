@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class Warehouse extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 10;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Warehouse';
+        return BuildingType::WAREHOUSE;
     }
 }

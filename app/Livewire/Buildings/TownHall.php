@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class TownHall extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 24;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Town Hall';
+        return BuildingType::TOWN_HALL;
     }
 }

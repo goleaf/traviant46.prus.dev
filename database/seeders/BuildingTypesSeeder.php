@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\BuildingType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,13 @@ class BuildingTypesSeeder extends Seeder
         $records = [];
 
         foreach ($data as $entry) {
-            if (!is_array($entry) || empty($entry['gid']) || empty($entry['name'])) {
+            if (!is_array($entry) || empty($entry['gid'])) {
+                continue;
+            }
+
+            $buildingType = BuildingType::tryFrom((int) $entry['gid']);
+
+            if ($buildingType === null) {
                 continue;
             }
 
@@ -28,8 +35,8 @@ class BuildingTypesSeeder extends Seeder
             }
 
             $records[] = [
-                'gid' => (int) $entry['gid'],
-                'name' => (string) $entry['name'],
+                'gid' => $buildingType->value,
+                'name' => $buildingType->label(),
                 'type' => isset($entry['type']) ? (int) $entry['type'] : null,
                 'max_level' => isset($entry['maxLvl']) ? (int) $entry['maxLvl'] : null,
                 'extra' => isset($entry['extra']) ? (int) $entry['extra'] : null,

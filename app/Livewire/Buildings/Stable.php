@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class Stable extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 20;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Stable';
+        return BuildingType::STABLE;
     }
 }

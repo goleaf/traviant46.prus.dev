@@ -1,16 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
+
+use App\Enums\BuildingType;
 
 class HorseDrinkingTrough extends BuildingComponent
 {
-    public static function buildingId(): int
+    public static function building(): BuildingType
     {
-        return 41;
-    }
-
-    public static function buildingName(): string
-    {
-        return 'Horse Drinking Trough';
+        return BuildingType::HORSE_DRINKING_TROUGH;
     }
 }

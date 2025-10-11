@@ -1,15 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Buildings;
 
+use App\Enums\BuildingType;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 abstract class BuildingComponent extends Component
 {
-    abstract public static function buildingId(): int;
+    abstract public static function building(): BuildingType;
 
-    abstract public static function buildingName(): string;
+    public static function buildingId(): int
+    {
+        return static::building()->value;
+    }
+
+    public static function buildingName(): string
+    {
+        return static::building()->label();
+    }
 
     public function render(): View
     {
