@@ -12,38 +12,34 @@ class HeroAdventure extends Model
 {
     use HasFactory;
 
+    protected $table = 'adventure';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'hero_id',
-        'origin_village_id',
-        'target_village_id',
-        'difficulty',
-        'type',
-        'status',
-        'available_at',
-        'started_at',
-        'completed_at',
-        'rewards',
-        'context',
+        'uid',
+        'kid',
+        'dif',
+        'time',
+        'end',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'origin_village_id' => 'integer',
-        'target_village_id' => 'integer',
-        'available_at' => 'datetime',
-        'started_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'rewards' => 'array',
-        'context' => 'array',
+        'uid' => 'integer',
+        'kid' => 'integer',
+        'dif' => 'integer',
+        'time' => 'integer',
+        'end' => 'boolean',
     ];
 
     public function hero(): BelongsTo
     {
-        return $this->belongsTo(Hero::class);
+        return $this->belongsTo(Hero::class, 'uid', 'uid');
     }
 }

@@ -8,29 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hero_account_entries', function (Blueprint $table): void {
-            $table->id();
-            $table->unsignedInteger('user_id');
-            $table->foreignId('hero_id')->nullable()->constrained('heroes')->nullOnDelete();
-            $table->string('reason', 120);
-            $table->bigInteger('gold_delta')->default(0);
-            $table->bigInteger('silver_delta')->default(0);
-            $table->json('details')->nullable();
-            $table->timestamp('recorded_at')->useCurrent();
-            $table->timestamps();
+        Schema::create('accounting', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('uid');
+            $table->string('cause', 100);
+            $table->integer('reserve');
+            $table->unsignedInteger('balance');
+            $table->unsignedInteger('time');
 
-            $table->index(['user_id', 'recorded_at']);
-            $table->index(['hero_id', 'recorded_at']);
-            $table
-                ->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
+            $table->index(['uid', 'balance', 'time']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hero_account_entries');
+        Schema::dropIfExists('accounting');
     }
 };

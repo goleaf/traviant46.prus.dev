@@ -16,82 +16,90 @@ class Hero extends Model
 {
     use HasFactory;
 
+    protected $table = 'hero';
+
+    protected $primaryKey = 'uid';
+
+    public $incrementing = false;
+
+    protected $keyType = 'int';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
-        'village_id',
-        'home_village_id',
-        'name',
-        'level',
-        'experience',
+        'uid',
+        'kid',
+        'exp',
         'health',
-        'status',
-        'attributes',
-        'equipment',
-        'is_active',
-        'last_moved_at',
+        'itemHealth',
+        'power',
+        'offBonus',
+        'defBonus',
+        'production',
+        'productionType',
+        'lastupdate',
+        'hide',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'level' => 'integer',
-        'experience' => 'integer',
-        'health' => 'integer',
-        'attributes' => 'array',
-        'equipment' => 'array',
-        'is_active' => 'boolean',
-        'last_moved_at' => 'datetime',
+        'uid' => 'integer',
+        'kid' => 'integer',
+        'exp' => 'integer',
+        'health' => 'float',
+        'itemHealth' => 'integer',
+        'power' => 'integer',
+        'offBonus' => 'integer',
+        'defBonus' => 'integer',
+        'production' => 'integer',
+        'productionType' => 'integer',
+        'lastupdate' => 'integer',
+        'hide' => 'boolean',
     ];
-
-    protected static function booted(): void
-    {
-        static::saving(function (Hero $hero): void {
-            $hero->name = trim($hero->name);
-        });
-    }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'uid');
     }
 
     public function village(): BelongsTo
     {
-        return $this->belongsTo(Village::class);
+        return $this->belongsTo(Village::class, 'kid', 'kid');
     }
 
     public function homeVillage(): BelongsTo
     {
-        return $this->belongsTo(Village::class, 'home_village_id');
+        return $this->belongsTo(Village::class, 'kid', 'kid');
     }
 
     public function face(): HasOne
     {
-        return $this->hasOne(HeroFace::class);
+        return $this->hasOne(HeroFace::class, 'uid', 'uid');
     }
 
     public function inventory(): HasOne
     {
-        return $this->hasOne(HeroInventory::class);
+        return $this->hasOne(HeroInventory::class, 'uid', 'uid');
     }
 
     public function items(): HasMany
     {
-        return $this->hasMany(HeroItem::class);
+        return $this->hasMany(HeroItem::class, 'uid', 'uid');
     }
 
     public function adventures(): HasMany
     {
-        return $this->hasMany(HeroAdventure::class);
+        return $this->hasMany(HeroAdventure::class, 'uid', 'uid');
     }
 
     public function accountEntries(): HasMany
     {
-        return $this->hasMany(HeroAccountEntry::class);
+        return $this->hasMany(HeroAccountEntry::class, 'uid', 'uid');
     }
 
     protected function isAlive(): Attribute
@@ -101,31 +109,11 @@ class Hero extends Model
 
     protected function power(): Attribute
     {
-        return Attribute::get(function (): int {
-            $attributes = $this->attributes ?? [];
-            $base = (int) ($attributes['strength'] ?? 0);
-            $bonus = (int) ($attributes['offence_bonus'] ?? 0);
-
-            return $base + $bonus + ($this->level * 5);
-        });
+        return Attribute::get(fn (): int => (int) $this->getAttributeValue('power'));
     }
 
     public function scopeAlive(Builder $query): Builder
     {
         return $query->where('health', '>', 0);
-    }
-
-    public function scopeAvailable(Builder $query): Builder
-    {
-        return $query->where(function (Builder $builder): void {
-            $builder
-                ->where('status', 'idle')
-                ->orWhere('status', 'defending');
-        });
-    }
-
-    public function scopeByName(Builder $query, string $name): Builder
-    {
-        return $query->whereRaw('LOWER(name) = ?', [strtolower($name)]);
     }
 }

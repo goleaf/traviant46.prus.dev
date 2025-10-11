@@ -8,24 +8,24 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hero_faces', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('hero_id')->constrained('heroes')->cascadeOnDelete();
-            $table->enum('gender', ['male', 'female', 'non_binary'])->default('male');
-            $table->string('skin_tone', 20)->default('light');
-            $table->string('hair_color', 20)->nullable();
-            $table->string('hair_style', 40)->nullable();
-            $table->string('eye_color', 20)->nullable();
-            $table->string('facial_hair', 40)->nullable();
-            $table->json('features')->nullable();
-            $table->timestamps();
-
-            $table->unique('hero_id');
+        Schema::create('face', function (Blueprint $table): void {
+            $table->unsignedInteger('uid')->primary();
+            $table->unsignedSmallInteger('headProfile');
+            $table->unsignedSmallInteger('hairColor');
+            $table->unsignedSmallInteger('hairStyle');
+            $table->unsignedSmallInteger('ears');
+            $table->unsignedSmallInteger('eyebrow');
+            $table->unsignedSmallInteger('eyes');
+            $table->unsignedSmallInteger('nose');
+            $table->unsignedSmallInteger('mouth');
+            $table->unsignedSmallInteger('beard');
+            $table->string('gender', 6)->default('male');
+            $table->unsignedInteger('lastupdate')->default(0);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hero_faces');
+        Schema::dropIfExists('face');
     }
 };

@@ -8,20 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hero_items', function (Blueprint $table) {
-            $table->id();
-            $table->string('code', 50)->unique();
-            $table->string('name');
-            $table->string('type', 50);
-            $table->text('description')->nullable();
-            $table->json('attributes')->nullable();
-            $table->timestamps();
-            $table->index('type');
+        Schema::create('items', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('uid');
+            $table->unsignedTinyInteger('btype');
+            $table->unsignedSmallInteger('type');
+            $table->unsignedBigInteger('num');
+            $table->unsignedInteger('placeId');
+            $table->unsignedTinyInteger('proc')->default(0);
+
+            $table->index('uid');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hero_items');
+        Schema::dropIfExists('items');
     }
 };

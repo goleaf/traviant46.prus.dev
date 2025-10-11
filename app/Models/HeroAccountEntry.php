@@ -12,36 +12,38 @@ class HeroAccountEntry extends Model
 {
     use HasFactory;
 
+    protected $table = 'accounting';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
-        'hero_id',
-        'reason',
-        'gold_delta',
-        'silver_delta',
-        'details',
-        'recorded_at',
+        'uid',
+        'cause',
+        'reserve',
+        'balance',
+        'time',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'gold_delta' => 'integer',
-        'silver_delta' => 'integer',
-        'details' => 'array',
-        'recorded_at' => 'datetime',
+        'uid' => 'integer',
+        'reserve' => 'integer',
+        'balance' => 'integer',
+        'time' => 'integer',
     ];
 
     public function hero(): BelongsTo
     {
-        return $this->belongsTo(Hero::class);
+        return $this->belongsTo(Hero::class, 'uid', 'uid');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'uid');
     }
 }

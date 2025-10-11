@@ -8,28 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('hero_adventures', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('hero_id')->constrained('heroes')->cascadeOnDelete();
-            $table->unsignedBigInteger('origin_village_id')->nullable()->index();
-            $table->unsignedBigInteger('target_village_id')->nullable()->index();
-            $table->enum('difficulty', ['easy', 'normal', 'hard'])->default('normal');
-            $table->enum('type', ['resource', 'equipment', 'experience', 'unique'])->default('resource');
-            $table->enum('status', ['available', 'in_progress', 'completed', 'failed', 'expired'])->default('available');
-            $table->timestamp('available_at')->nullable();
-            $table->timestamp('started_at')->nullable();
-            $table->timestamp('completed_at')->nullable();
-            $table->json('rewards')->nullable();
-            $table->json('context')->nullable();
-            $table->timestamps();
+        Schema::create('adventure', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('uid');
+            $table->unsignedInteger('kid');
+            $table->unsignedTinyInteger('dif');
+            $table->unsignedInteger('time');
+            $table->unsignedTinyInteger('end')->default(0);
 
-            $table->index(['hero_id', 'status']);
-            $table->index(['status', 'available_at']);
+            $table->index('uid');
+            $table->index('kid');
+            $table->index('time');
+            $table->index('end');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('hero_adventures');
+        Schema::dropIfExists('adventure');
     }
 };

@@ -12,29 +12,53 @@ class HeroFace extends Model
 {
     use HasFactory;
 
+    protected $table = 'face';
+
+    protected $primaryKey = 'uid';
+
+    public $incrementing = false;
+
+    protected $keyType = 'int';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'hero_id',
+        'uid',
+        'headProfile',
+        'hairColor',
+        'hairStyle',
+        'ears',
+        'eyebrow',
+        'eyes',
+        'nose',
+        'mouth',
+        'beard',
         'gender',
-        'skin_tone',
-        'hair_color',
-        'hair_style',
-        'eye_color',
-        'facial_hair',
-        'features',
+        'lastupdate',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'features' => 'array',
+        'uid' => 'integer',
+        'headProfile' => 'integer',
+        'hairColor' => 'integer',
+        'hairStyle' => 'integer',
+        'ears' => 'integer',
+        'eyebrow' => 'integer',
+        'eyes' => 'integer',
+        'nose' => 'integer',
+        'mouth' => 'integer',
+        'beard' => 'integer',
+        'lastupdate' => 'integer',
     ];
 
     public function hero(): BelongsTo
     {
-        return $this->belongsTo(Hero::class);
+        return $this->belongsTo(Hero::class, 'uid', 'uid');
     }
 }

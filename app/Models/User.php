@@ -91,7 +91,7 @@ class User extends Authenticatable
 
     public function hero(): HasOne
     {
-        return $this->hasOne(Hero::class);
+        return $this->hasOne(Hero::class, 'uid', 'id');
     }
 
     public function artifacts(): BelongsToMany

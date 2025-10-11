@@ -12,29 +12,50 @@ class HeroInventory extends Model
 {
     use HasFactory;
 
+    protected $table = 'inventory';
+
+    protected $primaryKey = 'uid';
+
+    public $incrementing = false;
+
+    protected $keyType = 'int';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'hero_id',
-        'capacity',
-        'extra_slots',
-        'last_water_bucket_used_at',
-        'state',
+        'uid',
+        'helmet',
+        'body',
+        'leftHand',
+        'rightHand',
+        'shoes',
+        'horse',
+        'bag',
+        'lastupdate',
+        'lastWaterBucketUse',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'capacity' => 'integer',
-        'extra_slots' => 'integer',
-        'last_water_bucket_used_at' => 'datetime',
-        'state' => 'array',
+        'uid' => 'integer',
+        'helmet' => 'integer',
+        'body' => 'integer',
+        'leftHand' => 'integer',
+        'rightHand' => 'integer',
+        'shoes' => 'integer',
+        'horse' => 'integer',
+        'bag' => 'integer',
+        'lastupdate' => 'integer',
+        'lastWaterBucketUse' => 'integer',
     ];
 
     public function hero(): BelongsTo
     {
-        return $this->belongsTo(Hero::class);
+        return $this->belongsTo(Hero::class, 'uid', 'uid');
     }
 }

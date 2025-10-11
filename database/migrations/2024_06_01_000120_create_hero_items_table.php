@@ -8,10 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('hero_items');
+    }
+
+    public function down(): void
+    {
         Schema::create('hero_items', function (Blueprint $table): void {
             $table->id();
             $table->unsignedInteger('user_id');
-            $table->foreignId('hero_id')->nullable()->constrained('heroes')->nullOnDelete();
+            $table->unsignedBigInteger('hero_id')->nullable();
             $table->string('slot', 40);
             $table->string('type', 60);
             $table->string('rarity', 20)->default('common');
@@ -23,16 +28,6 @@ return new class extends Migration
 
             $table->index(['user_id', 'slot']);
             $table->index(['hero_id', 'is_equipped']);
-            $table
-                ->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('hero_items');
     }
 };

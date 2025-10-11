@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('heroes');
+    }
+
+    public function down(): void
+    {
         Schema::create('heroes', function (Blueprint $table): void {
             $table->id();
             $table->unsignedInteger('user_id');
@@ -27,16 +32,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['user_id', 'status']);
-            $table
-                ->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->cascadeOnDelete();
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('heroes');
     }
 };

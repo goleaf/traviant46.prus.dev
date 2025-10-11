@@ -12,38 +12,41 @@ class HeroItem extends Model
 {
     use HasFactory;
 
+    protected $table = 'items';
+
+    public $timestamps = false;
+
     /**
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
-        'hero_id',
-        'slot',
+        'uid',
+        'btype',
         'type',
-        'rarity',
-        'quantity',
-        'is_equipped',
-        'attributes',
-        'acquired_at',
+        'num',
+        'placeId',
+        'proc',
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
-        'quantity' => 'integer',
-        'is_equipped' => 'boolean',
-        'attributes' => 'array',
-        'acquired_at' => 'datetime',
+        'uid' => 'integer',
+        'btype' => 'integer',
+        'type' => 'integer',
+        'num' => 'integer',
+        'placeId' => 'integer',
+        'proc' => 'boolean',
     ];
 
     public function hero(): BelongsTo
     {
-        return $this->belongsTo(Hero::class);
+        return $this->belongsTo(Hero::class, 'uid', 'uid');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'uid');
     }
 }

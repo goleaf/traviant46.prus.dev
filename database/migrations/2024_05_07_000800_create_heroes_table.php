@@ -8,25 +8,27 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('heroes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('current_village_id')->nullable()->constrained('villages')->nullOnDelete();
-            $table->string('name', 50);
-            $table->unsignedTinyInteger('level')->default(0);
-            $table->unsignedInteger('experience')->default(0);
-            $table->unsignedTinyInteger('health')->default(100);
-            $table->unsignedInteger('loyalty')->default(100);
-            $table->json('attributes')->nullable();
-            $table->json('skills')->nullable();
-            $table->json('appearance')->nullable();
-            $table->timestamps();
-            $table->index(['user_id', 'level']);
+        Schema::create('hero', function (Blueprint $table): void {
+            $table->unsignedInteger('uid')->primary();
+            $table->unsignedInteger('kid');
+            $table->unsignedBigInteger('exp')->default(0);
+            $table->decimal('health', 13, 10)->unsigned()->default('100.0000000000');
+            $table->unsignedInteger('itemHealth')->default(0);
+            $table->unsignedSmallInteger('power')->default(0);
+            $table->unsignedSmallInteger('offBonus')->default(0);
+            $table->unsignedSmallInteger('defBonus')->default(0);
+            $table->unsignedSmallInteger('production')->default(4);
+            $table->unsignedTinyInteger('productionType')->default(0);
+            $table->unsignedInteger('lastupdate')->default(0);
+            $table->unsignedTinyInteger('hide')->default(1);
+
+            $table->index('health');
+            $table->index('lastupdate');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('heroes');
+        Schema::dropIfExists('hero');
     }
 };

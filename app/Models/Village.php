@@ -108,7 +108,7 @@ class Village extends Model
 
     public function hero(): HasOne
     {
-        return $this->hasOne(Hero::class);
+        return $this->hasOne(Hero::class, 'kid', 'kid');
     }
 
     protected function coordinates(): Attribute
