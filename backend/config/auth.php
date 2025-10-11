@@ -42,11 +42,11 @@ return [
         ],
         'admin' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'admins',
         ],
         'multihunter' => [
             'driver' => 'session',
-            'provider' => 'users',
+            'provider' => 'multihunters',
         ],
     ],
 
@@ -71,6 +71,18 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'admins' => [
+            'driver' => 'legacy_role',
+            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'legacy_uid' => 0,
+        ],
+
+        'multihunters' => [
+            'driver' => 'legacy_role',
+            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'legacy_uid' => 2,
         ],
 
         // 'users' => [

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Auth\LegacyRoleUserProvider;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Auth;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -11,5 +13,12 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        Auth::provider('legacy_role', function ($app, array $config) {
+            $model = $config['model'] ?? config('auth.providers.users.model');
+            $legacyUid = (int) ($config['legacy_uid'] ?? 0);
+
+            return new LegacyRoleUserProvider($app['hash'], $model, $legacyUid);
+        });
     }
 }
