@@ -6,6 +6,8 @@ use App\Jobs\ProcessAdventures;
 use App\Jobs\ProcessBuildingCompletion;
 use App\Jobs\ProcessServerTasks;
 use App\Jobs\ProcessTroopTraining;
+use App\Jobs\ScheduleDailyQuestReset;
+use App\Jobs\ScheduleMedalDistribution;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -34,6 +36,18 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ProcessServerTasks())
             ->name('automation:server-tasks')
             ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ScheduleDailyQuestReset())
+            ->name('automation:daily-quests')
+            ->dailyAt(config('automation.daily_quests.reset_at', '12:05'))
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ScheduleMedalDistribution())
+            ->name('automation:medals')
+            ->cron(config('automation.medals.cron', '0 */6 * * *'))
             ->withoutOverlapping()
             ->runInBackground();
     }
