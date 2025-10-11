@@ -45,7 +45,7 @@ class Village extends Model
 
     public function units(): HasMany
     {
-        return $this->hasMany(VillageUnit::class);
+        return $this->hasMany(Unit::class);
     }
 
     public function trainingBatches(): HasMany

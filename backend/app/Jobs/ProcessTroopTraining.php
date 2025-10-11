@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\Game\Unit;
 use App\Models\Game\UnitTrainingBatch;
-use App\Models\Game\VillageUnit;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -64,22 +64,20 @@ class ProcessTroopTraining implements ShouldQueue
                 $lockedBatch->markProcessing();
                 $lockedBatch->save();
 
-                $unit = VillageUnit::query()
+                $unit = Unit::query()
                     ->where('village_id', $lockedBatch->village_id)
                     ->where('unit_type_id', $lockedBatch->unit_type_id)
                     ->lockForUpdate()
                     ->first();
 
                 if ($unit === null) {
-                    $unit = new VillageUnit([
+                    $unit = new Unit([
                         'village_id' => $lockedBatch->village_id,
                         'unit_type_id' => $lockedBatch->unit_type_id,
-                        'quantity' => 0,
                     ]);
                 }
 
-                $unit->quantity = ($unit->quantity ?? 0) + $lockedBatch->quantity;
-                $unit->save();
+                $unit->train($lockedBatch->quantity);
 
                 $lockedBatch->markCompleted();
                 $lockedBatch->save();

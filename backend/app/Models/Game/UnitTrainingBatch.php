@@ -46,6 +46,11 @@ class UnitTrainingBatch extends Model
         return $this->belongsTo(Village::class);
     }
 
+    public function unitType(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class);
+    }
+
     public function scopeDue(Builder $query): Builder
     {
         return $query
