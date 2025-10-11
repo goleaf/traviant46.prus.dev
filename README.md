@@ -1,44 +1,61 @@
-# TravianT4.6
-A really nice travian script.
+# Authentication Backend
 
-Needs
-php 7.3-7.4
-geoip php extension
-redis php extension
+This repository now contains the Laravel 12 service that powers the TravianT authentication stack after migrating it from the former `backend/` directory. The application ships with [Laravel Fortify](https://laravel.com/docs/fortify) and a set of integrations that replicate the legacy `Model\LoginModel` behaviour while modernising the platform.
 
-For details on the ongoing Laravel rebuild, see the following docs:
+## Key features
 
-- [`docs/backend-stack.md`](docs/backend-stack.md) – backend technology stack
-  and operational guidelines.
-- [`docs/queue-system.md`](docs/queue-system.md) – background job and scheduler
-  architecture.
+- **Fortify authentication** with username or email based login plus Redis-backed session storage.
+- **Legacy sitter support** so delegated accounts can sign in with their own password while we track the delegation context.
+- **Role specific guards** for the special administrator (`legacy_uid = 0`) and multihunter (`legacy_uid = 2`) accounts.
+- **Email verification** and password recovery flows with lightweight Blade views.
+- **Multi-account detection** via IP logging, automatic alerts, and Redis sessions for continuity with the existing infrastructure.
 
-## Background processing
+## Getting started
 
-Background jobs and scheduled tasks are handled through Laravel's queue and
-scheduler tooling.  See [docs/queue-system.md](docs/queue-system.md) for the
-architecture and deployment requirements.
+```bash
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
 
-everything is here to install and setup servers
-all generic domain has example.com feel free to replace to your domain
-server used nginx and mysql
+The seed data will create example accounts:
 
-i can explain how to step by step do it.
-if you are compitent then you can figure it out
+| Username     | Email                     | Password   | Notes                |
+|--------------|---------------------------|------------|----------------------|
+| `admin`      | `admin@example.com`       | `Admin!234`| Administrator guard  |
+| `multihunter`| `multihunter@example.com` | `Multi!234`| Multihunter guard    |
+| `playerone`  | `player@example.com`      | *random*   | Delegated to both    |
 
-enjoy if anyone does want instructions to insstall figure it out and make a pull request editing this readme.
-this is a fan made recreation and not a part of any offical trvian company source etc etc.
+Regular test accounts are also generated via the factory.
 
+## Sitter management API
 
-search for
-YOUR_DOMAIN
-USERNAME_HERE
-REDACTED
+All sitter routes require an authenticated and verified session.
 
-### 8.3 Testing
+| Method | Route                | Description                                 |
+|--------|---------------------|---------------------------------------------|
+| GET    | `/sitters`          | List sitters assigned to the current user   |
+| POST   | `/sitters`          | Assign or update a sitter (`sitter_username`)|
+| DELETE | `/sitters/{sitter}` | Remove a sitter delegation                  |
 
-- Unit tests for game formulas
-- Feature tests for critical flows (battle, building, trading)
-- Integration tests for job system
-- Load testing for concurrent users
-- Test all 5 tribes (Romans, Teutons, Gauls, Egyptians, Huns)
+Requests accept optional `permissions` arrays and `expires_at` timestamps (ISO8601).
+
+## Multi-account monitoring
+
+Successful logins write to the `login_activities` table (Redis sessions remain active). The `MultiAccountDetector` keeps a running set of `multi_account_alerts` whenever multiple accounts appear from the same IP, mirroring the behaviour of the legacy PHP stack.
+
+## Testing
+
+Run the application test suite with:
+
+```bash
+php artisan test
+```
+
+You may also execute static analysis or linting via `composer lint` if you add a custom script.
+
+---
+
+This project is released under the MIT license.

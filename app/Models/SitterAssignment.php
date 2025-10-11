@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,9 +10,6 @@ class SitterAssignment extends Model
 {
     use HasFactory;
 
-    /**
-     * @var array<int, string>
-     */
     protected $fillable = [
         'account_id',
         'sitter_id',
@@ -22,9 +17,6 @@ class SitterAssignment extends Model
         'expires_at',
     ];
 
-    /**
-     * @var array<string, string>
-     */
     protected $casts = [
         'permissions' => 'array',
         'expires_at' => 'datetime',
