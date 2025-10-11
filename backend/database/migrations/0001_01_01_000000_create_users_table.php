@@ -14,19 +14,39 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->unsignedInteger('legacy_uid')->nullable()->unique();
             $table->string('username')->unique();
-            $table->string('name');
+            $table->string('name', 50);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->foreignIdFor(User::class, 'sit1_uid')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignIdFor(User::class, 'sit2_uid')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('current_alliance_id')->nullable();
+            $table->unsignedTinyInteger('race')->nullable()->index();
+            $table->unsignedTinyInteger('access_level')->default(1)->index();
+            $table->unsignedInteger('gold_balance')->default(0);
+            $table->unsignedInteger('silver_balance')->default(0);
+            $table->unsignedInteger('victory_points')->default(0);
+            $table->boolean('is_banned')->default(false)->index();
+            $table->json('preferences')->nullable();
+            $table->json('statistics')->nullable();
+            $table->json('settings')->nullable();
             $table->timestamp('last_owner_login_at')->nullable();
-            $table->timestamp('last_login_at')->nullable();
+            $table->timestamp('last_login_at')->nullable()->index();
+            $table->timestamp('last_activity_at')->nullable()->index();
             $table->ipAddress('last_login_ip')->nullable();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
+
+            $table->index('name');
+            $table->index('created_at');
+            $table->index('updated_at');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

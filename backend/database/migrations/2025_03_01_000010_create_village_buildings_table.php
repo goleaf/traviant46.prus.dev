@@ -11,11 +11,11 @@ return new class extends Migration
         Schema::create('village_buildings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
-            $table->unsignedTinyInteger('slot_number');
-            $table->unsignedSmallInteger('building_type')->nullable();
+            $table->foreignId('building_type_id')->constrained('building_types')->cascadeOnDelete();
             $table->unsignedTinyInteger('level')->default(0);
             $table->timestamps();
-            $table->unique(['village_id', 'slot_number']);
+
+            $table->unique(['village_id', 'building_type_id']);
         });
     }
 

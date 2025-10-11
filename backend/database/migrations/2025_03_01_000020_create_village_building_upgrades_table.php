@@ -12,8 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
             $table->foreignId('village_building_id')->nullable()->constrained('village_buildings')->nullOnDelete();
-            $table->unsignedTinyInteger('slot_number');
-            $table->unsignedSmallInteger('building_type');
+            $table->foreignId('building_type_id')->constrained('building_types')->cascadeOnDelete();
             $table->unsignedTinyInteger('current_level')->default(0);
             $table->unsignedTinyInteger('target_level');
             $table->unsignedTinyInteger('queue_position')->default(0);
@@ -27,6 +26,7 @@ return new class extends Migration
             $table->text('failure_reason')->nullable();
             $table->timestamps();
             $table->index(['status', 'completes_at']);
+            $table->index(['village_id', 'building_type_id']);
         });
     }
 

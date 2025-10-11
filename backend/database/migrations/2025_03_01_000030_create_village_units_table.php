@@ -11,9 +11,12 @@ return new class extends Migration
         Schema::create('village_units', function (Blueprint $table) {
             $table->id();
             $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
-            $table->unsignedSmallInteger('unit_type_id');
+            $table->foreignId('unit_type_id')->constrained('unit_stats')->cascadeOnDelete();
             $table->unsignedBigInteger('quantity')->default(0);
+            $table->unsignedBigInteger('queued_quantity')->default(0);
+            $table->json('attributes')->nullable();
             $table->timestamps();
+
             $table->unique(['village_id', 'unit_type_id']);
         });
     }

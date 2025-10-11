@@ -10,16 +10,25 @@ return new class extends Migration
     {
         Schema::create('villages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->string('name');
-            $table->integer('population')->default(0);
-            $table->unsignedTinyInteger('loyalty')->default(100);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('alliance_id')->nullable()->constrained('alliances')->nullOnDelete();
+            $table->string('name', 50);
             $table->integer('x_coordinate');
             $table->integer('y_coordinate');
-            $table->boolean('is_capital')->default(false);
+            $table->boolean('is_capital')->default(false)->index();
+            $table->unsignedInteger('population')->default(0);
+            $table->unsignedTinyInteger('loyalty')->default(100);
+            $table->unsignedInteger('culture_points')->default(0);
+            $table->json('storage')->nullable();
+            $table->json('production')->nullable();
+            $table->json('defense_bonus')->nullable();
             $table->timestamp('founded_at')->nullable();
             $table->timestamps();
-            $table->index(['x_coordinate', 'y_coordinate']);
+            $table->softDeletes();
+
+            $table->unique(['x_coordinate', 'y_coordinate']);
+            $table->index(['user_id', 'is_capital']);
+            $table->index(['alliance_id', 'population']);
         });
     }
 
