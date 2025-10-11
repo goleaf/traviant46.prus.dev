@@ -203,6 +203,10 @@ class Launcher
             $job = [$natarsModel, 'handleNatarExpansion'];
             $jobs[] = new Job('AIProgress:handleNatarExpansion', 15, $job);
         }
+        {
+            $job = [$natarsModel, 'handleNatarDefense'];
+            $jobs[] = new Job('AIProgress:handleNatarDefense', 30, $job);
+        }
         new Job('AIProgress', 5, $jobs, TRUE);
     }
 

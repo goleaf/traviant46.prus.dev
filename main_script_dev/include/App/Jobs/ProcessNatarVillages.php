@@ -16,7 +16,6 @@ class ProcessNatarVillages
     public function __invoke(): void
     {
         $this->natarsModel->handleNatarVillages();
-        $this->natarsModel->handleNatarExpansion();
     }
 
     public function runAction(): void

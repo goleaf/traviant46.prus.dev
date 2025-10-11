@@ -293,4 +293,61 @@ class NatarsModel
         }*/
     }
 
-} 
+    public function handleNatarDefense()
+    {
+        if (!$this->canRunNatars()) {
+            return;
+        }
+
+        $db = DB::getInstance();
+        $speed = max(1, (int)getGameSpeed());
+        $elapsedSeconds = max(0, (int)getGameElapsedSeconds());
+        $roundLengthDays = (int)getGame('round_length_real');
+        $roundLengthSeconds = $roundLengthDays > 0 ? $roundLengthDays * 86400 : 0;
+        $progress = $roundLengthSeconds > 0 ? min(1, $elapsedSeconds / $roundLengthSeconds) : 0;
+
+        $speedMultiplier = max(1, (int)ceil($speed / 5));
+        $progressMultiplier = max(1, (int)ceil(1 + ($progress * 3)));
+
+        $villages = $db->query('SELECT kid, isWW FROM vdata WHERE owner=1 AND isFarm=0 AND isArtifact=0');
+        if ($villages === false) {
+            return;
+        }
+
+        $wwMultiplier = 4;
+        $baseInfantry = 1200;
+        $baseCavalry = 600;
+
+        while ($village = $villages->fetch_assoc()) {
+            $kid = (int)$village['kid'];
+            $isWW = (int)$village['isWW'] === 1;
+
+            $multiplier = $speedMultiplier * $progressMultiplier * ($isWW ? $wwMultiplier : 1);
+
+            $infantryTarget = (int)round($baseInfantry * $multiplier);
+            $cavalryTarget = (int)round($baseCavalry * $multiplier);
+
+            $targets = [
+                'u1' => (int)round($infantryTarget * 1.2),
+                'u2' => $infantryTarget,
+                'u3' => (int)round($infantryTarget * 0.8),
+                'u4' => (int)round($infantryTarget * 0.6),
+                'u5' => (int)round($infantryTarget * 0.6),
+                'u6' => $cavalryTarget,
+                'u7' => (int)round($cavalryTarget * 0.9),
+                'u8' => (int)round($cavalryTarget * 0.7),
+                'u9' => (int)round($cavalryTarget * 0.5),
+                'u10' => (int)round($cavalryTarget * 0.5),
+            ];
+
+            $db->query("INSERT IGNORE INTO units (kid, race) VALUES ($kid, 5)");
+
+            $updates = ['race=5'];
+            foreach ($targets as $column => $target) {
+                $updates[] = sprintf('%s=GREATEST(%s,%d)', $column, $column, max(0, $target));
+            }
+
+            $db->query('UPDATE units SET ' . implode(',', $updates) . " WHERE kid=$kid");
+        }
+    }
+}

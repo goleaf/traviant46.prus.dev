@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use Model\NatarsModel;
 
-class ProcessNatarVillages
+class ProcessNatarDefense
 {
     private NatarsModel $natarsModel;
 
@@ -15,7 +15,7 @@ class ProcessNatarVillages
 
     public function __invoke(): void
     {
-        $this->natarsModel->handleNatarVillages();
+        $this->natarsModel->handleNatarDefense();
     }
 
     public function runAction(): void

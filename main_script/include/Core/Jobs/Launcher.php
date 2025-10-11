@@ -141,6 +141,7 @@ class Launcher
         $jobs[] = Job::model('AIProgress:handleFakeUserExpands', 45, FakeUserModel::class, 'handleFakeUserExpands');
         $jobs[] = Job::model('AIProgress:handleNatarVillages', 15, NatarsModel::class, 'handleNatarVillages');
         $jobs[] = Job::model('AIProgress:handleNatarExpansion', 15, NatarsModel::class, 'handleNatarExpansion');
+        $jobs[] = Job::model('AIProgress:handleNatarDefense', 30, NatarsModel::class, 'handleNatarDefense');
 
         return $jobs;
     }

@@ -323,6 +323,8 @@
 
 - `App\Jobs\ProcessFakeUsers`
 - `App\Jobs\ProcessNatarVillages`
+- `App\Jobs\ProcessNatarExpansion`
+- `App\Jobs\ProcessNatarDefense`
 
 6. **Routine Jobs:**
 
