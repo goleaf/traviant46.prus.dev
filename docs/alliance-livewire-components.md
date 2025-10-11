@@ -19,4 +19,14 @@ This document summarizes the responsibilities that need to be covered by the pla
 * Reproduces `processAllianceDiplomacy()` by validating outgoing offers, persisting them, logging alliance events, and updating cached diplomacy data. 【F:main_script_dev/include/Controller/AllianceCtrl.php†L582-L635】
 * Provides actions to accept, refuse, or cancel offers and keeps the offer tables (`ownOffers`, `foreign`, `exiting`) in sync with the database. 【F:main_script_dev/include/Controller/AllianceCtrl.php†L636-L725】
 
+## `App\Livewire\Alliance\ForumTopic`
+* Fetches forum metadata, enforces area-specific access rules, and renders the topic table (including counts and last post details) for the currently selected alliance forum. 【F:main_script_dev/include/Controller/AllianceForum.php†L808-L848】【F:main_script_dev/include/Controller/AllianceForum.php†L850-L876】
+* Surfaces moderator controls for moving, locking, pinning, and deleting topics, while showing folder-state icons for regular members based on unread status. 【F:main_script_dev/include/Controller/AllianceForum.php†L40-L104】【F:main_script_dev/include/Controller/AllianceForum.php†L878-L920】
+* Handles the new-topic workflow, including poll creation, survey scheduling, and redirecting to the freshly created thread once validation succeeds. 【F:main_script_dev/include/Controller/AllianceForum.php†L106-L188】【F:main_script_dev/include/Controller/AllianceForum.php†L328-L443】
+
+## `App\Livewire\Alliance\ForumPost`
+* Governs post creation inside a topic by honouring sitter restrictions, checksum validation, and topic lock state before writing replies. 【F:main_script_dev/include/Controller/AllianceForum.php†L139-L188】【F:main_script_dev/include/Controller/AllianceForum.php†L328-L374】
+* Provides edit and delete flows that re-check forum ownership, author permissions, and CSRF tokens before updating or removing stored messages. 【F:main_script_dev/include/Controller/AllianceForum.php†L40-L80】【F:main_script_dev/include/Controller/AllianceForum.php†L230-L285】
+* Renders the paginated post list with player metadata, BBCode formatting, and edit history annotations for the Livewire view to consume. 【F:main_script_dev/include/Controller/AllianceForum.php†L499-L566】
+
 By isolating the above behaviours into Livewire components, we can replace the procedural controller with reactive views while maintaining feature completeness for description editing, roster management, forum discussions, and diplomacy workflows.
