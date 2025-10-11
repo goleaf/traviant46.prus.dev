@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Artifact extends Model
@@ -62,6 +63,11 @@ class Artifact extends Model
         return $this->belongsToMany(User::class, 'artifact_user')
             ->withPivot(['assigned_at'])
             ->withTimestamps();
+    }
+
+    public function artifactLogs(): HasMany
+    {
+        return $this->hasMany(ArtifactLog::class)->latest('captured_at');
     }
 
     public function ownerAlliance(): BelongsTo
