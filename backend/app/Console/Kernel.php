@@ -2,8 +2,13 @@
 
 namespace App\Console;
 
+use App\Jobs\CheckGameFinish;
 use App\Jobs\ProcessAdventures;
+use App\Jobs\ProcessAllianceBonus;
+use App\Jobs\ProcessArtifactEffects;
 use App\Jobs\ProcessBuildingCompletion;
+use App\Jobs\ProcessDailyQuests;
+use App\Jobs\ProcessMedals;
 use App\Jobs\ProcessServerTasks;
 use App\Jobs\ProcessTroopTraining;
 use Illuminate\Console\Scheduling\Schedule;
@@ -33,6 +38,36 @@ class Kernel extends ConsoleKernel
 
         $schedule->job(new ProcessServerTasks())
             ->name('automation:server-tasks')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessDailyQuests())
+            ->name('automation:daily-quests')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessMedals())
+            ->name('automation:medals')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessAllianceBonus())
+            ->name('automation:alliance-bonus')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessArtifactEffects())
+            ->name('automation:artifact-effects')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new CheckGameFinish())
+            ->name('automation:check-game-finish')
             ->everyMinute()
             ->withoutOverlapping()
             ->runInBackground();
