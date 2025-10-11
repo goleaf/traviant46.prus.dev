@@ -1201,14 +1201,63 @@ Create custom middleware:
 
 ### 11.2 Feature Tests
 
-- Authentication flow
-- Village creation
-- Building upgrade
-- Troop training
-- Attack sending and resolution
-- Market trades
-- Alliance management
-- Hero adventures
+The feature test suite exercises end-to-end player journeys using production-like data fixtures, a seeded world map, and the canonical queue/cron configuration. Every scenario runs against a clean database snapshot and validates telemetry events emitted to the event bus.
+
+#### Authentication flow
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| First-time login | Player account exists with confirmed email and no active session | 1. Submit login form with valid credentials.<br>2. Accept updated terms modal.<br>3. Redirect to tutorial village. | Session cookie issued, player context cached, tutorial flag set, login audit row created. |
+| Invalid password lockout | Account exists, 4 failed attempts logged within 15 minutes | 1. Submit wrong password twice more.<br>2. Attempt login with correct password. | Account enters temporary lockout, lockout timer visible, telemetry `auth.lockout` event recorded, no session started. |
+
+#### Village creation
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Tutorial completion | Fresh account after authentication flow | 1. Complete tutorial tasks.<br>2. Trigger automatic village placement. | Village row created with spawn coordinates, starting resources seeded, `village_created` notification queued. |
+| Manual expansion | Account owns >=1 village, has expansion slot unlocked | 1. Send settler party to empty tile.<br>2. Wait for travel timer.<br>3. Resolve settlement event. | New village recorded, settlers consumed, culture points deducted, map tile ownership updated. |
+
+#### Building upgrade
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Resource field upgrade | Village has level 1 woodcutter, sufficient wood/clay/iron/crop | 1. Initiate upgrade to level 2.<br>2. Accelerate timer via plus account item. | Queue entry created, resource costs deducted immediately, completion upgrades building stats, event appears in activity log. |
+| Infrastructure upgrade blocked | Warehouse at capacity limit | 1. Attempt to upgrade barracks requiring additional storage. | Upgrade rejected with validation message, no resources spent, analytics `build.blocked.storage` emitted. |
+
+#### Troop training
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Standard training | Barracks level ≥1, resources available | 1. Queue 10 infantry units.<br>2. Let timer complete. | Training queue entries created, resources consumed, population increases when batch completes, troops appear in rally point overview. |
+| Queue cancellation refund | Training queue active | 1. Cancel remaining units mid-queue. | Refund proportional resources, remaining units removed, cancellation logged in troop audit table. |
+
+#### Attack sending and resolution
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Raid attack | Attacker village has troops, target has resources | 1. Send raid.<br>2. Allow battle resolution job to run. | Combat simulator invoked, losses calculated, loot transferred, battle report generated and delivered to both players. |
+| Reinforcement mis-send | Attempt to reinforce enemy alliance | 1. Select reinforcement mission to village with hostile diplomacy status. | UI blocks action, API returns 409 with validation error, no troop movement created. |
+
+#### Market trades
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Player-to-player trade | Marketplace level ≥1, merchants idle | 1. Post trade offer.<br>2. Second player accepts offer.<br>3. Merchants travel and deliver goods. | Offer persisted, matching logic reserves merchants, ledger records both debit/credit entries, trade report issued on completion. |
+| Alliance trade tax waiver | Both players share alliance with tax perk | 1. Initiate internal trade. | Trade executes without tax deduction, alliance ledger updated for perk usage, audit confirms zero fee. |
+
+#### Alliance management
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Invite and accept | Alliance exists with open invitation slot | 1. Leader sends invite.<br>2. Target player accepts via inbox. | Invitation token generated, acceptance joins member with default role, alliance statistics recalculated, welcome message posted. |
+| Role privilege enforcement | Member with diplomat role only | 1. Attempt to kick another member. | Operation denied, UI shows insufficient rights, no change to membership table, security log records attempt. |
+
+#### Hero adventures
+
+| Scenario | Pre-conditions | Steps | Expected Result |
+| --- | --- | --- | --- |
+| Adventure completion | Hero idle, adventure available | 1. Dispatch hero.<br>2. Wait for return timer.<br>3. Resolve adventure. | Hero gains XP and loot according to template, health deducted, adventure status set to completed, hero inventory updated. |
+| Hero defeat handling | Hero low health, adventure difficulty high | 1. Send hero with <15% health to hard adventure. | Hero defeated, revival timer set, inventory unchanged, notification queued, adventure slot freed for respawn. |
 
 ### 11.3 Integration Tests
 
