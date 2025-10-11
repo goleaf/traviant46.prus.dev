@@ -9,8 +9,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            GameConfigSeeder::class,
+            TribeSeeder::class,
             BuildingTypesSeeder::class,
-            UnitStatsSeeder::class,
+            UnitTypesSeeder::class,
+            ResearchTreeSeeder::class,
         ]);
     }
 }
