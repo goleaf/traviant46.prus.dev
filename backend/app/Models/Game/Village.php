@@ -35,7 +35,7 @@ class Village extends Model
 
     public function buildings(): HasMany
     {
-        return $this->hasMany(VillageBuilding::class);
+        return $this->hasMany(Building::class);
     }
 
     public function buildingUpgrades(): HasMany
