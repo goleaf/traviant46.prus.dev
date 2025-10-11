@@ -3,8 +3,11 @@
 namespace App\Console;
 
 use App\Jobs\ProcessAdventures;
+use App\Jobs\ProcessAuctionEnd;
 use App\Jobs\ProcessBuildingCompletion;
+use App\Jobs\ProcessMerchantReturn;
 use App\Jobs\ProcessServerTasks;
+use App\Jobs\ProcessTradeRoutes;
 use App\Jobs\ProcessTroopTraining;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -34,6 +37,24 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ProcessServerTasks())
             ->name('automation:server-tasks')
             ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessTradeRoutes())
+            ->name('automation:trade-routes')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessMerchantReturn())
+            ->name('automation:merchant-return')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ProcessAuctionEnd())
+            ->name('automation:auction-end')
+            ->everyFiveMinutes()
             ->withoutOverlapping()
             ->runInBackground();
     }

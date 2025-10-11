@@ -8,16 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('villages', function (Blueprint $table) {
+        Schema::create('villages', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('owner_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->string('name');
-            $table->integer('population')->default(0);
+            $table->unsignedInteger('population')->default(0);
             $table->unsignedTinyInteger('loyalty')->default(100);
             $table->integer('x_coordinate');
             $table->integer('y_coordinate');
             $table->boolean('is_capital')->default(false);
             $table->timestamp('founded_at')->nullable();
+            $table->json('storage')->nullable();
+            $table->json('production')->nullable();
+            $table->json('defense_bonus')->nullable();
             $table->timestamps();
             $table->index(['x_coordinate', 'y_coordinate']);
         });

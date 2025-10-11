@@ -21,11 +21,17 @@ class Village extends Model
         'y_coordinate',
         'is_capital',
         'founded_at',
+        'storage',
+        'production',
+        'defense_bonus',
     ];
 
     protected $casts = [
         'is_capital' => 'boolean',
         'founded_at' => 'datetime',
+        'storage' => 'array',
+        'production' => 'array',
+        'defense_bonus' => 'array',
     ];
 
     public function owner(): BelongsTo

@@ -3,7 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Jobs\ProcessAdventures;
+use App\Jobs\ProcessAuctionEnd;
 use App\Jobs\ProcessBuildingCompletion;
+use App\Jobs\ProcessMerchantReturn;
+use App\Jobs\ProcessTradeRoutes;
 use App\Jobs\ProcessTroopTraining;
 use Illuminate\Console\Command;
 
@@ -20,6 +23,9 @@ class GameEngineCommand extends Command
         $this->dispatchJob($dispatchSync, ProcessBuildingCompletion::class);
         $this->dispatchJob($dispatchSync, ProcessTroopTraining::class);
         $this->dispatchJob($dispatchSync, ProcessAdventures::class);
+        $this->dispatchJob($dispatchSync, ProcessTradeRoutes::class);
+        $this->dispatchJob($dispatchSync, ProcessMerchantReturn::class);
+        $this->dispatchJob($dispatchSync, ProcessAuctionEnd::class);
 
         $this->components->info('Game engine jobs dispatched successfully.');
 
