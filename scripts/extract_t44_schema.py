@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import OrderedDict
 
-SOURCE_PATH = Path("main_script/include/schema/T4.4.sql")
+SOURCE_PATH = Path("_travian/schema/T4.4.sql")
 OUTPUT_PATH = Path("docs/schema/T4.4_selected_tables.sql")
 
 CATEGORIES = OrderedDict([
