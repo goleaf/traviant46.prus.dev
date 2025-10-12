@@ -47,6 +47,7 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 - `/_travian/schema/` ← from `main_script/include/schema/`
 - `/_travian/core/` ← from `main_script/include/Core/`
 - `/_travian/legacy/` ← all other old files (sections/, services/, TaskWorker/, etc.)
+  - Supplementary tooling (`TaskWorker/`, `services/`, `sections/`, `scripts/`, `main.sql`) now resides under `/_travian/legacy/`.
 
 ### 1.3 Clean Root Directory
 
@@ -617,4 +618,9 @@ Configure Supervisor to run:
 | `main_script/include/resources/Templates/` | `resources/views/` | Views |
 | `main_script/copyable/public/` | `public/` | Assets |
 | `main_script/include/schema/T4.4.sql` | `database/migrations/*` | Migrations |
+| `TaskWorker/` | `/_travian/legacy/TaskWorker/` | Legacy tooling |
+| `services/` | `/_travian/legacy/services/` | Legacy tooling |
+| `sections/` | `/_travian/legacy/sections/` | Legacy tooling |
+| `scripts/` | `/_travian/legacy/scripts/` | Legacy scripts |
+| `main.sql` | `/_travian/legacy/main.sql` | Legacy database snapshot |
 | Old Travian files | `/_travian/` | Archive |

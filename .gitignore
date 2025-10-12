@@ -26,6 +26,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 node_modules/
+/_travian/legacy/sections/pma/
 /backend/vendor
 /backend/bootstrap/cache
 /backend/storage
