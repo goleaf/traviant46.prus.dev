@@ -13,12 +13,12 @@
     @livewireScriptConfig
     @fluxAppearance
 
-    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    @vite(['resources/scss/game.scss', 'resources/js/app.js'])
 
     @stack('head')
 </head>
-<body class="font-sans text-slate-100 bg-slate-950 min-h-screen">
-    <div class="min-h-screen flex flex-col" id="app">
+<body class="@yield('body_class', 'app-body')">
+    <div class="@yield('app_container_class', 'app-shell')" id="app">
         @yield('content')
     </div>
 

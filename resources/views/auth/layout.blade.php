@@ -2,44 +2,65 @@
 
 @section('title', trim($__env->yieldContent('title', __('Authentication'))))
 
+@section('body_class', 'legacy-body')
+@section('app_container_class', 'legacy-shell')
+
 @section('content')
-    <div class="flex flex-1 items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-        <div class="w-full max-w-md">
-            <div class="rounded-3xl border border-white/10 bg-white/5 px-6 py-8 shadow-2xl backdrop-blur sm:px-8">
-                <div class="space-y-2 text-center">
-                    <flux:heading level="1" size="xl" class="text-white">
-                        @yield('title')
-                    </flux:heading>
+    <div class="legacy-auth-grid">
+        <section class="outerLoginBox @yield('outer_login_box_classes')">
+            <h2>@yield('title')</h2>
 
-                    @hasSection('subtitle')
-                        <flux:description class="text-slate-400">
-                            @yield('subtitle')
-                        </flux:description>
-                    @endif
+            @hasSection('subtitle')
+                <p class="legacy-subtitle">@yield('subtitle')</p>
+            @endif
+
+            <noscript>
+                <div class="legacy-noscript">
+                    {{ __('Travian requires JavaScript to deliver real-time world updates. Please enable it to continue.') }}
                 </div>
+            </noscript>
 
-                <div class="mt-6 space-y-4">
-                    @if (session('status'))
-                        <flux:callout variant="filled" icon="sparkles" class="text-left">
-                            {{ session('status') }}
-                        </flux:callout>
-                    @endif
-
-                    @if ($errors->any())
-                        <flux:callout variant="danger" icon="exclamation-triangle" class="text-left">
-                            <ul class="list-disc space-y-1 ps-5 text-sm">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </flux:callout>
-                    @endif
+            @if (session('status'))
+                <div class="legacy-callout legacy-callout--success">
+                    {{ session('status') }}
                 </div>
+            @endif
 
-                <div class="mt-8 space-y-6">
-                    @yield('content')
+            @if ($errors->any())
+                <div class="legacy-callout legacy-callout--danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
+            @endif
+
+            <div class="innerLoginBox">
+                @yield('content')
             </div>
-        </div>
+
+            @hasSection('footer')
+                <div class="legacy-footer">
+                    @yield('footer')
+                </div>
+            @endif
+        </section>
+
+        <aside class="legacy-auth-aside">
+            @hasSection('aside')
+                @yield('aside')
+            @else
+                <h3>{{ __('The Travian legacy returns') }}</h3>
+                <p>
+                    {{ __('Rebuilt on Laravel 12 with Fortify, the classic Travian interface keeps its timeless strategy aesthetic while adopting modern security and performance foundations.') }}
+                </p>
+                <ul>
+                    <li>{{ __('Preserve the familiar empire management layout veterans love.') }}</li>
+                    <li>{{ __('Hardened authentication powered by Laravel Fortify and session protections.') }}</li>
+                    <li>{{ __('Seamless access to dashboards, sitter controls, and alliance coordination tools.') }}</li>
+                </ul>
+            @endif
+        </aside>
     </div>
 @endsection
