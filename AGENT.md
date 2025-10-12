@@ -12,6 +12,13 @@
 
 Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework to Laravel 12 with Livewire 3, using the existing `/backend` Laravel auth foundation as the base and merging all old Travian game mechanics.
 
+### Deliverables
+1. Fully migrated codebase with updated directory structure and namespaces.
+2. Database schema aligned with the normalized redesign described below.
+3. Comprehensive automated test suite with integration coverage for migration-critical flows.
+4. Deployment and rollback runbooks updated to reflect new infrastructure.
+5. Stakeholder-approved Laravel 12 migration plan (see `travian-to.plan.md`).
+
 **Key Statistics:**
 
 - **Old Codebase:** 90 database tables, 45 models, 80+ controllers, 200+ templates, custom MVC framework
@@ -52,6 +59,16 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 - Stage all changes
 - Commit with message: "Migrate to Laravel 12: Move backend to root, archive old Travian to _travian/"
 - Push to remote repository
+
+### Components
+1. **API Gateway**: Kubernetes ingress (Envoy-based) routing to context-specific APIs.
+2. **Accounts Service**: Handles authentication, authorization, and profile management.
+3. **Economy Service**: Manages resource production, storage, and trades with ledger integration.
+4. **Warfare Service**: Processes troop movements, battles, and generates battle reports.
+5. **Communication Service**: Manages messaging, notifications, and event subscriptions.
+6. **Alliance Service**: Coordinates alliance formation, membership, and governance.
+7. **Event Processor**: Consumes `event_queue` to orchestrate asynchronous game events.
+8. **Data Sync Service**: Handles ETL flows to analytics and data warehouse targets.
 
 ### 1.5 Create AGENT.md
 

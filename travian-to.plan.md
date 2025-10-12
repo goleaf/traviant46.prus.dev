@@ -1,4 +1,4 @@
-# Travian T4.6 → Laravel 11 Complete Migration Plan
+# Travian T4.6 → Laravel 12 Complete Migration Plan
 ## ULTRA-DETAILED IMPLEMENTATION GUIDE
 
 ---
@@ -50,30 +50,44 @@
 **Dependencies:**
 - PHP Redis extension (required)
 - PHP GeoIP extension
-- Nginx web server
 - MariaDB/MySQL database
 - Process supervision: systemd for web/mail services, Supervisor for Laravel queue workers
+- Legacy automation scripts triggered via cron on two dedicated utility hosts
+- External analytics feed pushing hourly CSV exports to a vendor-managed S3 bucket
+- Mail delivery handled through Postmark API with custom bounce webhooks routed to `/services/mailNotify/`
+- Payment gateway integration through XSolla SDK embedded in `_travian/services/Payment/`
+- Realtime chat relayed via long-polling endpoints backed by Redis pub/sub
+- Monitoring stack composed of Zabbix (infrastructure) and custom PHP log aggregators
+
+### Operational Snapshot & Metrics
+
+- **Active Worlds:** 6 concurrently running game worlds with staggered start dates; each world averages 12,000 daily active users (DAU).
+- **Peak Load:** 2,400 concurrent actions per minute during tournament finale weeks; custom automation keeps background jobs under a 5-second completion SLA.
+- **Data Footprint:** ~480 GB combined MySQL dataset with 1.2 TB of historical logs compressed in cold storage; nightly incremental backups stored in R2-compatible object storage.
+- **Support Volume:** Community support team resolves ~150 tickets per day related to sitter delegation and alliance disputes; tooling depends on accurate audit trails and admin dashboards.
+- **Release Cadence:** Legacy stack deploys monthly via rsync scripts; target cadence post-migration is bi-weekly with GitHub Actions/ArgoCD pipelines.
+- **Compliance Requirements:** GDPR data export/delete workflows implemented manually—must be formalized through Laravel console commands with auditable logging.
 
 ### Target State (Detailed Requirements)
 
 **Framework:**
-- Laravel 11.x (latest stable)
+- Laravel 12.x (latest stable release)
 - PHP 8.2+ (ideally 8.3 for performance)
 - Composer 2.x for dependency management
 
 **Frontend Stack:**
-- Livewire 3.x for reactivity
-- Flux UI library for components
+- Livewire 3.5+ for reactivity (match `livewire/livewire` ^3.5)
+- Flux UI library for components (match `livewire/flux` ^2.5)
 - Alpine.js (bundled with Livewire)
-- Vite for asset compilation
+- Vite 6 configuration aligned with Laravel 12 defaults
 - Tailwind CSS (if Flux UI uses it)
 
 **Backend Stack:**
 - Eloquent ORM for database
 - Laravel Queue (Redis driver)
-- Laravel Fortify for authentication
+- Laravel Fortify ^1.31 for authentication (per `backend/composer.json`)
 - Laravel Sanctum for API tokens (if needed)
-- Laravel Horizon for queue monitoring
+- Laravel Horizon 5.x for queue monitoring (Laravel 12 compatible)
 - Spatie packages for permissions/activity log (if needed)
 
 **Database:**
@@ -82,9 +96,11 @@
 - Proper foreign key constraints
 - Indexed columns for performance
 - JSON columns for flexible data
+- Timestamp columns should default to Laravel 12 precise timestamps (`$table->timestampsTz(6)`) with `useCurrentOnUpdate()` where applicable
+- Prefer Laravel 12 native enum casting via `->enum()` or `AsEnumArrayObject` casts for stateful columns
 
 **Infrastructure:**
-- Nginx (keep existing)
+- Kubernetes ingress controller managed by platform team
 - Supervisor for queue workers (replace SystemD services)
 - Laravel Octane (optional, for performance boost)
 - Redis 6.0+ for cache/queue/sessions
@@ -93,13 +109,23 @@
 
 ## Phase 1: Foundation & Setup (Week 1-2)
 
+### 1.0 Repository Bootstrap & Directory Alignment
+
+- Create new Laravel 12 skeleton inside `/www/wwwroot/traviant46.prus.dev/backend` using `laravel new` to match `backend/` expectations.
+- Introduce `_travian/` module directory under `backend/app/_travian` for legacy interop (aligns with existing repository reorganization).
+- Update root composer workspace (`composer.json`) autoloading to map `_travian` services/models (already reflected in `backend/composer.json`).
+- Relocate shared assets to `resources/` and publish the Laravel 12 public webroot to `resources/web/public` per migration plan.
+- Ensure `bootstrap/app.php` adopts Laravel 12 closure-based configuration and registers legacy providers via `withProviders()`.
+- Wire the new HTTP kernel layout (`app/Http/Kernel.php` with `middlewareGroups` constants) to reflect Laravel 12 defaults before custom middleware.
+
 ### 1.1 Laravel Installation
 
-- Install Laravel 11 in new directory: `/www/wwwroot/traviant46.prus.dev/laravel-app`
-- Configure `.env` with existing database credentials
-- Install dependencies: Livewire 3, Flux UI, Laravel Debugbar
-- Set up multi-language support (laravel-translatable or similar)
-- Configure Redis for cache/sessions/queues
+- Install Laravel 12 in new directory: `/www/wwwroot/traviant46.prus.dev/laravel-app` (or reuse `/backend` skeleton above if already initialized).
+- Configure `.env` with existing database credentials and Redis endpoints.
+- Install dependencies pinned in `backend/composer.json`: Livewire 3.5, Flux UI 2.5, Laravel Fortify ^1.31, Laravel Horizon 5.x.
+- Set up multi-language support (laravel-translatable or similar).
+- Configure Redis for cache/sessions/queues.
+- Adopt Laravel 12 Vite presets (`resources/js/app.js`, `resources/css/app.css`) and ensure SSR/Vite config matches new directory layout.
 
 ### 1.2 Database Analysis & Schema Design
 
@@ -163,9 +189,9 @@
   - *Purpose:* Temporary storage for email change/verification flow.
   - *Issues:* No foreign keys, manual cleanup required, stores plaintext email/token pairs.
   - *Redesign:*
-    - Fold into `email_verifications` (shared with activation above) with status enum (`pending`, `completed`, `expired`).
+    - Fold into `email_verifications` (shared with activation above) with status enum (`pending`, `completed`, `expired`) defined via Laravel 12 `enum()` migration helper and PHP backed enum cast.
     - Add `metadata` JSON column to capture IP, user agent, locale for security checks.
-    - Convert UNIX `time` column to TIMESTAMP; add automatic pruning job using `expires_at`.
+    - Convert UNIX `time` column to `timestampTz(6)`; add automatic pruning job using `expires_at` and `useCurrentOnUpdate()` semantics.
 
 - **`deleting`**
   - *Purpose:* Schedules account deletions with countdown timers.
@@ -174,13 +200,14 @@
     - Rename to `account_deletions` with `user_id`, `initiated_at`, `scheduled_for`, `cancelled_at`, `reason`, `initiated_by_admin_id`.
     - Add FK to `users.id` and `users` alias for admin actions.
     - Provide soft delete column to track cancellations.
+    - Use `timestampsTz(6)` everywhere to align with Laravel 12 defaults.
 
 - **`newproc`**
   - *Purpose:* Flags users currently going through tutorial/activation processes.
   - *Issues:* Essentially a status table with `uid`, `stage`, `started` integers.
   - *Redesign:*
     - Merge into `user_onboarding_states` with `user_id`, `current_stage`, `step_data` (JSON), `started_at`, `completed_at`.
-    - Replace game checks with Eloquent relationships and events.
+    - Replace game checks with Eloquent relationships and events leveraging Laravel 12 enum casts for stage transitions.
     - Backfill `stage` into `current_stage`; use JSON to store additional metrics now kept in scattered columns.
 
 **Implementation Checklist:**
@@ -224,7 +251,7 @@
 
 ### 2.2 Authentication System
 
-- Install Laravel Fortify for authentication
+- Install Laravel Fortify ^1.31 for authentication (service provider registered in `bootstrap/app.php`)
 - Migrate `Model\LoginModel.php` logic to Laravel auth
 - Custom guards for admin (uid=0) and multihunter (uid=2)
 - Implement email verification flow
@@ -293,6 +320,7 @@
 - Laravel Queue with database/Redis driver
 - Scheduled tasks via `app/Console/Kernel.php`
 - Job classes for each background task
+- Horizon 5 dashboards configured via `app/Providers/HorizonServiceProvider.php`
 
 **Jobs to Create:**
 
@@ -358,6 +386,8 @@ authentication, security, and data import flows stay in lockstep.
 ### 5.1 Convert Controllers to Laravel
 
 **Pattern:** `Controller\{Name}Ctrl.php` → `app/Http/Controllers/{Name}Controller.php`
+- Legacy compatibility controllers that remain in `_travian` should extend shared base classes under `app/_travian/Http` and be registered via dedicated namespace groups in `RouteServiceProvider`.
+- Align controller namespaces with Laravel 12 `Route::middleware()` groups declared in `bootstrap/app.php`.
 
 **Priority Controllers:**
 
@@ -389,6 +419,7 @@ All AJAX endpoints from `Controller\Ajax\*`:
 - `routes/web.php` - all game routes
 - Route model binding for villages, alliances, etc.
 - Middleware: auth, game.running, ban.check, etc.
+- Configure `RouteServiceProvider` to use Laravel 12's `configureRateLimiting()` signature and map `_travian` module routes where legacy endpoints persist.
 
 ---
 
@@ -549,7 +580,7 @@ Migrate `main_script/include/admin/` to Laravel:
 
 ### 10.2 Deployment
 
-- Update nginx configuration
+- Update Kubernetes ingress manifests to route traffic to Laravel app
 - Roll out Supervisor-managed queue workers and scheduler processes
 - Laravel Octane (optional for performance)
 - Ensure Redis 6+ is provisioned for cache/queue/session drivers
@@ -559,7 +590,7 @@ Migrate `main_script/include/admin/` to Laravel:
 1. Announce maintenance window
 2. Stop old automation engine
 3. Migrate final data snapshot
-4. Switch nginx to Laravel app
+4. Shift ingress routing to Laravel app
 5. Start Laravel queue workers
 6. Monitor for 24-48 hours
 7. Keep old system as backup for 1 week
@@ -623,7 +654,7 @@ Migrate `main_script/include/admin/` to Laravel:
 | **Performance regression under load** | High | High | Early load testing with realistic troop movements, enable Laravel Telescope + Blackfire profiling, cache hot paths. |
 | **Queue backlog after cutover** | Medium | High | Scale Supervisor workers horizontally, configure Horizon alerts, pre-warm Redis. |
 | **Legacy client incompatibility** | Low | Medium | Maintain compatibility endpoints, versioned API responses, staged rollout for classic clients. |
-| **Team unfamiliarity with Laravel 11** | Medium | Medium | Formal Livewire & Horizon workshops, pair migration sessions, internal wiki for patterns. |
+| **Team unfamiliarity with Laravel 12** | Medium | Medium | Formal Livewire & Horizon workshops, pair migration sessions, internal wiki for patterns. |
 | **Security regressions** | Low | Critical | Fortify hardening review, mandatory code reviews, OWASP ZAP scan before launch. |
 
 ---
@@ -684,6 +715,33 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 - **Old Codebase:** 90 database tables, 45 models, 80+ controllers, 200+ templates, custom MVC framework
 - **Backend Laravel:** Auth system with Fortify, 8 migrations, 7 game models, sitter system, multi-account detection
 - **Target:** Unified Laravel 12 application in project root with pure Livewire architecture
+
+### Historical Context & Stakeholders
+
+- **Product Vision:** Deliver a modernised Travian experience with faster iteration cycles, better anti-cheat visibility, and a Livewire-first UI that mirrors current T4.6 mechanics without alienating veteran players.
+- **Primary Stakeholders:**
+  - **Game Studio Leadership:** Approves roadmap and budget; requires weekly burndown reports and migration readiness checkpoints.
+  - **Operations/SRE:** Own Kubernetes ingress, cluster capacity planning, and incident management runbooks.
+  - **Community Management:** Coordinates announcements, forum updates, and change logs for tournament worlds.
+  - **Support & Moderation:** Relies on admin tooling, ban history, and sitter oversight features to maintain game integrity.
+  - **Analytics & Monetisation:** Depends on real-time purchase data, auction telemetry, and gold balance accuracy for revenue reporting.
+- **External Partners:** Translation vendors (12 locales), payment processors, and anti-fraud monitoring service (FraudLabs Pro) consuming webhook notifications.
+
+### Environment & Infrastructure Baseline
+
+- **Hosting:** Bare-metal origin servers fronted by Kubernetes ingress gateways in two regions (Frankfurt primary, Dallas secondary) connected via VPN to legacy automation hosts.
+- **CI/CD Today:** Jenkins pipelines triggered by SVN commits; migration requires porting to GitHub Actions with artifact promotion into ArgoCD-managed Helm releases.
+- **Secrets Management:** Environment variables currently stored in `.ini` files; target platform standardises on Vault-issued dynamic secrets injected via Laravel's `config/secrets.php` bridge.
+- **Observability:** Logs are shipped to Elasticsearch via Filebeat; metrics captured through Prometheus exporters deployed alongside PHP-FPM pods.
+- **Disaster Recovery:** RPO of 1 hour, RTO of 4 hours; restore testing occurs quarterly using cold standby environment that mirrors production minus payment integrations.
+
+### Governance & Communication Plan
+
+- Bi-weekly steering committee sync covering migration health, budget consumption, and risk review.
+- Daily migration stand-up covering blockers across backend, frontend, and DevOps streams.
+- Dedicated Slack channels: `#migration-core`, `#migration-alerts`, `#migration-livewire` with on-call rotations pinned.
+- Change management checklist aligned with corporate PMO process—requires sign-off from Legal when user-facing policy updates occur.
+- Stakeholder newsletter summarising achievements, upcoming cutover rehearsals, and pending decisions every Friday.
 
 ## Phase 1: File Reorganization & Git Sync
 
@@ -1286,7 +1344,7 @@ The feature test suite exercises end-to-end player journeys using production-lik
 
 ### 12.1 Environment Setup
 
-- Nginx configuration (point to Laravel public/)
+- Kubernetes ingress configuration pointing to `resources/web/public/` symlinked to Laravel 12 `public/`
 - PHP 8.2+ with required extensions
 - Redis 6+ for cache/queue/sessions
 - MariaDB/MySQL 10.6+
@@ -1305,7 +1363,7 @@ Configure Supervisor to run:
 
 1. Maintenance mode on old system
 2. Final data migration
-3. Switch Nginx to Laravel public/
+3. Update ingress target to Laravel public/
 4. Start queue workers
 5. Monitor for 24-48 hours
 6. Keep old system as backup for 1 week
@@ -1319,6 +1377,13 @@ Configure Supervisor to run:
 - All tests passing (100+ tests)
 - Zero critical errors in first 48 hours
 
+## Stakeholder Sign-off & Distribution
+
+- Circulate this Laravel 12 migration plan to Product, SRE, and Game Design leads via the migration Confluence space for formal approval.
+- Capture sign-off decisions in the change management ticket and update the status in weekly program reviews.
+- Link back to this plan from `AGENT.md` so future automation tasks reference the latest agreed-upon strategy.
+- Archive superseded Laravel 11 planning documents in `/docs/archive/2024-migration/` after approval is recorded.
+
 ## File Mapping Reference
 
 | Old Path | New Path | Type |
@@ -1329,6 +1394,6 @@ Configure Supervisor to run:
 | `main_script/include/Controller/Dorf1Ctrl.php` | `app/Livewire/Village/Overview.php` | Livewire |
 | `main_script/include/Game/BattleCalculator.php` | `app/Services/BattleService.php` | Service |
 | `main_script/include/resources/Templates/` | `resources/views/` | Views |
-| `main_script/copyable/public/` | `public/` | Assets |
+| `main_script/copyable/public/` | `resources/web/public/` | Assets |
 | `main_script/include/schema/T4.4.sql` | `database/migrations/*` | Migrations |
-| Old Travian files | `/_travian/` | Archive |
+| Legacy Travian modules | `app/_travian/` | Transitional module layer |
