@@ -2,7 +2,7 @@
 <?php
 declare(strict_types=1);
 
-$rootDir = realpath(__DIR__ . '/../main_script/include/Controller/Ajax');
+$rootDir = realpath(__DIR__ . '/../_travian/controllers/Ajax');
 if ($rootDir === false) {
     fwrite(STDERR, "Unable to locate legacy Ajax controllers directory\n");
     exit(1);
