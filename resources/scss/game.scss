@@ -1,0 +1,456 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+        monospace;
+}
+
+$legacy-font: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+$legacy-gold-base: #d18621;
+$legacy-gold-light: #f3c969;
+$legacy-gold-dark: #a65a00;
+$legacy-text-primary: #4a2e11;
+$legacy-text-strong: #4c2b04;
+$legacy-text-soft: #6a4920;
+$legacy-text-muted: #5a3b12;
+$legacy-checkbox-text: #503011;
+$legacy-panel-border: rgba(86, 54, 17, 0.2);
+$legacy-panel-sheen: rgba(255, 255, 255, 0.45);
+$legacy-shadow-strong: rgba(75, 47, 12, 0.25);
+$legacy-shadow-stronger: rgba(75, 47, 12, 0.35);
+$legacy-input-border: rgba(104, 71, 25, 0.35);
+$legacy-input-focus-border: rgba(142, 95, 36, 0.65);
+$legacy-input-focus-ring: rgba(199, 146, 69, 0.25);
+$legacy-link-underline: rgba(210, 144, 52, 1);
+$legacy-secondary-shadow: rgba(84, 55, 18, 0.25);
+
+@mixin legacy-panel($background, $border: $legacy-panel-border, $shadow: 0 18px 45px $legacy-shadow-strong, $radius: 18px) {
+    background: $background;
+    border-radius: $radius;
+    border: 1px solid $border;
+    box-shadow: $shadow;
+    position: relative;
+    overflow: hidden;
+}
+
+@mixin callout-variant($background, $border, $color) {
+    background: $background;
+    border-color: $border;
+    color: $color;
+}
+
+:root {
+    color-scheme: light;
+}
+
+.app-body {
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(15, 23, 42, 0.9), rgba(2, 8, 23, 0.98)), #0b1324;
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+    display: flex;
+    flex-direction: column;
+}
+
+.app-shell {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.legacy-body {
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #f6ecd1 0%, #e6d3a3 45%, #c49d5d 100%);
+    color: #3d2b13;
+    font-family: $legacy-font;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.45), transparent 55%),
+            radial-gradient(circle at bottom right, rgba(101, 63, 20, 0.35), transparent 60%),
+            url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none"%3E%3Cpath d="M0 80 L40 0 H120 L160 80 L120 160 H40 Z" fill="%23ffffff0f"/%3E%3C/svg%3E');
+        background-size: cover, cover, 160px 160px;
+        z-index: 0;
+        opacity: 0.65;
+    }
+}
+
+.legacy-shell {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(1.5rem, 2.5vw, 3rem);
+    z-index: 1;
+}
+
+.legacy-auth-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(1.5rem, 2vw, 3rem);
+    width: min(1100px, 100%);
+}
+
+.outerLoginBox {
+    @include legacy-panel(rgba(255, 248, 235, 0.92));
+    grid-column: span 7 / span 7;
+    padding: clamp(2rem, 3vw, 3rem);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(248, 235, 207, 0.55), rgba(232, 210, 160, 0.35));
+        pointer-events: none;
+    }
+
+    > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    h2 {
+        margin: 0;
+        font-size: clamp(2rem, 2.4vw, 2.4rem);
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: $legacy-text-strong;
+        text-transform: uppercase;
+    }
+}
+
+.legacy-subtitle {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: $legacy-text-soft;
+    max-width: 40ch;
+}
+
+.legacy-noscript {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid rgba(158, 37, 37, 0.35);
+    border-radius: 10px;
+    color: #7d240f;
+    font-weight: 600;
+}
+
+
+.legacy-callout {
+    margin-top: 1.25rem;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border: 1px solid transparent;
+
+    ul {
+        margin: 0;
+        padding-left: 1.25rem;
+    }
+
+    &--success {
+        @include callout-variant(rgba(69, 161, 57, 0.12), rgba(69, 161, 57, 0.45), #275e20);
+    }
+
+    &--danger {
+        @include callout-variant(rgba(194, 58, 45, 0.12), rgba(194, 58, 45, 0.45), #84251b);
+    }
+}
+
+.innerLoginBox {
+    @include legacy-panel(rgba(255, 255, 255, 0.86), rgba(116, 78, 31, 0.2), inset 0 0 0 1px $legacy-panel-sheen, 14px);
+    margin-top: clamp(1.5rem, 2vw, 2rem);
+    padding: clamp(1.5rem, 2vw, 2rem);
+}
+
+.loginTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.75rem;
+    color: $legacy-text-primary;
+
+    th,
+    td {
+        font-size: 0.95rem;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    th {
+        width: 42%;
+        font-weight: 700;
+        padding-right: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    td {
+        width: 58%;
+    }
+}
+
+.legacy-input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid $legacy-input-border;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 221, 176, 0.75) 100%);
+    padding: 0.65rem 0.85rem;
+    font-size: 1rem;
+    color: $legacy-text-strong;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+
+.legacy-form {
+    width: 100%;
+
+    & + .legacy-form {
+        margin-top: 1.5rem;
+    }
+
+    &--compact {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+.legacy-verify {
+    display: grid;
+    gap: 1.5rem;
+    font-size: 1rem;
+    color: $legacy-text-primary;
+
+    p {
+        margin: 0;
+        line-height: 1.7;
+    }
+}
+
+.legacy-input:focus {
+    outline: none;
+    border-color: $legacy-input-focus-border;
+    box-shadow: 0 0 0 3px $legacy-input-focus-ring;
+}
+
+.legacy-error {
+    margin-top: 0.4rem;
+    font-size: 0.875rem;
+    color: #8a2b1a;
+    font-weight: 600;
+}
+
+.legacy-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    color: $legacy-checkbox-text;
+
+    input[type='checkbox'] {
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: #d79832;
+        border-radius: 4px;
+    }
+}
+
+.legacy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 999px;
+    padding: 0.75rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    background: linear-gradient(135deg, $legacy-gold-light 0%, $legacy-gold-base 45%, $legacy-gold-dark 100%);
+    color: #3b1f06;
+    box-shadow: 0 14px 25px $legacy-shadow-stronger, inset 0 1px 0 rgba(255, 244, 220, 0.75);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 30px rgba(101, 63, 20, 0.45), inset 0 1px 0 rgba(255, 244, 220, 0.85);
+    }
+
+    &:focus {
+        outline: 3px solid rgba(210, 147, 54, 0.35);
+        outline-offset: 2px;
+    }
+
+    &.secondary {
+        background: linear-gradient(135deg, #f5efdc 0%, #dfd2aa 100%);
+        color: #54300f;
+        box-shadow: 0 10px 18px $legacy-secondary-shadow;
+    }
+}
+
+.legacy-links {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    color: $legacy-text-muted;
+
+    a {
+        color: inherit;
+        font-weight: 600;
+        text-decoration: none;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -0.2rem;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba($legacy-link-underline, 0.2),
+                $legacy-link-underline,
+                rgba($legacy-link-underline, 0.2)
+            );
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.2s ease;
+        }
+
+        &:hover::after {
+            transform: scaleX(1);
+        }
+    }
+}
+
+.legacy-footer {
+    margin-top: 1.75rem;
+    border-top: 1px solid $legacy-panel-border;
+    padding-top: 1.5rem;
+}
+
+.legacy-auth-aside {
+    @include legacy-panel(rgba(79, 47, 15, 0.88), transparent, 0 18px 45px rgba(53, 33, 11, 0.4));
+    grid-column: span 5 / span 5;
+    color: rgba(255, 244, 220, 0.95);
+    padding: clamp(2rem, 3vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.25rem;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255, 214, 137, 0.35), transparent 65%),
+            radial-gradient(circle at bottom left, rgba(255, 175, 73, 0.3), transparent 60%);
+        pointer-events: none;
+    }
+
+    > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    h3 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    p {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+
+        li::before {
+            content: '✦';
+            margin-right: 0.75rem;
+            color: #ffd689;
+        }
+    }
+}
+
+@media (max-width: 1024px) {
+    .legacy-auth-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+
+    .outerLoginBox,
+    .legacy-auth-aside {
+        grid-column: span 1 / span 1;
+    }
+
+    .legacy-auth-aside {
+        order: -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .legacy-shell {
+        padding: 1rem;
+    }
+
+    .outerLoginBox,
+    .innerLoginBox {
+        padding: 1.25rem;
+    }
+
+    .loginTable {
+        border-spacing: 0 0.6rem;
+    }
+
+    .loginTable th {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.35rem;
+    }
+
+    .loginTable td {
+        display: block;
+        width: 100%;
+    }
+
+    .legacy-links {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

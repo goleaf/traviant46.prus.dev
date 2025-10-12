@@ -5,27 +5,41 @@
 @section('subtitle', __('Activate premium features and alerts by confirming your email address.'))
 
 @section('content')
-    <div class="space-y-6 text-sm text-slate-200">
-        <p>{{ __('Thanks for signing up! Please verify your email address by clicking the link we just sent you. If you didn\'t receive the email, we can send another one immediately.') }}</p>
+    <div class="legacy-verify">
+        <p>
+            {{ __('Thanks for signing up! Please verify your email address by clicking the link we just sent you. If you did not receive the email, we can send another one immediately.') }}
+        </p>
 
         @if (session('status') === 'verification-link-sent')
-            <flux:callout variant="filled" icon="check-circle" class="text-left">
+            <div class="legacy-callout legacy-callout--success">
                 {{ __('A new verification link has been sent to your email address.') }}
-            </flux:callout>
+            </div>
         @endif
 
-        <form method="POST" action="{{ route('verification.send') }}" class="space-y-3">
+        <form method="POST" action="{{ route('verification.send') }}" class="legacy-form legacy-form--compact">
             @csrf
-            <flux:button type="submit" variant="primary" color="sky" class="w-full">
+            <button type="submit" class="legacy-button">
                 {{ __('Resend verification email') }}
-            </flux:button>
+            </button>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}" class="space-y-3">
+        <form method="POST" action="{{ route('logout') }}" class="legacy-form legacy-form--compact">
             @csrf
-            <flux:button type="submit" variant="danger" class="w-full">
+            <button type="submit" class="legacy-button secondary">
                 {{ __('Log out') }}
-            </flux:button>
+            </button>
         </form>
     </div>
+@endsection
+
+@section('aside')
+    <h3>{{ __('Secure your stronghold') }}</h3>
+    <p>
+        {{ __('Confirming your email lets us alert you about sieges, auctions, and alliance diplomacy without delay.') }}
+    </p>
+    <ul>
+        <li>{{ __('Unlock reports and premium analytics tied to your commander profile.') }}</li>
+        <li>{{ __('Ensure sitter invites and alliance notifications reach the right inbox.') }}</li>
+        <li>{{ __('Resend or adjust settings at any time from your account console.') }}</li>
+    </ul>
 @endsection
