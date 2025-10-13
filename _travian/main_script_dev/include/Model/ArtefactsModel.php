@@ -14,7 +14,7 @@ use function is_null;
 use function logError;
 use function shuffle;
 use const IS_DEV;
-use const MAP_SIZE;
+use App\ValueObjects\Travian\MapSize;
 
 class ArtefactsModel
 {
@@ -228,7 +228,7 @@ class ArtefactsModel
         $db = DB::getInstance();
         $db->begin_transaction();
         if (!$kid) {
-            $min_r = ceil(MAP_SIZE / 8);
+            $min_r = ceil(MapSize::value() / 8);
             $max_r = Formulas::getMapMinDistanceFromCenter() + 15;
             $tries = 0;
             $found = false;
@@ -412,7 +412,7 @@ class ArtefactsModel
         foreach ($art as $type) {
             $units[$type] = $this->getArtifactUnits();
         }
-        $scale = MAP_SIZE / 100;
+        $scale = MapSize::value() / 100;
         $min = 10 * $scale;
 
         /* $this->releaseSmallArtifacts($min + 12 * $scale + (7 * $scale * 3), $scale * 2.5, $units); //far

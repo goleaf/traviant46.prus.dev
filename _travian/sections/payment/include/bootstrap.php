@@ -1,6 +1,18 @@
 <?php
-define('ROOT_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR);
-define("INCLUDE_PATH", ROOT_PATH . "include" . DIRECTORY_SEPARATOR);
-require(__DIR__ . '/vendor/autoload.php');
-require ROOT_PATH . "include" . DIRECTORY_SEPARATOR . 'config.inc.php';
-require(__DIR__ . '/functions.general.php');
+
+use App\ValueObjects\Travian\PaymentPaths;
+use Illuminate\Contracts\Foundation\Application;
+
+$projectRoot = dirname(__DIR__, 3);
+
+require $projectRoot . '/vendor/autoload.php';
+
+/** @var Application $app */
+$app = require $projectRoot . '/bootstrap/app.php';
+$app->boot();
+
+$paths = PaymentPaths::resolve();
+
+require $paths->includePath() . 'vendor/autoload.php';
+require $paths->includePath() . 'config.inc.php';
+require $paths->includePath() . 'functions.general.php';

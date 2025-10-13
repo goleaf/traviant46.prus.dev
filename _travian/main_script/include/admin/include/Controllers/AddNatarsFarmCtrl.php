@@ -1,5 +1,6 @@
 <?php
 
+use App\ValueObjects\Travian\MapSize;
 use Core\Database\DB;
 use Core\Helper\WebService;
 use Game\Buildings\BuildingAction;
@@ -52,8 +53,8 @@ class AddNatarsFarmCtrl
 
             foreach ($sides as $side => $angle) {
                 for ($i = 1; $i <= $vars['village_count']; ++$i) {
-                    $r[0] = 10 + mt_rand(4, 25) * (MAP_SIZE / 400);
-                    $r[1] = $r[0] + 5 + mt_rand(15, 200) * (MAP_SIZE / 400);
+                    $r[0] = 10 + mt_rand(4, 25) * (MapSize::value() / 400);
+                    $r[1] = $r[0] + 5 + mt_rand(15, 200) * (MapSize::value() / 400);
 
                     $conditions = [];
                     $conditions[] = 'occupied=0';

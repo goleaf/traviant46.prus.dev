@@ -7,6 +7,7 @@ use Core\Session;
 use Core\Village;
 use Game\Formulas;
 use function array_values;
+use App\ValueObjects\Travian\MapSize;
 
 class autoComplete extends AjaxBase
 {
@@ -45,7 +46,7 @@ class autoComplete extends AjaxBase
                 }
                 if ($autoComplete[1]) {
                     {
-                        $mapSize = MAP_SIZE;
+                        $mapSize = MapSize::value();
                         $totalCoordinate = 1 + (2 * $mapSize);
                         $totalCoordinate2 = 1 + (3 * $mapSize);
                         $xy = Formulas::kid2xy(Session::getInstance()->getKid());

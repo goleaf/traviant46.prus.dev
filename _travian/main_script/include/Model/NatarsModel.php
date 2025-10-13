@@ -2,6 +2,7 @@
 
 namespace Model;
 
+use App\ValueObjects\Travian\MapSize;
 use Core\AI;
 use Core\Config;
 use Core\Database\DB;
@@ -15,10 +16,10 @@ use function getGameElapsedSeconds;
 use function getGameSpeed;
 use function logError;
 use function make_seed;
-use const MAP_SIZE;
 use function miliseconds;
 use const PHP_EOL;
 use function var_dump;
+use App\ValueObjects\Travian\MapSize;
 
 class NatarsModel
 {
@@ -249,8 +250,8 @@ class NatarsModel
                     make_seed();
                     $r = [];
 
-                    $r[0] = 10 + mt_rand(4, 25) * (MAP_SIZE / 400);
-                    $r[1] = $r[0] + 5 + mt_rand(15, 200) * (MAP_SIZE / 400);
+                    $r[0] = 10 + mt_rand(4, 25) * (MapSize::value() / 400);
+                    $r[1] = $r[0] + 5 + mt_rand(15, 200) * (MapSize::value() / 400);
 
                     $conditions = [];
                     $conditions[] = 'occupied=0';

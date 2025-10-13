@@ -1118,9 +1118,9 @@ class StatistikenCtrl extends GameCtrl
                                 ],
                         ],
                     ]);
-                    $translationFile = TEMPLATES_PATH . 'statistics/general_translations_' . Session::getInstance()->getLanguage() . ".json";
+                    $translationFile = LegacyPaths::templates() . 'statistics/general_translations_' . Session::getInstance()->getLanguage() . ".json";
                     if (!is_file($translationFile)) {
-                        $translationFile = TEMPLATES_PATH . 'statistics/general_translations_en.json';
+                        $translationFile = LegacyPaths::templates() . 'statistics/general_translations_en.json';
                     }
                     return PHPBatchView::render('statistics/general2', [
                         "data" => $data,

@@ -4,12 +4,13 @@ namespace Core\Helper;
 
 use Core\Config;
 use Core\Session;
+use App\ValueObjects\Travian\LegacyPaths;
 use function date_default_timezone_get;
 use function get_locale;
 use function jalali_to_gregorian;
 use function var_dump;
 
-require_once INCLUDE_PATH . "jdf.php";
+require_once LegacyPaths::includePath() . 'jdf.php';
 
 class TimezoneHelper
 {

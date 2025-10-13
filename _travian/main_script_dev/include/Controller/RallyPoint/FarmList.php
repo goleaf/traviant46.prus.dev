@@ -18,14 +18,14 @@ use Model\OasesModel;
 use Model\RallyPoint\RallyPointModel;
 use resources\View\PHPBatchView;
 use Securimage;
-use const INCLUDE_PATH;
+use App\ValueObjects\Travian\LegacyPaths;
 use function getCustom;
 
 if (isset($_REQUEST['loadCaptcha'])) {
-    require_once INCLUDE_PATH . "Plugins/securimage/securimage_show.php";
+    require_once LegacyPaths::includePath() . 'Plugins/securimage/securimage_show.php';
     exit();
 }
-require_once INCLUDE_PATH . "Plugins/securimage/securimage.php";
+require_once LegacyPaths::includePath() . 'Plugins/securimage/securimage.php';
 
 class FarmList
 {

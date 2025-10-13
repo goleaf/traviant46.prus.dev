@@ -4,8 +4,9 @@ namespace Model;
 
 use Core\Database\DB;
 use Game\Formulas;
-use const INCLUDE_PATH;
+use App\ValueObjects\Travian\LegacyPaths;
 use function json_decode;
+use App\ValueObjects\Travian\MapSize;
 
 class InstallerModel
 {
@@ -323,7 +324,7 @@ class InstallerModel
         $queryBatchVillages = [];
         $oasisId = 0;
         $fields = 0;
-        $oh2 = (2 * MAP_SIZE + 1);
+        $oh2 = (2 * MapSize::value() + 1);
 
         foreach ($this->map as $id => $values) {
             if (!isset($values['y'])) {
@@ -414,7 +415,7 @@ class InstallerModel
 
     public function getFieldType($kid, &$fieldtype)
     {
-        $max = ceil(MAP_SIZE / (MAP_SIZE > 100 ? 4 : 2));
+        $max = ceil(MapSize::value() / (MapSize::value() > 100 ? 4 : 2));
         $locations = [
             Formulas::xy2kid($max, -$max),
             Formulas::xy2kid(-5, -11),
@@ -517,14 +518,14 @@ class InstallerModel
 
     public function mapToArray()
     {
-        $crops = json_decode(file_get_contents(INCLUDE_PATH . '/schema/crops.json'), true);
+        $crops = json_decode(file_get_contents(LegacyPaths::includePath() . 'schema/crops.json'), true);
         foreach ($crops as $crop) {
             $kid = Formulas::xy2kid($crop['coordinates']['x'], $crop['coordinates']['y']);
             $this->crops[$kid] = $crop;
         }
         $map = $this->explodeParams('||=||');
         $max = 1;
-        $oh = (2 * MAP_SIZE + 1) * (2 * MAP_SIZE + 1);
+        $oh = (2 * MapSize::value() + 1) * (2 * MapSize::value() + 1);
         while ($max <= $oh) {
             $xy = Formulas::kid2xy($max);
             $this->map[$max] = [
@@ -569,7 +570,7 @@ class InstallerModel
     public function createRestOfTheMap()
     {
         $this->createVulcanoArea();
-        $max = (2 * MAP_SIZE + 1) * (2 * MAP_SIZE + 1);
+        $max = (2 * MapSize::value() + 1) * (2 * MapSize::value() + 1);
         for ($id = 1; $id <= $max; ++$id) {
             $rand = mt_rand(1, 8);
             if ($rand > 6) {
@@ -1180,7 +1181,7 @@ class InstallerModel
 
     public function getRandId()
     {
-        $max = (2 * MAP_SIZE + 1) * (2 * MAP_SIZE + 1);
+        $max = (2 * MapSize::value() + 1) * (2 * MapSize::value() + 1);
         $half_4 = floor($max / 8);
         $rand = mt_rand(1, 70);
         if ($rand <= 5) {
@@ -1207,7 +1208,7 @@ class InstallerModel
 
     public function hasValidProperties($kid, &$maxTries)
     {
-        $max = ceil(MAP_SIZE / (MAP_SIZE > 100 ? 4 : 2));
+        $max = ceil(MapSize::value() / (MapSize::value() > 100 ? 4 : 2));
         $locations = [
             Formulas::xy2kid($max, -$max),
             Formulas::xy2kid(-5, -11),

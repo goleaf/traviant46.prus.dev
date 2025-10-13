@@ -1,4 +1,7 @@
 <?php
+
+use App\ValueObjects\Travian\TaskWorkerRuntime;
+
 function generate_password($length = 20)
 {
     $arr = range(chr(33), chr(126));
@@ -9,7 +12,7 @@ function generate_password($length = 20)
 
 function logError($error)
 {
-    file_put_contents(dirname(INCLUDE_PATH) . '/error_log', $error . PHP_EOL, FILE_APPEND);
+    file_put_contents(TaskWorkerRuntime::root() . 'error_log', $error . PHP_EOL, FILE_APPEND);
 }
 
 function generateStrongPassword($length = 9, $add_dashes = false, $available_sets = 'luds')

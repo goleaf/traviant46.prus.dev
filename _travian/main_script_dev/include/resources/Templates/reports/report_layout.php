@@ -117,7 +117,7 @@
         <?=$vars['bodyImage'];?>
         <?php endif;?>
         <?php if (isset($vars['includeFile'])): ?>
-            <?php require(TEMPLATES_PATH . $vars['includeFile'] . ".php"); ?>
+            <?php require(\App\ValueObjects\Travian\LegacyPaths::templates() . $vars['includeFile'] . '.php'); ?>
         <?php endif; ?>
         <?= $vars['content']; ?>
     </div>
