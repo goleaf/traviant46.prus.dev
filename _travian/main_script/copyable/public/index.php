@@ -1,7 +1,5 @@
 <?php
-require dirname(__DIR__) . "/include/env.php";
-if(IS_DEV){
-    require "/travian/main_script_dev/include/mainInclude.php";
-} else {
-    require "/travian/main_script/include/mainInclude.php";
-}
+
+declare(strict_types=1);
+
+require_once dirname(__DIR__, 4) . '/public/index.php';

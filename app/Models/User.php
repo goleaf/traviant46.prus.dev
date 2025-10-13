@@ -42,6 +42,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_owner_login_at',
         'last_login_at',
         'last_login_ip',
+        'ban_reason',
+        'ban_issued_at',
+        'ban_expires_at',
+        'is_banned',
     ];
 
     /**
@@ -66,6 +70,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'last_owner_login_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'ban_issued_at' => 'datetime',
+            'ban_expires_at' => 'datetime',
+            'is_banned' => 'bool',
         ];
     }
 
@@ -178,5 +185,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isMultihunter(): bool
     {
         return (int) $this->legacy_uid === 2;
+    }
+
+    public function isBanned(): bool
+    {
+        if ((bool) ($this->attributes['is_banned'] ?? false)) {
+            return true;
+        }
+
+        $expiresAt = $this->attributes['ban_expires_at'] ?? null;
+
+        if ($expiresAt === null) {
+            return false;
+        }
+
+        $expires = $this->asDateTime($expiresAt);
+
+        return $expires->isFuture();
     }
 }
