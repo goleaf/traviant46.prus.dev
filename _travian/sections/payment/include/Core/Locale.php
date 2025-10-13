@@ -1,5 +1,9 @@
 <?php
+
 namespace Core;
+
+use App\ValueObjects\Travian\PaymentPaths;
+
 class Locale {
 
     private static $instance;
@@ -40,7 +44,7 @@ class Locale {
      */
     public function Load($name, $fileName) {
         if(isset($this->Locale[$name])) return true; ///exists no need to add :|
-        require(ROOT_PATH .'include'.DIRECTORY_SEPARATOR."Locale" .DIRECTORY_SEPARATOR. $this->LocaleLanguage . DIRECTORY_SEPARATOR . $fileName);
+        require PaymentPaths::localePath() . $this->LocaleLanguage . DIRECTORY_SEPARATOR . $fileName;
         $this->Locale[$name] =& $Definition;
     }
 

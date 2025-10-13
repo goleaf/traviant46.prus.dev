@@ -10,6 +10,7 @@ use Core\Database\GlobalDB;
 use Core\Helper\IPTracker;
 use Core\Helper\SessionVar;
 use Core\Helper\WebService;
+use App\ValueObjects\Travian\LegacyPaths;
 use Game\Hero\SessionHero;
 use Model\AuctionModel;
 use Model\LoginModel;
@@ -558,7 +559,7 @@ class Session
         if (property_exists(Config::getProperty("settings", "availableLanguages"), $Lang)) {
             $langProperties = Config::getProperty("settings", "availableLanguages", $Lang);
             if (!$this->languageCookieSet) {
-                if (is_file(LOCALE_PATH . $langProperties->locale . ".php")) {
+                if (is_file(LegacyPaths::locale() . $langProperties->locale . '.php')) {
                     $_COOKIE['travian-lang'] = $Lang;
                     setcookie('travian-lang', $Lang, time() + 365 * 86400);
                     Config::getInstance()->settings->selectedLang = $Lang;

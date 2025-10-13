@@ -16,7 +16,6 @@ use function getGame;
 use function getGameElapsedSeconds;
 use function getGameSpeed;
 use function is_array;
-use const MAP_SIZE;
 
 class RegisterModel
 {

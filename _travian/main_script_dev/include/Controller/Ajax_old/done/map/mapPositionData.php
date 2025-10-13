@@ -10,6 +10,7 @@ use Model\ArtefactsModel;
 use Model\BerichteModel;
 use Model\KarteModel;
 use Model\WonderOfTheWorldModel;
+use App\ValueObjects\Travian\MapSize;
 
 class mapPositionData extends AjaxBase
 {
@@ -47,17 +48,17 @@ class mapPositionData extends AjaxBase
         $x2 = $data['x'] + $areaAroundPosition[$zoomLevel]['bottom'];
         $y1 = $data['y'] + $areaAroundPosition[$zoomLevel]['left'];
         $y2 = $data['y'] + $areaAroundPosition[$zoomLevel]['right'];
-        if ($x1 < -MAP_SIZE) {
-            $x1 = -MAP_SIZE;
+        if ($x1 < -MapSize::value()) {
+            $x1 = -MapSize::value();
         }
-        if ($x2 > MAP_SIZE) {
-            $x2 = MAP_SIZE;
+        if ($x2 > MapSize::value()) {
+            $x2 = MapSize::value();
         }
-        if ($y1 < -MAP_SIZE) {
-            $y1 = -MAP_SIZE;
+        if ($y1 < -MapSize::value()) {
+            $y1 = -MapSize::value();
         }
-        if ($y2 > MAP_SIZE) {
-            $y2 = MAP_SIZE;
+        if ($y2 > MapSize::value()) {
+            $y2 = MapSize::value();
         }
         $db = DB::getInstance();
         $m = new KarteModel();

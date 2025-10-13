@@ -171,7 +171,7 @@ class Language
 
         // Set locale
         _setlocale(0, $this->code);
-        _bindtextdomain('phpmyadmin', LOCALE_PATH);
+        _bindtextdomain('phpmyadmin', LegacyPaths::locale());
         _textdomain('phpmyadmin');
         // Set PHP locale as well
         if (function_exists('setlocale')) {

@@ -1,15 +1,22 @@
 <?php
 namespace Core;
+
+use App\Support\Travian\LegacyConfigRepository;
+use function app;
+
 class Config
 {
     private static $_self;
+
     public static function &getInstance()
     {
         if (!is_object(self::$_self)) {
-            self::$_self = include INCLUDE_PATH . 'config.php';
+            self::$_self = app(LegacyConfigRepository::class)->get();
         }
+
         return self::$_self;
     }
+
     public static function getAdvancedProperty($property){
         return self::getProperty("settings", "advanced", $property);
     }
