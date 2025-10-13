@@ -31,6 +31,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'is_banned' => false,
+            'ban_reason' => null,
+            'ban_issued_at' => null,
+            'ban_expires_at' => null,
         ];
     }
 
