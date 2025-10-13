@@ -16,6 +16,7 @@ use Model\AllianceModel;
 use Model\MessageModel;
 use resources\View\PHPBatchView;
 use Controller\BuildCtrl;
+use App\ValueObjects\Travian\MapSize;
 
 class EmbassyCtrl extends AnyCtrl
 {
@@ -101,9 +102,9 @@ class EmbassyCtrl extends AnyCtrl
             $alliances = $cache->get($cacheKey);
         } else {
             $xy = Formulas::kid2xy(Village::getInstance()->getKid());
-            $totalCoordinate = 1 + (2 * MAP_SIZE);
-            $totalCoordinate2 = 1 + (3 * MAP_SIZE);
-            $distance = "(SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2)))";
+            $totalCoordinate = 1 + (2 * MapSize::value());
+            $totalCoordinate2 = 1 + (3 * MapSize::value());
+            $distance = "(SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2)))";
             $result = $db->query("SELECT DISTINCT u.aid `aid` FROM wdata w, users u WHERE w.fieldtype>0 AND w.occupied>0 AND $distance <= 50 AND u.id=(SELECT v.owner FROM vdata v WHERE v.kid=w.id) AND u.aid>0");
             $alliances = [];
             while($row = $result->fetch_assoc()){

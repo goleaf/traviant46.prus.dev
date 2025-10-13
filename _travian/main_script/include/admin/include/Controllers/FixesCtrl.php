@@ -1,6 +1,7 @@
 <?php
 
 use Core\Database\DB;
+use App\ValueObjects\Travian\LegacyPaths;
 
 class FixesCtrl
 {
@@ -28,39 +29,39 @@ class FixesCtrl
         if (isset($_REQUEST['fix'])) {
             switch ($_REQUEST['fix']) {
                 case 'storages':
-                    require_once INCLUDE_PATH . "fixes/fixStorages.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixStorages.php';
                     $content .= '<br /><h2 style="color:red">Storages were updated...</h2><br ><br />';
                     break;
                 case 'cpPop':
-                    require_once INCLUDE_PATH . "fixes/fixPopCp.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixPopCp.php';
                     $content .= '<br /><h2 style="color:red">POP and CP is now correct were updated...</h2><br ><br />';
                     break;
                 case 'heroItemHealth':
-                    require_once INCLUDE_PATH . "fixes/fixHeroItemHealth.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixHeroItemHealth.php';
                     $content .= '<br /><h2 style="color:red">Hero item health is now accurate.</h2><br ><br />';
                     break;
                 case 'heroPoints':
-                    require_once INCLUDE_PATH . "fixes/fixHeroPoints.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixHeroPoints.php';
                     $content .= '<br /><h2 style="color:red">Hero points is now accurate.</h2><br ><br />';
                     break;
                 case 'resources':
-                    require_once INCLUDE_PATH . "fixes/fixAllResources.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixAllResources.php';
                     $content .= '<br /><h2 style="color:red">All resources updated.</h2><br ><br />';
                     break;
                 case 'crop_percents':
-                    require_once INCLUDE_PATH . "fixes/fixCropPercents.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixCropPercents.php';
                     $content .= '<br /><h2 style="color:red">Crop percents updated.</h2><br ><br />';
                     break;
                 case 'fix_upkeeps':
-                    require_once INCLUDE_PATH . "fixes/fixUpkeeps.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixUpkeeps.php';
                     $content .= '<br /><h2 style="color:red">Upkeeps were updated.</h2><br ><br />';
                     break;
                 case 'fix_buildings':
-                    require_once INCLUDE_PATH . "fixes/fixBuildings.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixBuildings.php';
                     $content .= '<br /><h2 style="color:red">Buildings fixed.</h2><br ><br />';
                     break;
                 case 'inventory_places':
-                    require_once INCLUDE_PATH . "fixes/fixInventoryPlaceIds.php";
+                    require_once LegacyPaths::includePath() . 'fixes/fixInventoryPlaceIds.php';
                     $content .= '<br /><h2 style="color:red">Fix inventory place ids.</h2><br ><br />';
                     break;
             }

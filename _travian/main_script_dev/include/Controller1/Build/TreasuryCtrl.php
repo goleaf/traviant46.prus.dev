@@ -13,6 +13,7 @@ use Game\Formulas;
 use Core\Locale;
 use Model\ArtefactsModel;
 use resources\View\PHPBatchView;
+use App\ValueObjects\Travian\MapSize;
 
 class TreasuryCtrl extends AnyCtrl
 {
@@ -375,9 +376,9 @@ class TreasuryCtrl extends AnyCtrl
         $view->vars['dist'] = TRUE;
         $db = DB::getInstance();
         $max_distance = 50;//default is 50
-        $totalCoordinate = 1 + (2 * MAP_SIZE);
-        $totalCoordinate2 = 1 + (3 * MAP_SIZE);
-        $distance = "(SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2)))";
+        $totalCoordinate = 1 + (2 * MapSize::value());
+        $totalCoordinate2 = 1 + (3 * MapSize::value());
+        $distance = "(SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2)))";
         $art = $db->query("SELECT a.*, $distance AS `distance` FROM artefacts a, wdata w WHERE w.id=a.kid AND a.kid!=" . Village::getInstance()->getKid() . " AND $distance <= $max_distance ORDER BY `distance`");
         while ($row = $art->fetch_assoc()) {
             $view->vars['content'] .= $this->renderArtifactOverview($row, 2);

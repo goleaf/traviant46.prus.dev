@@ -49,8 +49,8 @@ use function getWorldUniqueId;
 use function miliseconds;
 use function nanoseconds;
 use function strtolower;
-use const INCLUDE_PATH;
-use const MAP_SIZE;
+use App\ValueObjects\Travian\LegacyPaths;
+use App\ValueObjects\Travian\MapSize;
 
 class Automation
 {
@@ -425,7 +425,7 @@ class Automation
             $db->query("DELETE FROM ndata WHERE non_deletable=0 AND type IN($types) AND time < $tenMin AND losses <= 30 AND archive=0 LIMIT 20000");
         }
         $db->query("DELETE FROM mdata WHERE viewed=1 AND time < " . (time() - 2 * 86400));
-        //if(filesize(INCLUDE_PATH . "error_log.log")) {
+        //if(filesize(LegacyPaths::includePath() . 'error_log.log')) {
         //    Notification::notify("Error log", "There are some errors in error_log.");
         //}
     }
@@ -434,7 +434,7 @@ class Automation
     {
         $fakeUsersCount = Config::getProperty("fakeUsersCount");
         if ($fakeUsersCount <= 0) return;
-        $sqlite = new SQLite3(INCLUDE_PATH . "schema/users.sqlite");
+        $sqlite = new SQLite3(LegacyPaths::includePath() . 'schema/users.sqlite');
         $stmt = $sqlite->query("SELECT username FROM users ORDER BY RANDOM() LIMIT $fakeUsersCount");
         $users = [];
         while ($row = $stmt->fetchArray(SQLITE3_ASSOC)) {
@@ -1022,7 +1022,7 @@ class Automation
             'serverName' => $config->settings->serverName,
             'worldId' => $worldId,
             'roundLength' => $config->game->round_length_orig,
-            'mapSize' => MAP_SIZE,
+            'mapSize' => MapSize::value(),
             'isPromoted' => false,
             'startGold' => $config->gold->startGold,
             'buyTroops' => $config->extraSettings->buyTroops['enabled'],

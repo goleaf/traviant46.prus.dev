@@ -1,5 +1,8 @@
 <?php
 namespace Core;
+
+use App\ValueObjects\Travian\LegacyPaths;
+
 class Autoloder
 {
     public static function register($prepend = FALSE)
@@ -27,7 +30,7 @@ class Autoloder
 
     public static function getFullPath($className)
     {
-        return ROOT_PATH."include".DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $className).'.php';
+        return LegacyPaths::includePath() . str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
     }
 }
 Autoloder::register();

@@ -7,7 +7,7 @@ use Core\Database\DB;
 use Game\Formulas;
 use function getCustom;
 use function getGameSpeed;
-use const MAP_SIZE;
+use App\ValueObjects\Travian\MapSize;
 
 class WonderOfTheWorldModel
 {
@@ -176,7 +176,7 @@ class WonderOfTheWorldModel
     public function createWWVillages()
     {
         $count = Config::getProperty("custom", "wwCount");
-        $max = ceil(MAP_SIZE / (MAP_SIZE > 100 ? 4 : 2));
+        $max = ceil(MapSize::value() / (MapSize::value() > 100 ? 4 : 2));
         $locations = [
             Formulas::xy2kid($max, -$max),
             Formulas::xy2kid(-5, -11),

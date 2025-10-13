@@ -1,4 +1,5 @@
 <?php
+use App\ValueObjects\Travian\MapSize;
 use Core\Config;
 use Core\Database\GlobalDB;
 use Core\Dispatcher;
@@ -83,7 +84,7 @@ if ($uri == '/info') {
         'movement_speed_increase' => getGame('movement_speed_increase'),
         'storage_multiplier' => getGame('storage_multiplier'),
         'starvation' => getGame('starvation'),
-        'map_size' => (int)MAP_SIZE,
+        'map_size' => (int)MapSize::value(),
         'start_time' => date('Y-m-d H:i:s', getGame('start_time')),
         'round_length' => getGame('round_length'),
         'ArtifactsReleaseTime' => date('Y-m-d H:i:s', $config->timers->ArtifactsReleaseTime),

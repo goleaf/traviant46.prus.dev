@@ -1,14 +1,14 @@
 <?php
 namespace Core;
+
+use App\ValueObjects\Travian\TaskWorkerRuntime;
+use ClouDNS_SDK;
 use const FILE_APPEND;
 use function file_get_contents;
 use function file_put_contents;
 use function generate_guid;
 use function is_numeric;
 use function shell_exec;
-use const INCLUDE_PATH;
-use const PHP_BINARY_LOC;
-use ClouDNS_SDK;
 
 class ServerManager
 {
@@ -48,7 +48,7 @@ class ServerManager
         $updateFile = "{$script_path}include/update.php";
         $envFile = "{$script_path}include/env.php";
 
-        $nginxConf = file_get_contents(INCLUDE_PATH . "nginx.conf");
+        $nginxConf = file_get_contents(TaskWorkerRuntime::includePath() . 'nginx.conf');
         $nginxConf = str_replace(
             [
                 '[USER]',
@@ -154,12 +154,12 @@ class ServerManager
         ],
             file_get_contents($script_path . "include/Automation.service")
         );
-        $cmd = sprintf('%s -dmemory_limit=2048M "%s" "%s" "%s"', PHP_BINARY_LOC, $installerFile, $installationData['worldId'], $multihunterPassword);
+        $cmd = sprintf('%s -dmemory_limit=2048M "%s" "%s" "%s"', TaskWorkerRuntime::phpBinary(), $installerFile, $installationData['worldId'], $multihunterPassword);
         $this->createBashService($installationData['worldId'], $shell_content);
         shell_exec("systemctl stop $processName");
         shell_exec("chmod a+x {$script_path}include/{$processName}.php");
         shell_exec("chmod +x $installerFile");
-        shell_exec("sudo -u travian " . PHP_BINARY_LOC . ' "' . $updateFile . '" "' . $installationData['worldId'] . '" --new-installation');
+        shell_exec('sudo -u travian ' . TaskWorkerRuntime::phpBinary() . ' "' . $updateFile . '" "' . $installationData['worldId'] . '" --new-installation');
         shell_exec("rm -rf \"{$script_path}include/Automation.service\" \"{$script_path}include/Automation.php\"");
         shell_exec($cmd);
         $configCustom = [

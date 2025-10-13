@@ -4,7 +4,7 @@ use Core\Config;
 use Game\Formulas;
 use Core\Locale;
 use resources\View\PHPBatchView;
-use const TEMPLATES_PATH;
+use App\ValueObjects\Travian\LegacyPaths;
 
 $config = Config::getInstance();
 class ManualCtrl extends AnyCtrl
@@ -12,7 +12,7 @@ class ManualCtrl extends AnyCtrl
 
 }
 ?>
-<?php require TEMPLATES_PATH . "layout/head.php";?>
+<?php require \App\ValueObjects\Travian\LegacyPaths::templates() . 'layout/head.php';?>
 <body class="manual <?=get_locale();?>">
 <?php
 $typ = isset($_GET['typ']) && ($_GET['typ'] == 1 || $_GET['typ'] == 4) ? (int)$_GET['typ'] : -1;

@@ -9,6 +9,7 @@ use function getGame;
 use function getGameElapsedSeconds;
 use function getGameSpeed;
 use function is_null;
+use App\ValueObjects\Travian\MapSize;
 
 class Formulas
 {
@@ -3633,30 +3634,30 @@ Crannies have 20% less capacity against teuton raids with hero + 10-20% from any
 
     public static function kid2xy($kid)
     {
-        $max = 2 * MAP_SIZE + 1;
-        $x = ($kid % $max) ? ($kid % $max) - (MAP_SIZE + 1) : MAP_SIZE;
-        $y = MAP_SIZE - ($kid - (MAP_SIZE + 1) - $x) / $max;
+        $max = 2 * MapSize::value() + 1;
+        $x = ($kid % $max) ? ($kid % $max) - (MapSize::value() + 1) : MapSize::value();
+        $y = MapSize::value() - ($kid - (MapSize::value() + 1) - $x) / $max;
         return ["x" => $x, "y" => $y];
     }
 
     public static function delta($a, $b)
     {
-        return ($a - $b + ((2 * MAP_SIZE + 1 + MAP_SIZE))) % (2 * MAP_SIZE + 1) - MAP_SIZE;
+        return ($a - $b + ((2 * MapSize::value() + 1 + MapSize::value()))) % (2 * MapSize::value() + 1) - MapSize::value();
     }
 
     public static function xy2kid($x, $y)
     {
-        return (1 + self::coordinateFixer((int)$x) + MAP_SIZE) + ((2 * MAP_SIZE + 1) * abs(self::coordinateFixer((int)$y) - MAP_SIZE));
+        return (1 + self::coordinateFixer((int)$x) + MapSize::value()) + ((2 * MapSize::value() + 1) * abs(self::coordinateFixer((int)$y) - MapSize::value()));
     }
 
     public static function coordinateFixer($x)
     {
         $x = (int)$x;
-        $max = 2 * MAP_SIZE + 1;
-        if ($x < -MAP_SIZE) {
+        $max = 2 * MapSize::value() + 1;
+        if ($x < -MapSize::value()) {
             $x += $max;
         }
-        if ($x > MAP_SIZE) {
+        if ($x > MapSize::value()) {
             $x -= $max;
         }
         return $x;
@@ -3664,8 +3665,8 @@ Crannies have 20% less capacity against teuton raids with hero + 10-20% from any
 
     public static function coordinateFixer2($k)
     {
-        if (($k < -MAP_SIZE) || ($k > MAP_SIZE)) {
-            $k = abs(($k + MAP_SIZE) % (2 * MAP_SIZE + 1)) - MAP_SIZE;
+        if (($k < -MapSize::value()) || ($k > MapSize::value())) {
+            $k = abs(($k + MapSize::value()) % (2 * MapSize::value() + 1)) - MapSize::value();
         }
         return $k;
     }
@@ -3693,9 +3694,9 @@ Crannies have 20% less capacity against teuton raids with hero + 10-20% from any
         $elapsed = max(0, $elapsed);
         $round_length = getGame('round_length_real');
         if (getGameSpeed() <= 10) {
-            $max_distance = floor(hypot(MAP_SIZE, MAP_SIZE)) * 0.663;
+            $max_distance = floor(hypot(MapSize::value(), MapSize::value())) * 0.663;
         } else {
-            $max_distance = floor(hypot(MAP_SIZE, MAP_SIZE)) * 0.5;
+            $max_distance = floor(hypot(MapSize::value(), MapSize::value())) * 0.5;
         }
         $distance_increase_per_second = $max_distance / $round_length / 86400 / $rate;
         if ($elapsed <= (10800 * $rate)) {

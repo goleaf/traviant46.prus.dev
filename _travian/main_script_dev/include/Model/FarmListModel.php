@@ -13,6 +13,7 @@ use function getCustom;
 use function ignore_user_abort;
 use function miliseconds;
 use function set_time_limit;
+use App\ValueObjects\Travian\MapSize;
 
 class FarmListModel
 {
@@ -44,9 +45,9 @@ class FarmListModel
         set_time_limit(0);
         ignore_user_abort(true);
         $xy = Formulas::kid2xy($kid);
-        $totalCoordinate = 1 + (2 * MAP_SIZE);
-        $totalCoordinate2 = 1 + (3 * MAP_SIZE);
-        $dist = "SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MAP_SIZE . "), 2))";
+        $totalCoordinate = 1 + (2 * MapSize::value());
+        $totalCoordinate2 = 1 + (3 * MapSize::value());
+        $dist = "SQRT(POW(((w.x-{$xy['x']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2) + POW(((w.y-{$xy['y']}+{$totalCoordinate2})%{$totalCoordinate} -" . MapSize::value() . "), 2))";
         $db = DB::getInstance();
         $farms = $db->query("SELECT v.kid FROM vdata v, wdata w WHERE v.kid=w.id AND v.owner=1 AND v.isWW=0 AND (SELECT COUNT(a.id) FROM artefacts a WHERE a.kid=v.kid)=0 AND $dist <= $distance");
         $batch = [];
