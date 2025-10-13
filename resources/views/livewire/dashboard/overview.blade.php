@@ -3,6 +3,9 @@
     $delegatedAccounts = data_get($metrics, 'delegatedAccounts', 0);
     $twoFactorEnabled = data_get($metrics, 'twoFactorEnabled', false);
     $recentLogins = data_get($metrics, 'recentLogins', []);
+    $sessionSitter = data_get($sessionContext, 'sitter', []);
+    $adminOverride = data_get($sessionContext, 'override', []);
+    $multiAccountAlert = data_get($sessionContext, 'security.multi_account');
 @endphp
 
 <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.65)] backdrop-blur">
@@ -14,6 +17,31 @@
             <flux:description class="text-slate-400">
                 {{ __('Track who can act on your account, how many alliances you support, and the latest sign-ins.') }}
             </flux:description>
+            <div class="space-y-2">
+                @if (data_get($sessionSitter, 'active'))
+                    <flux:callout variant="outline" color="violet" icon="user-group" class="text-sm text-violet-100">
+                        {{ __('You are acting as a sitter for account #:id with :count permissions.', [
+                            'id' => data_get($sessionSitter, 'account_id'),
+                            'count' => count(data_get($sessionSitter, 'permissions', [])),
+                        ]) }}
+                    </flux:callout>
+                @endif
+
+                @if (data_get($adminOverride, 'active'))
+                    <flux:callout variant="outline" color="amber" icon="shield-exclamation" class="text-sm text-amber-100">
+                        {{ __('Admin override targeting user #:id is active. Actions will be audited.', ['id' => data_get($adminOverride, 'target_user_id')]) }}
+                    </flux:callout>
+                @endif
+
+                @if (! empty($multiAccountAlert))
+                    <flux:callout variant="solid" color="red" icon="fire" class="text-sm text-white">
+                        {{ __('Multi-account activity detected with user #:id on :ip. Review the alert before continuing.', [
+                            'id' => data_get($multiAccountAlert, 'conflict_user_id'),
+                            'ip' => data_get($multiAccountAlert, 'ip_address', __('unknown IP')),
+                        ]) }}
+                    </flux:callout>
+                @endif
+            </div>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">

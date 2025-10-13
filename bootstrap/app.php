@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SynchronizeSessionContext;
 use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
 use App\Providers\EventServiceProvider;
@@ -21,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         FortifyServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->append(SynchronizeSessionContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

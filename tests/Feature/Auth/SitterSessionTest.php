@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\SitterPermission;
 use App\Models\User;
+use App\Services\Auth\SessionContextManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -38,8 +40,12 @@ class SitterSessionTest extends TestCase
         $response->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($owner);
-        $this->assertTrue(session()->get('auth.acting_as_sitter'));
-        $this->assertSame($sitter->getKey(), session()->get('auth.sitter_id'));
+
+        $context = app(SessionContextManager::class);
+        $this->assertTrue($context->actingAsSitter());
+        $this->assertSame($sitter->getKey(), $context->sitterId());
+        $this->assertSame($owner->getKey(), $context->controllingAccountId());
+        $this->assertContains(SitterPermission::VIEW_VILLAGE, $context->sitterPermissions());
 
         $this->assertDatabaseHas('login_activities', [
             'user_id' => $owner->getKey(),
@@ -57,8 +63,13 @@ class SitterSessionTest extends TestCase
             'password' => Hash::make($password),
         ]);
 
-        session()->put('auth.acting_as_sitter', true);
-        session()->put('auth.sitter_id', 999);
+        $sitter = User::factory()->create([
+            'username' => 'session-sitter',
+            'email' => 'session-sitter@example.com',
+            'password' => Hash::make('Session#1234'),
+        ]);
+
+        app(SessionContextManager::class)->enterSitterContext($owner, $sitter);
 
         $response = $this->post('/login', [
             'login' => 'reset-owner',
@@ -68,7 +79,9 @@ class SitterSessionTest extends TestCase
         $response->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($owner);
-        $this->assertFalse(session()->get('auth.acting_as_sitter', false));
-        $this->assertNull(session()->get('auth.sitter_id'));
+
+        $context = app(SessionContextManager::class);
+        $this->assertFalse($context->actingAsSitter());
+        $this->assertNull($context->sitterId());
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Concerns\InteractsWithSessionContext;
 use App\Models\LoginActivity;
 use App\Models\SitterAssignment;
 use Illuminate\Contracts\View\View;
@@ -12,6 +13,8 @@ use Livewire\Component;
 
 class Overview extends Component
 {
+    use InteractsWithSessionContext;
+
     /** @var array<string, mixed> */
     public array $metrics = [];
 
@@ -69,6 +72,7 @@ class Overview extends Component
         ];
 
         $this->refreshedAt = Carbon::now()->diffForHumans(null, Carbon::DIFF_ABSOLUTE, true, 2);
+        $this->sessionContext = $this->sessionContextManager->toArray();
     }
 
     public function render(): View

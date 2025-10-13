@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Models\LoginActivity;
 use App\Models\User;
+use App\Services\Auth\SessionContextManager;
 use App\Services\Security\MultiAccountDetector;
 use Illuminate\Auth\Events\Login;
 
@@ -11,18 +12,19 @@ class LogSuccessfulLogin
 {
     public function __construct(
         protected MultiAccountDetector $detector,
+        protected SessionContextManager $contextManager,
     ) {}
 
     public function handle(Login $event): void
     {
-        $request = request();
         $user = $event->user;
         if (! $user instanceof User) {
             return;
         }
 
-        $actingAsSitter = (bool) $request->session()->get('auth.acting_as_sitter', false);
-        $actingSitterId = $request->session()->get('auth.sitter_id');
+        $request = request();
+        $actingAsSitter = $this->contextManager->actingAsSitter();
+        $actingSitterId = $this->contextManager->sitterId();
 
         $now = now();
         $user->forceFill(array_filter([

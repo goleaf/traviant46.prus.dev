@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\SitterPermission;
+use App\Models\SitterAssignment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -38,7 +40,24 @@ class DatabaseSeeder extends Seeder
             'email' => 'player@example.com',
         ]);
 
-        $player->sitters()->attach($admin->id);
-        $player->sitters()->attach($multihunter->id);
+        SitterAssignment::updateOrCreate([
+            'account_id' => $player->getKey(),
+            'sitter_id' => $admin->getKey(),
+        ], [
+            'permissions' => [
+                SitterPermission::MANAGE_VILLAGE,
+                SitterPermission::SWITCH_VILLAGE,
+            ],
+        ]);
+
+        SitterAssignment::updateOrCreate([
+            'account_id' => $player->getKey(),
+            'sitter_id' => $multihunter->getKey(),
+        ], [
+            'permissions' => [
+                SitterPermission::VIEW_VILLAGE,
+                SitterPermission::MANAGE_MESSAGES,
+            ],
+        ]);
     }
 }

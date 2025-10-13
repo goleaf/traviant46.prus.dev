@@ -11,11 +11,15 @@ class LegacyLoginResult
     public const MODE_SITTER = 'sitter';
     public const MODE_ACTIVATION = 'activation';
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function __construct(
         public readonly string $mode,
         public readonly ?User $user = null,
         public readonly ?User $sitter = null,
         public readonly ?Activation $activation = null,
+        public readonly array $context = [],
     ) {}
 
     public static function owner(User $user): self
@@ -23,9 +27,12 @@ class LegacyLoginResult
         return new self(self::MODE_OWNER, $user);
     }
 
-    public static function sitter(User $user, User $sitter): self
+    /**
+     * @param array<string, mixed> $context
+     */
+    public static function sitter(User $user, User $sitter, array $context = []): self
     {
-        return new self(self::MODE_SITTER, $user, $sitter);
+        return new self(self::MODE_SITTER, $user, $sitter, null, $context);
     }
 
     public static function activation(Activation $activation): self

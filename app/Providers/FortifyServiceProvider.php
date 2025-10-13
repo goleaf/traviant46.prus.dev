@@ -8,6 +8,7 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
+use App\Services\Auth\SessionContextManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -30,7 +31,7 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(LegacyLoginService $legacyLoginService): void
+    public function boot(LegacyLoginService $legacyLoginService, SessionContextManager $sessionContextManager): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
@@ -48,7 +49,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirects('register', '/home');
         Fortify::redirects('logout', '/login');
 
-        Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService) {
+        Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService, $sessionContextManager) {
             $result = $legacyLoginService->attempt(
                 (string) $request->input('login', $request->input('email')), // backwards compatibility
                 (string) $request->input('password')
@@ -69,11 +70,9 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             if ($result->viaSitter()) {
-                $request->session()->put('auth.acting_as_sitter', true);
-                $request->session()->put('auth.sitter_id', optional($result->sitter)->getKey());
+                $sessionContextManager->enterSitterContext($result->user, $result->sitter, $result->context);
             } else {
-                $request->session()->forget('auth.acting_as_sitter');
-                $request->session()->forget('auth.sitter_id');
+                $sessionContextManager->clearSitterContext();
             }
 
             return $result->user;

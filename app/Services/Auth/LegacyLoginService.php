@@ -6,6 +6,7 @@ use App\Models\Activation;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class LegacyLoginService
 {
@@ -27,7 +28,7 @@ class LegacyLoginService
 
             foreach ($this->resolveSitterCandidates($user) as $sitter) {
                 if ($sitter instanceof User && Hash::check($password, $sitter->password)) {
-                    return LegacyLoginResult::sitter($user, $sitter);
+                    return LegacyLoginResult::sitter($user, $sitter, $this->resolveSitterContext($user, $sitter));
                 }
             }
 
@@ -79,5 +80,78 @@ class LegacyLoginService
         $delegatedSitters = $user->sitters()->get();
 
         return $legacySitters->merge($delegatedSitters)->unique('id');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function resolveSitterContext(User $account, User $sitter): array
+    {
+        if (isset($sitter->pivot) && (int) ($sitter->pivot->account_id ?? null) === $account->getKey()) {
+            return [
+                'permissions' => $this->normalisePermissions($sitter->pivot->permissions ?? []),
+                'assignment_source' => 'delegated',
+                'assignment_expires_at' => $this->normalisePivotDate($sitter->pivot->expires_at ?? null),
+            ];
+        }
+
+        $assignment = $account->sitterAssignments()
+            ->where('sitter_id', $sitter->getKey())
+            ->first();
+
+        if ($assignment) {
+            return [
+                'permissions' => $this->normalisePermissions($assignment->permissions ?? []),
+                'assignment_source' => 'delegated',
+                'assignment_expires_at' => $assignment->expires_at,
+            ];
+        }
+
+        return [
+            'permissions' => [],
+            'assignment_source' => 'legacy',
+            'assignment_expires_at' => null,
+        ];
+    }
+
+    private function normalisePivotDate(mixed $value): ?Carbon
+    {
+        if ($value instanceof Carbon) {
+            return $value;
+        }
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return Carbon::parse($value);
+        }
+
+        if (is_numeric($value)) {
+            return Carbon::createFromTimestamp((int) $value);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function normalisePermissions(mixed $permissions): array
+    {
+        if (is_string($permissions)) {
+            $decoded = json_decode($permissions, true);
+
+            if (is_array($decoded)) {
+                $permissions = $decoded;
+            }
+        }
+
+        if (! is_array($permissions)) {
+            return [];
+        }
+
+        return array_values(array_map('strval', $permissions));
     }
 }
