@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Game\Hero as GameHero;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -105,7 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hero(): HasOne
     {
-        return $this->hasOne(Hero::class);
+        return $this->hasOne(GameHero::class, 'uid');
     }
 
     public function messages(): HasMany

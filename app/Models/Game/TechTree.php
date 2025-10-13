@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Models\Game;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class TechTree extends Model
+{
+    use HasFactory;
+
+    protected $table = 'tdata';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'kid',
+    ];
+
+    protected $casts = [
+        'kid' => 'integer',
+    ];
+}
