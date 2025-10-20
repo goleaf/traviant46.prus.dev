@@ -7,6 +7,7 @@ return [
     'cache_store' => env('TRAVIAN_CACHE_STORE'),
     'world_config_cache_key' => env('TRAVIAN_WORLD_CONFIG_CACHE_KEY', 'travian.world_config'),
     'world_config_ttl' => (int) env('TRAVIAN_WORLD_CONFIG_TTL', 300),
+    'disable_bootstrap' => env('TRAVIAN_DISABLE_BOOTSTRAP', false),
     'paths' => [
         'root' => dirname($includePath) . DIRECTORY_SEPARATOR,
         'include' => $includePath,

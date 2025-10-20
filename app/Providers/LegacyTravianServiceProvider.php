@@ -92,12 +92,20 @@ final class LegacyTravianServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /** @var ConfigRepository $configRepository */
+        $configRepository = $this->app->make(ConfigRepository::class);
+
+        if (
+            $this->app->environment('testing')
+            || (bool) $configRepository->get('travian.runtime.disable_bootstrap', false)
+        ) {
+            return;
+        }
+
         /** @var LegacyConfigRepository $repository */
         $repository = $this->app->make(LegacyConfigRepository::class);
         $config = $repository->get();
 
-        /** @var ConfigRepository $configRepository */
-        $configRepository = $this->app->make(ConfigRepository::class);
         $configRepository->set('travian.dynamic', $config->dynamic?->toArray() ?? []);
 
         $dbConfig = $config->db ?? null;
