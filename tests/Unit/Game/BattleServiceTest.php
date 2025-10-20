@@ -9,13 +9,6 @@ use Tests\TestCase;
 #[CoversClass(BattleService::class)]
 class BattleServiceTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        require_once dirname(__DIR__, 4) . '/App/Services/BattleService.php';
-    }
-
     public function test_simulate_battle_calculates_losses_and_loot(): void
     {
         $service = new BattleService();

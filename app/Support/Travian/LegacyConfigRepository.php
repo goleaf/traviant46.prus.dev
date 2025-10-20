@@ -4,7 +4,7 @@ namespace App\Support\Travian;
 
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\DatabaseManager;
-use RuntimeException;
+use Throwable;
 
 final class LegacyConfigRepository
 {
@@ -117,16 +117,23 @@ final class LegacyConfigRepository
             ? $this->cacheFactory->store($cacheStore)
             : $this->cacheFactory->store();
 
-        return $cache->remember($cacheKey, $ttl, function (): array {
-            $row = $this->databaseManager->connection()->table('config')->first();
+        $loadFromDatabase = function (): array {
+            $connection = $this->databaseManager->connection();
+            $schema = $connection->getSchemaBuilder();
 
-            if ($row === null) {
-                throw new RuntimeException('No config row found.');
+            if (!$schema->hasTable('config')) {
+                return [];
             }
 
-            $data = (array) $row;
+            $row = $connection->table('config')->first();
 
-            return $data;
-        });
+            return $row ? (array) $row : [];
+        };
+
+        try {
+            return $cache->remember($cacheKey, $ttl, $loadFromDatabase);
+        } catch (Throwable $exception) {
+            return $loadFromDatabase();
+        }
     }
 }
