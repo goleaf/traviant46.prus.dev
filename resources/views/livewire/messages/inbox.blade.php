@@ -4,6 +4,7 @@
     $canBulk = data_get($capabilities, 'bulk', false);
     $canArchive = data_get($capabilities, 'archive', false);
     $selectedIds = $selected ?? [];
+    $hasSelection = ! empty($selectedIds);
 @endphp
 
 <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_35px_120px_-60px_rgba(15,23,42,0.85)] backdrop-blur">
@@ -60,8 +61,8 @@
                 size="sm"
                 icon="envelope-open"
                 wire:click="bulkMarkAsRead"
-                :disabled="!$canBulk || empty($selectedIds)"
-                class="{{ $canBulk && ! empty($selectedIds) ? '' : 'pointer-events-none opacity-50' }}"
+                :disabled="!($canBulk && $hasSelection)"
+                class="{{ $canBulk && $hasSelection ? '' : 'pointer-events-none opacity-50' }}"
             >
                 {{ __('Mark read') }}
             </flux:button>
@@ -69,8 +70,8 @@
                 size="sm"
                 icon="envelope"
                 wire:click="bulkMarkAsUnread"
-                :disabled="!$canBulk || empty($selectedIds)"
-                class="{{ $canBulk && ! empty($selectedIds) ? '' : 'pointer-events-none opacity-50' }}"
+                :disabled="!($canBulk && $hasSelection)"
+                class="{{ $canBulk && $hasSelection ? '' : 'pointer-events-none opacity-50' }}"
             >
                 {{ __('Mark unread') }}
             </flux:button>
@@ -81,8 +82,8 @@
                     variant="outline"
                     icon="archive-box"
                     wire:click="bulkArchive"
-                    :disabled="empty($selectedIds)"
-                    class="{{ empty($selectedIds) ? 'pointer-events-none opacity-50' : '' }}"
+                    :disabled="!$hasSelection"
+                    class="{{ $hasSelection ? '' : 'pointer-events-none opacity-50' }}"
                 >
                     {{ __('Archive') }}
                 </flux:button>
@@ -91,8 +92,8 @@
                     variant="ghost"
                     icon="trash"
                     wire:click="bulkDelete"
-                    :disabled="empty($selectedIds)"
-                    class="{{ empty($selectedIds) ? 'pointer-events-none opacity-50' : 'text-red-300 hover:text-red-100' }}"
+                    :disabled="!$hasSelection"
+                    class="{{ $hasSelection ? 'text-red-300 hover:text-red-100' : 'pointer-events-none opacity-50' }}"
                 >
                     {{ __('Delete') }}
                 </flux:button>

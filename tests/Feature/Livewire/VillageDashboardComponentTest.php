@@ -10,6 +10,7 @@ use App\Models\Game\VillageBuildingUpgrade;
 use App\Models\Game\VillageResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);

@@ -108,6 +108,11 @@ class Village extends Model
         return $this->hasMany(MovementOrder::class, 'origin_village_id');
     }
 
+    public function resourceFields(): HasMany
+    {
+        return $this->hasMany(ResourceField::class)->orderBy('slot_number');
+    }
+
     public function incomingMovements(): HasMany
     {
         return $this->hasMany(MovementOrder::class, 'target_village_id');

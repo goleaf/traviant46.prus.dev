@@ -24,6 +24,8 @@ beforeEach(function (): void {
     $migrations = [
         'database/migrations/0001_01_01_000000_create_users_table.php',
         'database/migrations/2025_10_15_000200_add_role_to_users_table.php',
+        'database/migrations/2025_10_09_174049_add_two_factor_columns_to_users_table.php',
+        'database/migrations/2025_10_10_000000_add_ban_columns_to_users_table.php',
         'database/migrations/2025_03_01_000000_create_villages_table.php',
         'database/migrations/2025_10_26_212609_update_villages_table_structure.php',
         'database/migrations/2025_03_01_000005_create_building_types_table.php',
@@ -74,8 +76,9 @@ it('creates a starter village for new players', function (): void {
         'password_confirmation' => 'Password1!YZ',
     ]);
 
-    /** @var Village $village */
-    $village = $user->fresh()->villages()->firstOrFail();
+    $user = $user->fresh();
+
+    $village = Village::query()->where('user_id', $user->getKey())->firstOrFail();
 
     expect($village->x_coordinate)->toBe(0)
         ->and($village->y_coordinate)->toBe(0)

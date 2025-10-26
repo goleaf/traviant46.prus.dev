@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Events\Game\ResourcesProduced;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Village;
 use App\Models\Game\VillageResource;
 use App\Services\ResourceService;
@@ -24,6 +25,7 @@ class ResourceTickJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -41,27 +43,24 @@ class ResourceTickJob implements ShouldQueue
     public string $queue = 'automation';
 
     public function __construct(
-        private readonly int $shardIndex = 0,
-        private readonly ?int $shardCount = null,
         private readonly int $chunkSize = 200,
+        int $shard = 0,
         private readonly ?int $tickIntervalSeconds = null,
-    ) {}
+    ) {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(ResourceService $resourceCalculator): void
     {
-        $shardCount = max(1, $this->shardCount ?? (int) config('game.shards', 1));
-        $shardIndex = $this->normaliseShardIndex($shardCount);
         $chunkSize = max(1, $this->chunkSize);
         $tickSeconds = max(1, $this->tickIntervalSeconds ?? (int) config('game.tick_interval_seconds', 60));
         $now = Carbon::now();
+        $totalShards = $this->shardResolver()->total();
+        $currentShard = $this->shard();
 
-        Village::query()
-            ->select(['id'])
-            ->when($shardCount > 1, function ($query) use ($shardCount, $shardIndex): void {
-                $query->whereRaw('MOD(id, ?) = ?', [$shardCount, $shardIndex]);
-            })
+        $this->constrainToShard(Village::query()->select(['id']), 'id')
             ->orderBy('id')
-            ->chunkById($chunkSize, function (EloquentCollection $villages) use ($resourceCalculator, $tickSeconds, $now, $shardIndex, $shardCount): void {
+            ->chunkById($chunkSize, function (EloquentCollection $villages) use ($resourceCalculator, $tickSeconds, $now, $currentShard, $totalShards): void {
                 foreach ($villages as $village) {
                     try {
                         $payload = $this->processVillage(
@@ -80,28 +79,13 @@ class ResourceTickJob implements ShouldQueue
                     } catch (Throwable $exception) {
                         Log::error('resource.tick.failed', [
                             'village_id' => (int) $village->getKey(),
-                            'shard_index' => $shardIndex,
-                            'shard_count' => $shardCount,
+                            'shard_index' => $currentShard,
+                            'shard_count' => $totalShards,
                             'exception' => $exception,
                         ]);
                     }
                 }
             });
-    }
-
-    private function normaliseShardIndex(int $shardCount): int
-    {
-        if ($shardCount < 1) {
-            return 0;
-        }
-
-        $index = $this->shardIndex % $shardCount;
-
-        if ($index < 0) {
-            $index += $shardCount;
-        }
-
-        return $index;
     }
 
     /**

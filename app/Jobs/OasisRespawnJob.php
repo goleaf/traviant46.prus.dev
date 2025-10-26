@@ -22,12 +22,12 @@ class OasisRespawnJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    private const DEFAULT_RESPAWN_INTERVAL_MINUTES = 360;
+    public const DEFAULT_RESPAWN_INTERVAL_MINUTES = 360;
 
     /**
      * @var array<int, array<string, int>>
      */
-    private const NATURE_GARRISON_PRESETS = [
+    public const NATURE_GARRISON_PRESETS = [
         1 => [
             'rat' => 12,
             'spider' => 8,
@@ -140,4 +140,3 @@ class OasisRespawnJob implements ShouldQueue
         return now()->addMinutes($this->respawnIntervalMinutes);
     }
 }
-

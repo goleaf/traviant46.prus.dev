@@ -74,37 +74,37 @@ class VillageFactory extends Factory
 
     public function starter(): self
     {
-        return $this->state(function (array $attributes): array {
+        return $this->state(function (): array {
             $now = Carbon::now();
 
             return [
-                'name' => $attributes['name'] ?? 'New Village',
-                'population' => $attributes['population'] ?? 2,
-                'loyalty' => $attributes['loyalty'] ?? 100,
-                'culture_points' => $attributes['culture_points'] ?? 0,
-                'x_coordinate' => $attributes['x_coordinate'] ?? 0,
-                'y_coordinate' => $attributes['y_coordinate'] ?? 0,
-                'terrain_type' => $attributes['terrain_type'] ?? 1,
-                'village_category' => $attributes['village_category'] ?? 'capital',
-                'is_capital' => $attributes['is_capital'] ?? true,
-                'resource_balances' => $attributes['resource_balances'] ?? [
+                'name' => 'New Village',
+                'population' => 2,
+                'loyalty' => 100,
+                'culture_points' => 0,
+                'x_coordinate' => 0,
+                'y_coordinate' => 0,
+                'terrain_type' => 1,
+                'village_category' => 'capital',
+                'is_capital' => true,
+                'resource_balances' => [
                     'wood' => 750,
                     'clay' => 750,
                     'iron' => 750,
                     'crop' => 750,
                 ],
-                'storage' => $attributes['storage'] ?? [
+                'storage' => [
                     'warehouse' => 800,
                     'granary' => 800,
                     'extra' => ['warehouse' => 0, 'granary' => 0],
                 ],
-                'production' => $attributes['production'] ?? [
+                'production' => [
                     'wood' => 2,
                     'clay' => 2,
                     'iron' => 2,
                     'crop' => 2,
                 ],
-                'founded_at' => $attributes['founded_at'] ?? $now,
+                'founded_at' => $now,
                 'is_wonder_village' => false,
             ];
         })->afterCreating(function (Village $village): void {

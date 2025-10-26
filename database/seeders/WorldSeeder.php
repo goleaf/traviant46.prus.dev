@@ -11,6 +11,56 @@ use Illuminate\Support\Facades\DB;
 
 class WorldSeeder extends Seeder
 {
+    public const OASIS_PRESETS = [
+        1 => [
+            'label' => 'wood',
+            'garrison' => [
+                'rat' => 25,
+                'spider' => 18,
+                'boar' => 12,
+                'wolf' => 5,
+                'bear' => 2,
+            ],
+            'respawn_minutes' => 180,
+        ],
+        2 => [
+            'label' => 'clay',
+            'garrison' => [
+                'rat' => 22,
+                'spider' => 20,
+                'snake' => 18,
+                'bat' => 10,
+                'boar' => 5,
+            ],
+            'respawn_minutes' => 240,
+        ],
+        3 => [
+            'label' => 'iron',
+            'garrison' => [
+                'rat' => 18,
+                'spider' => 16,
+                'snake' => 20,
+                'bat' => 16,
+                'bear' => 12,
+                'crocodile' => 8,
+            ],
+            'respawn_minutes' => 300,
+        ],
+        4 => [
+            'label' => 'crop',
+            'garrison' => [
+                'rat' => 20,
+                'spider' => 20,
+                'boar' => 24,
+                'wolf' => 20,
+                'bear' => 18,
+                'tiger' => 12,
+                'elephant' => 6,
+            ],
+            'respawn_minutes' => 360,
+        ],
+    ];
+
     private const MAP_MIN_COORDINATE = -200;
 
     private const MAP_MAX_COORDINATE = 200;
@@ -19,13 +69,6 @@ class WorldSeeder extends Seeder
         '4-4-4-6' => ['id' => 3],
         '9c' => ['id' => 1],
         '15c' => ['id' => 6],
-    ];
-
-    private const OASIS_TYPES = [
-        1 => 'wood',
-        2 => 'clay',
-        3 => 'iron',
-        4 => 'crop',
     ];
 
     private const OASIS_FREQUENCY = 25;
@@ -61,11 +104,11 @@ class WorldSeeder extends Seeder
         $tileCounts = array_fill_keys(array_keys(self::TILE_TYPES), 0);
         $oasisCounts = [
             'total' => 0,
-            'by_type' => array_fill_keys(array_values(self::OASIS_TYPES), 0),
+            'by_type' => array_fill_keys(array_column(self::OASIS_PRESETS, 'label'), 0),
         ];
 
         $totalTiles = ($bounds['max_x'] - $bounds['min_x'] + 1) * ($bounds['max_y'] - $bounds['min_y'] + 1);
-        $oasisTypeIds = array_keys(self::OASIS_TYPES);
+        $oasisTypeIds = array_keys(self::OASIS_PRESETS);
         $tileBatch = [];
         $oasisBatch = [];
         $now = Carbon::now();
@@ -83,7 +126,8 @@ class WorldSeeder extends Seeder
 
                     if ($isOasis) {
                         $oasisTypeId = $oasisTypeIds[$seed % count($oasisTypeIds)];
-                        $oasisLabel = self::OASIS_TYPES[$oasisTypeId];
+                        $preset = self::OASIS_PRESETS[$oasisTypeId];
+                        $oasisLabel = $preset['label'];
 
                         $tileBatch[] = [
                             'world_id' => $worldIdentifier,
@@ -99,8 +143,8 @@ class WorldSeeder extends Seeder
                             'x' => $x,
                             'y' => $y,
                             'type' => $oasisTypeId,
-                            'nature_garrison' => null,
-                            'respawn_at' => null,
+                            'nature_garrison' => json_encode($preset['garrison'], JSON_THROW_ON_ERROR),
+                            'respawn_at' => $this->calculateRespawnAt($now, (float) $world->speed, $oasisTypeId),
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];

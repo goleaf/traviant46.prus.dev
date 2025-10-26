@@ -26,6 +26,16 @@ class VillagePolicy
         return $this->canAccessVillage($actor, $village, SitterPermission::Build);
     }
 
+    public function viewRallyPoint(User $actor, Village $village): bool
+    {
+        return $this->canAccessVillage($actor, $village, SitterPermission::SendTroops);
+    }
+
+    public function manageRallyPoint(User $actor, Village $village): bool
+    {
+        return $this->canAccessVillage($actor, $village, SitterPermission::SendTroops);
+    }
+
     protected function canAccessVillage(User $actor, Village $village, SitterPermission $permission): bool
     {
         if ($this->ownsVillage($actor, $village)) {

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             CoreUserSeeder::class,
             WorldSeeder::class,
             TroopTypeSeeder::class,
+            ArtifactSeeder::class,
             GameWorldSeeder::class,
             BuildingCatalogSeeder::class,
         ]);

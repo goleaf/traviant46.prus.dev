@@ -41,9 +41,13 @@ class Quest extends Model
 
     public function progressFor(User $user): ?QuestProgress
     {
-        $relation = $this->relationLoaded('progresses') ? $this->progresses : $this->progresses()->get();
+        if ($this->relationLoaded('progresses')) {
+            return $this->progresses->firstWhere('user_id', $user->getKey());
+        }
 
-        return $relation->firstWhere('user_id', $user->getKey());
+        return $this->progresses()
+            ->where('user_id', $user->getKey())
+            ->first();
     }
 
     /**

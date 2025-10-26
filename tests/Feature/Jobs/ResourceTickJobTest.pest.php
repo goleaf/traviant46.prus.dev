@@ -150,7 +150,7 @@ it('caps resources at storage limits and only processes matched shard', function
         'bonuses' => [],
     ]);
 
-    $job = new ResourceTickJob(shardIndex: 0, shardCount: 2);
+    $job = new ResourceTickJob(shard: 0);
     $job->handle(app(ResourceService::class));
 
     expect($ignoredVillage->fresh()->resource_balances['wood'])->toEqual(75.0);

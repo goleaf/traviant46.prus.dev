@@ -10,4 +10,3 @@ enum BuildQueueState: string
     case Working = 'working';
     case Done = 'done';
 }
-
