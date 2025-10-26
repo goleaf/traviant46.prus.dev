@@ -7,7 +7,7 @@ selected components should be configured and used together.
 
 ## Application Core
 
-- **Laravel 11 + PHP 8.2/8.3** – the base framework for HTTP routing, console
+- **Laravel 12 + PHP 8.2/8.3** – the base framework for HTTP routing, console
   tooling, configuration, and dependency injection.  Keep the framework updated
   via Composer to receive security fixes.
 - **Eloquent ORM** – provides typed models for each table in the redesigned
@@ -70,7 +70,7 @@ selected components should be configured and used together.
 
 ## Next Steps
 
-1. Scaffold the Laravel application (see `docs/migration-assessment.md`).
+1. Scaffold the Laravel application (review the migration milestones in `docs/project-analysis.md`).
 2. Install the required packages via Composer:
    ```bash
    composer require laravel/fortify laravel/sanctum laravel/horizon \

@@ -9,7 +9,7 @@
 ## Current Status Snapshot
 - **Authentication & User Management:** Feature complete per README, including seeded roles, sitter delegation, and multi-account logging with Redis session support.【F:docs/README.md†L5-L53】
 - **Background Workloads:** Database or Redis queue drivers are configured, with rate-limiting, prioritisation, and scheduler pairing guidance defined to keep automation reliable.【F:docs/background-jobs.md†L1-L112】【F:docs/queue-system.md†L1-L75】
-- **Data Model Documentation:** Legacy schemas for communication, villages, and combat have been catalogued to guide Laravel migration scripts and validate table relationships before cutover.【F:docs/communication-components.md†L1-L120】【F:docs/database/village-tables.md†L1-L96】【F:docs/movement-combat-tables.md†L1-L96】
+- **Data Model Documentation:** Legacy schemas for communication, villages, and combat have been catalogued to guide Laravel migration scripts and validate table relationships before cutover.【F:docs/communication-components.md†L1-L120】【F:docs/database/communication-tables.md†L1-L41】【F:docs/database/village-tables.md†L1-L96】【F:docs/movement-combat-tables.md†L1-L96】
 
 ## Outstanding Risks
 - **Gameplay Feature Parity:** Alliance and messaging experiences still rely on legacy controllers; Livewire implementations must uphold sitter restrictions, moderation flows, and forum tooling detailed in the component references to avoid regressions.【F:docs/alliance-livewire-components.md†L1-L94】【F:docs/communication-components.md†L1-L120】
@@ -29,5 +29,6 @@
 - [Infrastructure Stack Overview](./infrastructure-stack.md)
 - [Alliance Livewire Components](./alliance-livewire-components.md)
 - [Communication Components](./communication-components.md)
+- [Communication Tables Reference](./database/communication-tables.md)
 - [Village Tables Reference](./database/village-tables.md)
 - [Movement & Combat Table Notes](./movement-combat-tables.md)
