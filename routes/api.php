@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\V1\SitterAssignmentController;
+use App\Http\Controllers\Api\V1\SitterDelegationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -13,9 +13,10 @@ Route::prefix('v1')
         'game.verified',
         'game.banned',
         'game.maintenance',
+        'throttle:60,1',
     ])
     ->group(function (): void {
-        Route::get('sitters', [SitterAssignmentController::class, 'index'])->name('sitters.index');
-        Route::post('sitters', [SitterAssignmentController::class, 'store'])->name('sitters.store');
-        Route::delete('sitters/{sitterAssignment}', [SitterAssignmentController::class, 'destroy'])->name('sitters.destroy');
+        Route::get('sitters', [SitterDelegationController::class, 'index'])->name('sitters.index');
+        Route::post('sitters', [SitterDelegationController::class, 'store'])->name('sitters.store');
+        Route::delete('sitters/{sitterDelegation}', [SitterDelegationController::class, 'destroy'])->name('sitters.destroy');
     });

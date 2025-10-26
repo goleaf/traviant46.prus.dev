@@ -11,7 +11,5 @@ storage/framework/views
 bootstrap/cache/*.php
 tests
 .gitignore
-Dockerfile
 docker-compose.yml
-*.md
 *.log

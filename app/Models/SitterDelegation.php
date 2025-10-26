@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\SitterPermission;
+use App\ValueObjects\SitterPermissionSet;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
@@ -25,9 +30,29 @@ class SitterDelegation extends Model
     ];
 
     protected $casts = [
-        'permissions' => 'array',
         'expires_at' => 'datetime',
     ];
+
+    /**
+     * @return Attribute<SitterPermissionSet, int>
+     */
+    protected function permissions(): Attribute
+    {
+        return Attribute::make(
+            get: static fn (?int $value): SitterPermissionSet => SitterPermissionSet::fromInt((int) ($value ?? 0)),
+            set: static function (SitterPermissionSet|array|int|null $value): int {
+                if ($value instanceof SitterPermissionSet) {
+                    return $value->toBitmask();
+                }
+
+                if (is_array($value)) {
+                    return SitterPermissionSet::fromArray($value)->toBitmask();
+                }
+
+                return (int) ($value ?? 0);
+            },
+        );
+    }
 
     public function owner(): BelongsTo
     {
@@ -79,5 +104,35 @@ class SitterDelegation extends Model
         return static::query()
             ->whereNotNull('expires_at')
             ->where('expires_at', '<', Carbon::now());
+    }
+
+    public function allows(SitterPermission $permission): bool
+    {
+        return $this->permissions->allows($permission);
+    }
+
+    public function canFarm(): bool
+    {
+        return $this->permissions->canFarm();
+    }
+
+    public function canBuild(): bool
+    {
+        return $this->permissions->canBuild();
+    }
+
+    public function canSendTroops(): bool
+    {
+        return $this->permissions->canSendTroops();
+    }
+
+    public function canTrade(): bool
+    {
+        return $this->permissions->canTrade();
+    }
+
+    public function canSpendGold(): bool
+    {
+        return $this->permissions->canSpendGold();
     }
 }

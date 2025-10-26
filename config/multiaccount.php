@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'window' => [
         'minutes' => env('MULTIACCOUNT_WINDOW_MINUTES', 1440),
@@ -35,6 +37,7 @@ return [
     'notifications' => [
         'webhook_url' => env('MULTIACCOUNT_WEBHOOK_URL'),
         'channels' => array_values(array_filter(array_map('trim', explode(',', (string) env('MULTIACCOUNT_NOTIFICATION_CHANNELS', 'mail'))))),
+        'cooldown_minutes' => (int) env('MULTIACCOUNT_NOTIFICATION_COOLDOWN_MINUTES', 60),
     ],
     'pruning' => [
         'login_activity_days' => (int) env('MULTIACCOUNT_PRUNE_LOGIN_ACTIVITY_DAYS', 90),

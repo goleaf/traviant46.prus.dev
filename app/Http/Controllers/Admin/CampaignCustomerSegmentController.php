@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Filament\Resources\CampaignCustomerSegmentResource;
@@ -53,7 +55,7 @@ class CampaignCustomerSegmentController extends Controller
 
         return redirect()
             ->route('admin.campaign-customer-segments.edit', $segment)
-            ->with('status', 'Segment created successfully.');
+            ->with('status', __('admin.campaign_customer_segments.status.created'));
     }
 
     public function edit(CampaignCustomerSegment $campaignCustomerSegment): View
@@ -88,7 +90,7 @@ class CampaignCustomerSegmentController extends Controller
 
         return redirect()
             ->route('admin.campaign-customer-segments.edit', $campaignCustomerSegment)
-            ->with('status', 'Segment updated successfully.');
+            ->with('status', __('admin.campaign_customer_segments.status.updated'));
     }
 
     public function destroy(CampaignCustomerSegment $campaignCustomerSegment): RedirectResponse
@@ -97,13 +99,13 @@ class CampaignCustomerSegmentController extends Controller
 
         return redirect()
             ->route('admin.campaign-customer-segments.index')
-            ->with('status', 'Segment deleted successfully.');
+            ->with('status', __('admin.campaign_customer_segments.status.deleted'));
     }
 
     public function recalculate(CampaignCustomerSegment $campaignCustomerSegment): RedirectResponse
     {
         $campaignCustomerSegment->recalculateMatchCount();
 
-        return back()->with('status', 'Segment recalculated successfully.');
+        return back()->with('status', __('admin.campaign_customer_segments.status.recalculated'));
     }
 }

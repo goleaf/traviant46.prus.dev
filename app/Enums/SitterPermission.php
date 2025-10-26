@@ -1,40 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
-enum SitterPermission: string
+enum SitterPermission: int
 {
-    case Raid = 'army.raid';
-    case Reinforce = 'army.reinforce';
-    case SendResources = 'economy.send_resources';
-    case SpendGold = 'premium.spend_gold';
-    case ManageMessages = 'communication.manage_messages';
-    case ManageArchives = 'communication.manage_archives';
-    case AllianceContribute = 'alliance.contribute';
+    case Farm = 1;
+    case Build = 2;
+    case SendTroops = 4;
+    case Trade = 8;
+    case SpendGold = 16;
+
+    public function key(): string
+    {
+        return match ($this) {
+            self::Farm => 'farm',
+            self::Build => 'build',
+            self::SendTroops => 'send_troops',
+            self::Trade => 'trade',
+            self::SpendGold => 'spend_gold',
+        };
+    }
 
     public function label(): string
     {
         return match ($this) {
-            self::Raid => __('Launch raids and attacks'),
-            self::Reinforce => __('Send defensive reinforcements'),
-            self::SendResources => __('Transfer resources via marketplace'),
-            self::SpendGold => __('Buy or spend Travian Gold'),
-            self::ManageMessages => __('Send and answer messages'),
-            self::ManageArchives => __('Delete or archive messages and reports'),
-            self::AllianceContribute => __('Contribute to alliance bonuses'),
+            self::Farm => 'Farm resources and manage fields',
+            self::Build => 'Construct or upgrade buildings',
+            self::SendTroops => 'Send troops on missions',
+            self::Trade => 'Trade resources via the marketplace',
+            self::SpendGold => 'Spend gold on premium actions',
         };
     }
 
-    public function legacyFlag(): int
+    /**
+     * @return list<string>
+     */
+    public static function keys(): array
     {
-        return match ($this) {
-            self::Raid => 1,
-            self::Reinforce => 2,
-            self::SendResources => 4,
-            self::SpendGold => 8,
-            self::ManageMessages => 16,
-            self::ManageArchives => 32,
-            self::AllianceContribute => 64,
-        };
+        return array_map(
+            static fn (self $permission): string => $permission->key(),
+            self::cases(),
+        );
+    }
+
+    public static function fromKey(string $key): ?self
+    {
+        foreach (self::cases() as $permission) {
+            if ($permission->key() === $key) {
+                return $permission;
+            }
+        }
+
+        return null;
     }
 }

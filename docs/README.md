@@ -71,7 +71,7 @@ flowchart LR
 - `App\Models\Order`
 - `App\Models\Product`
 - `App\Models\Setting`
-- `App\Models\SitterAssignment`
+- `App\Models\SitterDelegation`
 - `App\Models\User`
 - Domain (`App\Models\Game\*`): `Adventure`, `AttackDispatch`, `Building`, `BuildingType`, `DailyQuestProgress`, `Enforcement`, `GameSummaryMetric`, `MapTile`, `Movement`, `MovementOrder`, `Oasis`, `ServerTask`, `Trapped`, `UnitTrainingBatch`, `Village`, `VillageBuildingUpgrade`, `VillageResource`, `VillageUnit`, `WorldCasualtySnapshot`.
 
@@ -91,6 +91,10 @@ flowchart LR
 ## Documentation hub
 
 - [Project migration analysis](./project-analysis.md) — status summary, risks, and next steps for the TravianT migration effort.
+- [Architecture Decision Records](./adr/README.md) — catalogue of key platform decisions.
+- [Sitter API reference](./sitter-api.md) — REST contract with examples and error handling.
+- [Alerting lifecycle](./alerting-lifecycle.md) — end-to-end view of security alert flows.
+- [On-call runbooks](./runbooks/README.md) — operational guides for common incidents.
 
 ## Getting started
 

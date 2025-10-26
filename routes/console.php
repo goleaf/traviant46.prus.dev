@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Services\Migration\MigrationRehearsalService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -31,3 +34,9 @@ Artisan::command('migration:rehearse {--feature=hero} {--database?} {--legacy=le
         $this->line($report->regressionSummary);
     }
 })->purpose('Run a migration rehearsal and regression parity check.');
+
+Schedule::command('model:prune', ['--model' => \App\Models\LoginActivity::class])
+    ->dailyAt('01:30');
+
+Schedule::command('model:prune', ['--model' => \App\Models\SitterDelegation::class])
+    ->dailyAt('01:45');

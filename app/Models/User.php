@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\StaffRole;
@@ -27,7 +29,9 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     public const LEGACY_ADMIN_UID = 0;
+
     public const LEGACY_MULTIHUNTER_UID = 2;
+
     public const FIRST_PLAYER_LEGACY_UID = 1;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -102,7 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
-    public function accountsDelegatedToMe(): BelongsToMany
+    public function sittingFor(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'sitter_delegations', 'sitter_user_id', 'owner_user_id')
             ->withPivot(['permissions', 'expires_at', 'created_by', 'updated_by'])
@@ -132,6 +136,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class)->orderByDesc('last_activity_at');
     }
 
     protected function goldBalance(): Attribute
@@ -257,10 +271,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new QueuedVerifyEmailNotification());
+        $this->notify(new QueuedVerifyEmailNotification);
     }
 
-    public function sendPasswordResetNotification(string $token): void
+    /**
+     * @param string $token
+     */
+    public function sendPasswordResetNotification($token): void
     {
         $this->notify(new QueuedPasswordResetNotification($token));
     }

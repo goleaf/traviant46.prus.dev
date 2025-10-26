@@ -26,7 +26,7 @@ Base URL: `https://<host>/sitters`
 
 - `permissions` is nullable; when omitted it defaults to the legacy implicit permission set.
 - `expires_at` uses ISO-8601 format. Null means the delegation does not expire.
-- `id` is the internal `sitter_assignments` primary key.
+- `id` is the internal `sitter_delegations` primary key.
 
 ## Endpoints
 
@@ -70,7 +70,7 @@ Returns all sitter assignments, eager loading sitter metadata and revealing sitt
 }
 ```
 
-- The combination of `account_id` (owner) and `sitter_id` (target user) is unique. Reposting updates permissions and expiry.
+- The combination of `owner_user_id` (account owner) and `sitter_user_id` (delegated sitter) is unique. Reposting updates permissions and expiry.
 - Assignments are idempotent; updating returns `201 Created` with the refreshed resource.
 
 #### Success Response
@@ -81,10 +81,12 @@ HTTP `201 Created`
 {
   "data": {
     "id": 7,
-    "account_id": 18,
-    "sitter_id": 37,
+    "owner_user_id": 18,
+    "sitter_user_id": 37,
     "permissions": ["marketplace.manage", "village.view_only"],
     "expires_at": "2025-03-01T09:00:00Z",
+    "created_by": 18,
+    "updated_by": 18,
     "created_at": "2025-02-18T16:12:58Z",
     "updated_at": "2025-02-18T16:15:09Z",
     "sitter": {
@@ -101,7 +103,7 @@ HTTP `201 Created`
 `DELETE /sitters/{sitter}`
 
 - The `{sitter}` parameter uses the sitter's numeric user ID (resolved via route model binding).
-- Detaches both the pivot (`user_sitters`) and row in `sitter_assignments`.
+- Detaches both the pivot (`user_sitters`) and row in `sitter_delegations`.
 
 #### Success Response
 
@@ -120,6 +122,6 @@ HTTP `204 No Content`
 
 ## Operational Notes
 
-- Use `SitterAssignment::active()` to filter out expired rows when building dashboards.
+- Use `SitterDelegation::active()` to filter out expired rows when building dashboards.
 - API responses include `acting_as_sitter` and `acting_sitter_id` to surface when the current session is operating under delegated access, enabling clients to display context warnings.
 - Rate limiting leverages core Laravel middleware; heavy automation should back off on 429 responses.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Security;
 
 use App\Models\LoginActivity;
@@ -43,10 +45,10 @@ class MultiAccountDetector
         if (! $alert->exists) {
             $alert->alert_id = (string) Str::uuid();
             $alert->ip_address = $ipAddress;
-            $alert->user_ids = $userIds->all();
             $alert->first_seen_at = $timestamp;
         }
 
+        $alert->user_ids = $userIds->all();
         $alert->last_seen_at = $timestamp;
         $alert->severity = $this->determineSeverity($userIds->count(), $timestamp, $alert->first_seen_at);
         $alert->save();

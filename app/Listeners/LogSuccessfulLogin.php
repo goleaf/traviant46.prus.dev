@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Listeners;
 
 use App\Models\LoginActivity;
@@ -37,15 +39,21 @@ class LogSuccessfulLogin
             'acting_sitter_id' => $actingAsSitter ? $actingSitterId : null,
             'ip_address' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
+            'device_hash' => hash('sha256', implode('|', [
+                $request->userAgent(),
+                $request->ip(),
+                $request->header('X-Forwarded-For'),
+            ])),
+            'logged_at' => $now,
             'via_sitter' => $actingAsSitter,
         ]);
 
         $this->detector->record(
             $user,
             $activity->ip_address,
-            $activity->created_at,
+            $activity->logged_at ?? $activity->created_at,
             $actingAsSitter,
-            $activity->acting_sitter_id
+            $activity->acting_sitter_id,
         );
     }
 }

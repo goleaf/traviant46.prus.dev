@@ -12,10 +12,11 @@ uses(RefreshDatabase::class);
 function asAdmin(): User
 {
     $user = User::factory()->create([
+        'legacy_uid' => User::LEGACY_ADMIN_UID,
         'email' => 'admin@travian.dev',
     ]);
 
-    actingAs($user);
+    actingAs($user, 'admin');
 
     return $user;
 }
@@ -112,4 +113,3 @@ it('recalculates the match count using the filters', function () {
     expect($segment->match_count)->toBe(2);
     expect($segment->last_calculated_at)->not->toBeNull();
 });
-

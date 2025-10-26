@@ -1,21 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Str;
 use PDO;
 
 $filterConfig = static fn (array $config): array => array_filter(
     $config,
-    static fn ($value) => $value !== null && $value !== ''
+    static fn ($value) => $value !== null && $value !== '',
 );
 
 $mysqlReadHosts = array_values(array_filter(
     array_map('trim', explode(',', (string) env('DB_READ_HOSTS', (string) env('DB_READ_HOST', '')))),
-    static fn ($host) => $host !== ''
+    static fn ($host) => $host !== '',
 ));
 
 $mysqlWriteHosts = array_values(array_filter(
     array_map('trim', explode(',', (string) env('DB_WRITE_HOSTS', (string) env('DB_WRITE_HOST', '')))),
-    static fn ($host) => $host !== ''
+    static fn ($host) => $host !== '',
 ));
 
 $mysqlDatabase = env('DB_DATABASE', 'laravel');
@@ -50,12 +52,12 @@ $mysqlSslOptions = extension_loaded('pdo_mysql') ? array_filter([
 
 $legacyReadHosts = array_values(array_filter(
     array_map('trim', explode(',', (string) env('LEGACY_DB_READ_HOSTS', (string) env('LEGACY_DB_READ_HOST', '')))),
-    static fn ($host) => $host !== ''
+    static fn ($host) => $host !== '',
 ));
 
 $legacyWriteHosts = array_values(array_filter(
     array_map('trim', explode(',', (string) env('LEGACY_DB_WRITE_HOSTS', (string) env('LEGACY_DB_WRITE_HOST', '')))),
-    static fn ($host) => $host !== ''
+    static fn ($host) => $host !== '',
 ));
 
 $legacyDatabase = env('LEGACY_DB_DATABASE', env('DB_DATABASE', 'laravel'));
@@ -79,10 +81,10 @@ $legacyWriteConfig = $legacyWriteHosts !== [] ? $filterConfig([
 $legacyMysqlSslVerifyServerCert = env('LEGACY_DB_SSL_VERIFY_SERVER_CERT', env('DB_SSL_VERIFY_SERVER_CERT'));
 
 $legacySslOptions = extension_loaded('pdo_mysql') ? array_filter([
-    PDO::MYSQL_ATTR_SSL_CA => env('LEGACY_DB_SSL_CA', env('DB_SSL_CA')),
-    PDO::MYSQL_ATTR_SSL_CERT => env('LEGACY_DB_SSL_CERT', env('DB_SSL_CERT')),
-    PDO::MYSQL_ATTR_SSL_KEY => env('LEGACY_DB_SSL_KEY', env('DB_SSL_KEY')),
-    PDO::MYSQL_ATTR_SSL_CIPHER => env('LEGACY_DB_SSL_CIPHER', env('DB_SSL_CIPHER')),
+    PDO::MYSQL_ATTR_SSL_CA => env('LEGACY_DB_SSL_CA', env('LEGACY_MYSQL_ATTR_SSL_CA', env('DB_SSL_CA'))),
+    PDO::MYSQL_ATTR_SSL_CERT => env('LEGACY_DB_SSL_CERT', env('LEGACY_MYSQL_ATTR_SSL_CERT', env('DB_SSL_CERT'))),
+    PDO::MYSQL_ATTR_SSL_KEY => env('LEGACY_DB_SSL_KEY', env('LEGACY_MYSQL_ATTR_SSL_KEY', env('DB_SSL_KEY'))),
+    PDO::MYSQL_ATTR_SSL_CIPHER => env('LEGACY_DB_SSL_CIPHER', env('LEGACY_MYSQL_ATTR_SSL_CIPHER', env('DB_SSL_CIPHER'))),
     PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $legacyMysqlSslVerifyServerCert !== null
         ? filter_var($legacyMysqlSslVerifyServerCert, FILTER_VALIDATE_BOOL)
         : null,
@@ -98,18 +100,19 @@ $pgsqlSsl = $filterConfig([
 
 $redisSentinels = array_values(array_filter(
     array_map('trim', explode(',', (string) env('REDIS_SENTINELS', ''))),
-    static fn ($entry) => $entry !== ''
+    static fn ($entry) => $entry !== '',
 ));
 
 $redisClusters = array_values(array_filter(
     array_map('trim', explode(',', (string) env('REDIS_CLUSTER_NODES', ''))),
-    static fn ($entry) => $entry !== ''
+    static fn ($entry) => $entry !== '',
 ));
 
 $redisScheme = env('REDIS_SCHEME', 'tcp');
 
 $buildRedisConnection = static function (string $databaseEnv, string $defaultDatabase) use ($filterConfig, $redisScheme) {
     return $filterConfig([
+        'url' => env('REDIS_URL'),
         'scheme' => $redisScheme,
         'host' => env('REDIS_HOST', '127.0.0.1'),
         'username' => env('REDIS_USERNAME'),
@@ -117,6 +120,7 @@ $buildRedisConnection = static function (string $databaseEnv, string $defaultDat
         'port' => env('REDIS_PORT', '6379'),
         'database' => env($databaseEnv, $defaultDatabase),
         'read_timeout' => env('REDIS_READ_TIMEOUT'),
+        'max_retries' => env('REDIS_MAX_RETRIES', 3),
     ]);
 };
 
@@ -254,7 +258,7 @@ return [
             'options' => $legacySslOptions,
         ], $legacyReadConfig !== [] ? ['read' => $legacyReadConfig] : [], $legacyWriteConfig !== [] ? ['write' => $legacyWriteConfig] : []),
 
-        'mariadb' => [
+        'mariadb' => array_merge([
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
@@ -269,10 +273,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
+            'sticky' => filter_var(env('DB_STICKY', $mysqlReadConfig !== []), FILTER_VALIDATE_BOOL),
+            'options' => $mysqlSslOptions,
+        ], $mysqlReadConfig !== [] ? ['read' => $mysqlReadConfig] : [], $mysqlWriteConfig !== [] ? ['write' => $mysqlWriteConfig] : []),
 
         'pgsql' => [
             'driver' => 'pgsql',
@@ -286,7 +289,11 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => $pgsqlSsl['sslmode'] ?? 'prefer',
+            'sslrootcert' => $pgsqlSsl['sslrootcert'] ?? null,
+            'sslcert' => $pgsqlSsl['sslcert'] ?? null,
+            'sslkey' => $pgsqlSsl['sslkey'] ?? null,
+            'sslcrl' => $pgsqlSsl['sslcrl'] ?? null,
         ],
 
         'sqlsrv' => [
@@ -343,44 +350,11 @@ return [
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
-        'default' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_DB', '0'),
-            'max_retries' => env('REDIS_MAX_RETRIES', 3),
-            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
-            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
-            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+        ...[
+            'client' => env('REDIS_CLIENT', 'phpredis'),
+            'options' => $redisOptions,
         ],
-
-        'cache' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_CACHE_DB', '1'),
-            'max_retries' => env('REDIS_MAX_RETRIES', 3),
-            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
-            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
-            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
-        ],
-
-        'session' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_SESSION_DB', '2'),
-            'max_retries' => env('REDIS_MAX_RETRIES', 3),
-            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
-            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
-            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
-        ],
+        ...$redisConnections,
 
     ],
 

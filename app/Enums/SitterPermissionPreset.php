@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
+
+use function collect;
 
 /**
  * Represents curated combinations of sitter permissions aligned with TravianT roles.
@@ -84,7 +88,7 @@ enum SitterPermissionPreset: string
     {
         return array_map(
             static fn (SitterPermission $permission): string => $permission->value,
-            $this->permissions()
+            $this->permissions(),
         );
     }
 

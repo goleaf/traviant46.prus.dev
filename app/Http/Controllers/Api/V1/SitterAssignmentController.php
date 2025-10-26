@@ -37,7 +37,7 @@ class SitterAssignmentController extends Controller
             $actingAsSitter,
             $actingSitterId,
             (int) $paginator->currentPage(),
-            (int) $paginator->total()
+            (int) $paginator->total(),
         );
 
         $ifNoneMatch = $this->normalizeIfNoneMatchHeader($request->headers->get('If-None-Match'));
@@ -73,7 +73,7 @@ class SitterAssignmentController extends Controller
         if ($sitter->is($user)) {
             abort(
                 422,
-                __('You cannot assign yourself as a sitter.')
+                __('You cannot assign yourself as a sitter.'),
             );
         }
 
@@ -99,15 +99,15 @@ class SitterAssignmentController extends Controller
             ->setStatusCode($status);
     }
 
-    public function destroy(Request $request, SitterDelegation $sitterAssignment): Response
+    public function destroy(Request $request, SitterDelegation $delegation): Response
     {
-        if ($sitterAssignment->owner_user_id !== $request->user()->getKey()) {
-            throw new NotFoundHttpException();
+        if ($delegation->owner_user_id !== $request->user()->getKey()) {
+            throw new NotFoundHttpException;
         }
 
-        $request->user()->sitters()->detach($sitterAssignment->sitter_user_id);
+        $request->user()->sitters()->detach($delegation->sitter_user_id);
 
-        $sitterAssignment->delete();
+        $delegation->delete();
 
         return response()->noContent();
     }
@@ -138,9 +138,12 @@ class SitterAssignmentController extends Controller
         foreach ($assignments as $assignment) {
             $payload[] = [
                 'id' => $assignment->getKey(),
+                'owner_user_id' => $assignment->owner_user_id,
                 'sitter_id' => $assignment->sitter_user_id,
                 'permissions' => $assignment->permissions,
                 'expires_at' => optional($assignment->expires_at)->toIso8601String(),
+                'created_by' => $assignment->created_by,
+                'updated_by' => $assignment->updated_by,
                 'updated_at' => optional($assignment->updated_at)->toIso8601String(),
             ];
         }

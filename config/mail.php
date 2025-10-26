@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -45,8 +47,26 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            'timeout' => env('MAIL_TIMEOUT'),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'encryption' => env('MAIL_ENCRYPTION'),
+            'auth_mode' => env('MAIL_AUTH_MODE'),
+            'stream' => [
+                'ssl' => array_filter([
+                    'allow_self_signed' => filter_var(env('MAIL_SSL_ALLOW_SELF_SIGNED', false), FILTER_VALIDATE_BOOL),
+                    'verify_peer' => filter_var(env('MAIL_SSL_VERIFY_PEER', true), FILTER_VALIDATE_BOOL),
+                    'verify_peer_name' => filter_var(env('MAIL_SSL_VERIFY_PEER_NAME', true), FILTER_VALIDATE_BOOL),
+                    'cafile' => env('MAIL_SSL_CAFILE'),
+                    'local_cert' => env('MAIL_SSL_LOCAL_CERT'),
+                    'local_pk' => env('MAIL_SSL_LOCAL_PRIVATE_KEY'),
+                    'passphrase' => env('MAIL_SSL_PASSPHRASE'),
+                ], static fn ($value) => $value !== null),
+            ],
+            'queue' => [
+                'connection' => env('MAIL_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'database')),
+                'name' => env('MAIL_QUEUE', 'mail'),
+                'retry_after' => (int) env('MAIL_QUEUE_RETRY_AFTER', 90),
+            ],
         ],
 
         'ses' => [
@@ -113,6 +133,22 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Queue Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Global queue configuration for outbound mail notifications. These values
+    | are leveraged by queued notifications to ensure consistent dispatching.
+    |
+    */
+
+    'queue' => [
+        'connection' => env('MAIL_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'database')),
+        'name' => env('MAIL_QUEUE', 'mail'),
+        'retry_after' => (int) env('MAIL_QUEUE_RETRY_AFTER', 90),
     ],
 
 ];

@@ -1,9 +1,9 @@
-# ADR 0002: Persist Sitter Delegations in `sitter_assignments`
+# ADR 0002: Persist Sitter Delegations in `sitter_delegations`
 
 - **Date:** 2025-02-14
 - **Status:** Accepted
 - **Decision Makers:** Platform Architecture Group
-- **Related Code:** `app/Models/SitterAssignment.php`, `database/migrations/2025_02_14_000002_create_sitter_delegations_table.php`
+- **Related Code:** `app/Models/SitterDelegation.php`, `database/migrations/2025_02_14_000002_create_sitter_delegations_table.php`
 
 ## Context
 
@@ -11,7 +11,7 @@ Legacy sitter relationships were stored as comma-delimited columns on the `users
 
 ## Decision
 
-Introduce a dedicated `sitter_assignments` table with a corresponding `SitterAssignment` Eloquent model. The table uses `(account_id, sitter_id)` as a unique pair, stores JSON permissions, and keeps optional expiration timestamps. Relationships are exposed through `User::sitters()` and `User::sitterAssignments()` for convenient eager loading.
+Introduce a dedicated `sitter_delegations` table with a corresponding `SitterDelegation` Eloquent model. The table uses `(owner_user_id, sitter_user_id)` as a unique pair, stores JSON permissions, and keeps optional expiration timestamps. Relationships are exposed through `User::sitters()` and `User::sitterAssignments()` for convenient eager loading.
 
 ## Consequences
 

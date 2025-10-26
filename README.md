@@ -45,7 +45,7 @@ graph TD
 - **Livewire** components render the secure dashboard, sitter tooling, and moderation views.
 - **Redis** stores sessions, rate limits, and sitter invitation handshakes.
 - **MySQL** persists canonical data: users, sitter assignments, login activities, and multi-account alerts.
-- **Domain services** such as `MultiAccountDetector` and `SitterAssignment` enforce business rules shared with legacy infrastructure.
+- **Domain services** such as `MultiAccountDetector` and the `SitterDelegation` model enforce business rules shared with legacy infrastructure.
 
 ## Core Flows
 

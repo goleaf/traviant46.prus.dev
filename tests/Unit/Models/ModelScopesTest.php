@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Enums\SitterPermission;
 use App\Models\Activation;
 use App\Models\LoginActivity;
 use App\Models\LoginIpLog;
@@ -173,7 +176,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $active = SitterDelegation::query()->create([
         'owner_user_id' => $account->id,
         'sitter_user_id' => $sitter->id,
-        'permissions' => ['send_troops'],
+        'permissions' => [SitterPermission::Raid->value],
         'expires_at' => $now->copy()->addDay(),
         'created_by' => $account->id,
         'updated_by' => $account->id,
@@ -182,7 +185,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $expired = SitterDelegation::query()->create([
         'owner_user_id' => $account->id,
         'sitter_user_id' => $other->id,
-        'permissions' => ['read_messages'],
+        'permissions' => [SitterPermission::ManageMessages->value],
         'expires_at' => $now->copy()->subHours(2),
         'created_by' => $account->id,
         'updated_by' => $account->id,
@@ -191,7 +194,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $permanent = SitterDelegation::query()->create([
         'owner_user_id' => $other->id,
         'sitter_user_id' => $sitter->id,
-        'permissions' => ['trade'],
+        'permissions' => [SitterPermission::SendResources->value],
         'expires_at' => null,
         'created_by' => $other->id,
         'updated_by' => $other->id,

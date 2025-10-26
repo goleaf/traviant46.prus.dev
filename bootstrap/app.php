@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Kernel as HttpKernel;
 use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
@@ -9,7 +11,9 @@ use App\Support\Http\ProblemDetails;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -28,6 +32,46 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         HttpKernel::register($middleware);
+
+        $trustedProxyConfig = config('security.trusted_proxies', []);
+        $presetIdentifiers = array_map('strtolower', $trustedProxyConfig['presets'] ?? []);
+        $proxyRanges = $trustedProxyConfig['ranges'] ?? [];
+
+        $trustedProxies = $trustedProxyConfig['ips'] ?? [];
+
+        foreach ($presetIdentifiers as $preset) {
+            if (isset($proxyRanges[$preset])) {
+                $trustedProxies = array_merge($trustedProxies, $proxyRanges[$preset]);
+            }
+        }
+
+        $trustedProxies = array_values(array_unique(array_filter(
+            $trustedProxies,
+            static fn ($ip) => $ip !== null && $ip !== '',
+        )));
+
+        $headerPreference = strtolower((string) ($trustedProxyConfig['headers'] ?? 'forwarded'));
+
+        if (in_array('aws_elb', $presetIdentifiers, true) && $headerPreference === 'forwarded') {
+            $headerPreference = 'aws';
+        }
+
+        $headerMap = [
+            'forwarded' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
+            'x-forwarded' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
+            'aws' => SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB,
+            'cloudflare' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
+            'none' => SymfonyRequest::HEADER_X_FORWARDED_NONE,
+        ];
+
+        $middleware->trustProxies(
+            at: $trustedProxies === [] ? null : $trustedProxies,
+            headers: $headerMap[$headerPreference] ?? SymfonyRequest::HEADER_X_FORWARDED_ALL,
+        );
+
+        $middleware->use([
+            HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $throwable, Request $request) {

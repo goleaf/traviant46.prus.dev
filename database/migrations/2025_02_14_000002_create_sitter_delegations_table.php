@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class, 'owner_user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'sitter_user_id')->constrained('users')->cascadeOnDelete();
-            $table->json('permissions')->nullable();
+            $table->unsignedBigInteger('permissions')->default(0);
             $table->timestamp('expires_at')->nullable()->index();
             $table->foreignIdFor(User::class, 'created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignIdFor(User::class, 'updated_by')->nullable()->constrained('users')->nullOnDelete();
