@@ -1,17 +1,6 @@
 <?php
 
 use Illuminate\Support\Str;
-use function Livewire\Volt\{mount, state};
-
-state([
-    'checkout' => [],
-    'currency' => 'USD',
-]);
-
-mount(function (array $checkout, ?string $currency = null): void {
-    $this->checkout = $checkout;
-    $this->currency = $currency ?? $checkout['cart']['currency'] ?? config('storefront.currency', 'USD');
-});
 ?>
 
 <section class="bg-slate-950 py-16 text-white">

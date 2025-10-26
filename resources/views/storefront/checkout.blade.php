@@ -10,5 +10,6 @@
 @endpush
 
 @section('content')
+    <!-- livewire:storefront.checkout -->
     <livewire:storefront.checkout :checkout="$checkout" :currency="$currency" />
 @endsection

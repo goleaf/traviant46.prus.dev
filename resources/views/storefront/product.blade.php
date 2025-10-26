@@ -10,5 +10,6 @@
 @endpush
 
 @section('content')
+    <!-- livewire:storefront.product -->
     <livewire:storefront.product :product="$product" :related-products="$relatedProducts" :currency="$currency" />
 @endsection
