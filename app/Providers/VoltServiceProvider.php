@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Livewire\Volt\Volt;
+
+/**
+ * Service provider responsible for configuring Volt to use the application's shared layout and view directories.
+ */
+class VoltServiceProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        Volt::layout('layouts.app');
+
+        Volt::mount([
+            config('livewire.view_path', resource_path('views/livewire')),
+            resource_path('views/pages'),
+        ]);
+    }
+}
