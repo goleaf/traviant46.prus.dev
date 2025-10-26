@@ -8,6 +8,7 @@ use Core\Session;
 use Game\Formulas;
 use Game\Map\ImageMapCache;
 use Model\MapModel;
+use App\ValueObjects\Travian\MapSize;
 
 class Map_markCtrl extends AnyCtrl
 {
@@ -109,7 +110,7 @@ class Map_markCtrl extends AnyCtrl
                 $row['occupied'] = 0;
             }
             if ($zoomLevel <= 2) {
-                if ($row['x'] == MAP_SIZE) {
+                if ($row['x'] == MapSize::value()) {
                     imagecopy($this->block,
                         imagecreatefrompng("img/map/grid/{$this->image_size}x{$this->image_size}/rulers/east.png"),
                         $dst_x * $this->image_size,
@@ -118,7 +119,7 @@ class Map_markCtrl extends AnyCtrl
                         0,
                         $this->image_size,
                         $this->image_size);
-                } else if ($row['x'] == -MAP_SIZE) {
+                } else if ($row['x'] == -MapSize::value()) {
                     imagecopy($this->block,
                         imagecreatefrompng("img/map/grid/{$this->image_size}x{$this->image_size}/rulers/west.png"),
                         $dst_x * $this->image_size,
@@ -128,7 +129,7 @@ class Map_markCtrl extends AnyCtrl
                         $this->image_size,
                         $this->image_size);
                 }
-                if ($row['y'] == MAP_SIZE) {
+                if ($row['y'] == MapSize::value()) {
                     imagecopy($this->block,
                         imagecreatefrompng("img/map/grid/{$this->image_size}x{$this->image_size}/rulers/north.png"),
                         $dst_x * $this->image_size,
@@ -137,7 +138,7 @@ class Map_markCtrl extends AnyCtrl
                         0,
                         $this->image_size,
                         $this->image_size);
-                } else if ($row['y'] == -MAP_SIZE) {
+                } else if ($row['y'] == -MapSize::value()) {
                     imagecopy($this->block,
                         imagecreatefrompng("img/map/grid/{$this->image_size}x{$this->image_size}/rulers/south.png"),
                         $dst_x * $this->image_size,

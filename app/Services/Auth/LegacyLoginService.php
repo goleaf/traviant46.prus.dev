@@ -55,7 +55,7 @@ class LegacyLoginService
     protected function findActivation(string $identifier): ?Activation
     {
         return Activation::query()
-            ->where('used', false)
+            ->unused()
             ->where(function ($query) use ($identifier) {
                 $query->where('name', $identifier)
                     ->orWhere('email', $identifier);

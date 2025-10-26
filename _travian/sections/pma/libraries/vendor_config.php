@@ -71,7 +71,7 @@ define('VERSION_CHECK_DEFAULT', true);
 /**
  * Path to files with compiled locales (*.mo)
  */
-define('LOCALE_PATH', './locale/');
+define('App\\ValueObjects\\Travian\\LegacyPaths::locale()', './locale/');
 
 /**
  * Avoid referring to nonexistent files (causes warnings when open_basedir

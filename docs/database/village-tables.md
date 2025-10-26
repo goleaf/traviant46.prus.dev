@@ -1,6 +1,6 @@
 # Legacy Village Tables Reference
 
-This document captures the legacy Travian T4.4 schema for village-centric tables to aid the Laravel 11 migration.
+This document captures the legacy Travian T4.4 schema for village-centric tables to aid the Laravel 12 migration.
 Each section summarizes purpose, notable columns, and indexing straight from the original `main_script/include/schema/T4.4.sql` DDL.
 
 ## `vdata`

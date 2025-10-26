@@ -1,5 +1,6 @@
 <?php
 
+use App\ValueObjects\Travian\MapSize;
 use Core\Helper\TimezoneHelper;
 use Core\Session;
 use Game\Formulas;
@@ -2132,10 +2133,10 @@ if ($templateName == 'tpl/layout.tpl'): ?>
     <div id="kaart">
         <div id="map" title="">
             <div class="zoomlevels">
-                <span id="zl">-<?= MAP_SIZE; ?></span>
-                <span id="zr"><?= MAP_SIZE; ?></span>
-                <span id="zb"><?= MAP_SIZE; ?></span>
-                <span id="zo">-<?= MAP_SIZE; ?></span>
+                <span id="zl">-<?= MapSize::value(); ?></span>
+                <span id="zr"><?= MapSize::value(); ?></span>
+                <span id="zb"><?= MapSize::value(); ?></span>
+                <span id="zo">-<?= MapSize::value(); ?></span>
                 <span id="zc">(0,0)</span>
                 <div id="lijn_hor"></div>
                 <div id="lijn_ver"></div>

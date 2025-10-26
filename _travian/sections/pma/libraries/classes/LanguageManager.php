@@ -12,6 +12,7 @@ use PhpMyAdmin\Language;
 use PhpMyAdmin\Template;
 use PhpMyAdmin\Url;
 use PhpMyAdmin\Util;
+use App\ValueObjects\Travian\LegacyPaths;
 
 /**
  * Language selection manager
@@ -674,12 +675,12 @@ class LanguageManager
         $result = array('en');
 
         /* Check for existing directory */
-        if (!is_dir(LOCALE_PATH)) {
+        if (!is_dir(LegacyPaths::locale())) {
             return $result;
         }
 
         /* Open the directory */
-        $handle = @opendir(LOCALE_PATH);
+        $handle = @opendir(LegacyPaths::locale());
         /* This can happen if the kit is English-only */
         if ($handle === false) {
             return $result;
@@ -687,7 +688,7 @@ class LanguageManager
 
         /* Process all files */
         while (false !== ($file = readdir($handle))) {
-            $path = LOCALE_PATH
+            $path = LegacyPaths::locale()
                 . '/' . $file
                 . '/LC_MESSAGES/phpmyadmin.mo';
             if ($file != "."

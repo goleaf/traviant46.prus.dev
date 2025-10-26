@@ -13,7 +13,7 @@
     @livewireScriptConfig
     @fluxAppearance
 
-    @vite(['resources/scss/game.scss', 'resources/js/app.js'])
+    @include('layouts.partials.vite-assets')
 
     @stack('head')
 </head>

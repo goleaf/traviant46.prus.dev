@@ -7,7 +7,7 @@ selected components should be configured and used together.
 
 ## Application Core
 
-- **Laravel 11 + PHP 8.2/8.3** – the base framework for HTTP routing, console
+- **Laravel 12 + PHP 8.2/8.3** – the base framework for HTTP routing, console
   tooling, configuration, and dependency injection.  Keep the framework updated
   via Composer to receive security fixes.
 - **Eloquent ORM** – provides typed models for each table in the redesigned
@@ -70,7 +70,7 @@ selected components should be configured and used together.
 
 ## Next Steps
 
-1. Scaffold the Laravel application (see `docs/migration-assessment.md`).
+1. Scaffold the Laravel application by following the migration roadmap outlined in [`travian-to.plan.md`](../travian-to.plan.md).
 2. Install the required packages via Composer:
    ```bash
    composer require laravel/fortify laravel/sanctum laravel/horizon \
@@ -80,5 +80,4 @@ selected components should be configured and used together.
    multi-world requirements.
 4. Build seed data for development environments to validate the new stack.
 
-Refer to `docs/queue-system.md` for background job architecture details and to
-`docs/migration/auth-migration-plan.md` for the Fortify migration playbook.
+Refer to `docs/queue-system.md` for background job architecture details and review [`README.md`](README.md) together with [`legacy-controller-mapping.md`](legacy-controller-mapping.md) for Fortify configuration and controller integration guidance.

@@ -50,6 +50,12 @@ class Kernel extends ConsoleKernel
             ->cron(config('automation.medals.cron', '0 */6 * * *'))
             ->withoutOverlapping()
             ->runInBackground();
+
+        $schedule->command('provisioning:flush-login-tokens')
+            ->name('provisioning:flush-login-tokens')
+            ->dailyAt('02:30')
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     protected function commands(): void

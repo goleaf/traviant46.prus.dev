@@ -6,6 +6,7 @@ use Core\Caching\Caching;
 use Core\Database\DB;
 use Game\Formulas;
 use Game\Map\ImageMapCache;
+use App\ValueObjects\Travian\MapSize;
 
 class MinimapCtrl extends AnyCtrl
 {
@@ -35,8 +36,8 @@ class MinimapCtrl extends AnyCtrl
         ini_set("memory_limit", -1);
         $img = imagecreatefrompng(PUBLIC_PATH . "img/map/tile/1x1/basic.png");
         $db = DB::getInstance();
-        $rate_x = 185 / (2 * MAP_SIZE + 1);
-        $rate_y = 109 / (2 * MAP_SIZE + 1);
+        $rate_x = 185 / (2 * MapSize::value() + 1);
+        $rate_y = 109 / (2 * MapSize::value() + 1);
         $max = (int)$db->fetchScalar("SELECT MAX(r) FROM available_villages a WHERE occupied=1 AND (SELECT owner FROM vdata WHERE kid=a.kid)>1");
         $map = $db->query("SELECT id, fieldtype, occupied, x, y FROM wdata");
         while ($row = $map->fetch_assoc()) {

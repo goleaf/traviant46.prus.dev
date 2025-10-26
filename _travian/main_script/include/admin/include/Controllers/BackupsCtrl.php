@@ -2,6 +2,7 @@
 
 use Core\Caching\Caching;
 use Core\Config;
+use App\ValueObjects\Travian\LegacyPaths;
 use Core\Database\DB;
 use Core\Helper\TimezoneHelper;
 use Core\Helper\WebService;
@@ -64,7 +65,7 @@ class BackupsCtrl
                             InfoBoxModel::invalidatePublicInfoBox();
                             InfoBoxModel::invalidateAllUsersPrivateInfoBox();
                             sleep(1);
-                            require(INCLUDE_PATH . "/update.php");
+                            require(LegacyPaths::includePath() . 'update.php');
                         }
 
                         DB::getInstance()->query("UPDATE config SET isRestore=0");

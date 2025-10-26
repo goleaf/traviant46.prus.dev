@@ -1,5 +1,8 @@
 <?php
 namespace resources\View;
+
+use App\ValueObjects\Travian\LegacyPaths;
+
 class PHPBatchView
 {
 	public $vars = [];
@@ -9,7 +12,7 @@ class PHPBatchView
 	public function __construct($name)
 	{
 		$this->name = $name;
-		$this->filename = TEMPLATES_PATH.$name.'.php';
+		$this->filename = LegacyPaths::templates() . $name.'.php';
 	}
 
 	public static function render($name, $vars = NULL)

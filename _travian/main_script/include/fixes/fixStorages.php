@@ -2,7 +2,7 @@
 use Core\Database\DB;
 use Game\Formulas;
 use Model\VillageModel;
-$isInternal = defined("ROOT_PATH");
+$isInternal = class_exists('App\\ValueObjects\\Travian\\LegacyPaths');
 if(!$isInternal){
     require_once(__DIR__ . DIRECTORY_SEPARATOR . "include" . DIRECTORY_SEPARATOR . "bootstrap.php");
 }

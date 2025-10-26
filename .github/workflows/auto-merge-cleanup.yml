@@ -1,0 +1,73 @@
+# GitHub Action: Automated merge to main with branch cleanup
+# This workflow merges a specified pull request into the main branch and deletes the source branch.
+name: Auto merge pull request to main
+
+on:
+  # Manual trigger so maintainers can control when merges occur.
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: 'Pull request number to merge into main'
+        required: true
+        type: number
+
+jobs:
+  merge:
+    # Use the latest Ubuntu runner for access to GitHub CLI libraries and the REST API.
+    runs-on: ubuntu-latest
+    # Explicit permissions are required so the workflow can merge and delete branches.
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Merge pull request and delete source branch
+        # GitHub Script provides authenticated access to the REST API from within Actions.
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Read the pull request number supplied by the workflow dispatch input.
+            const pullNumber = parseInt(core.getInput('pull_request_number', { required: true }), 10);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Retrieve pull request details to confirm it targets the main branch.
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: pullNumber,
+            });
+
+            if (pullRequest.state !== 'open') {
+              core.setFailed(`Pull request #${pullNumber} is not open.`);
+              return;
+            }
+
+            if (pullRequest.base.ref !== 'main') {
+              core.setFailed(`Pull request #${pullNumber} does not target the main branch.`);
+              return;
+            }
+
+            // Merge the pull request using the default merge method to preserve history.
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              merge_method: 'merge',
+            });
+
+            // Only attempt branch deletion when the head repository matches the base repository.
+            if (!pullRequest.head.repo || pullRequest.head.repo.full_name !== `${owner}/${repo}`) {
+              core.warning('Skipping branch deletion because the head repository differs from the base repository.');
+              return;
+            }
+
+            // Delete the merged branch to keep the repository tidy.
+            await github.rest.git.deleteRef({
+              owner,
+              repo,
+              ref: `heads/${pullRequest.head.ref}`,
+            });
+
+            core.notice(`Merged pull request #${pullNumber} and deleted branch ${pullRequest.head.ref}.`);

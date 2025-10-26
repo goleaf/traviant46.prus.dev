@@ -17,11 +17,19 @@ place for legacy Travian deployments.
 
 Systemd unit files are no longer used for Laravel's queue workers.  Replace the
 legacy `TravianTaskWorker.service` units with Supervisor programs so that queue
-processes can be scaled horizontally and restarted automatically.  The example
-configuration checked into the repository at
-`services/main/laravel-queue.conf` can be dropped into
-`/etc/supervisor/conf.d/`.  A baseline Supervisor configuration looks like
-this:
+processes can be scaled horizontally and restarted automatically.  The
+repository now ships a dedicated provisioning worker configuration at
+`services/supervisor/provisioning-worker.conf`; it targets the provisioning
+queue (`queue:work --queue=provisioning`), limits `max-time` to 900 seconds, and
+runs a single process so the infrastructure API tasks complete deterministically
+even under failures.  Drop the file into `/etc/supervisor/conf.d/` and reload
+Supervisor to activate it.
+
+The generic baseline below demonstrates the standard options for a default
+queue worker.  Adjust the queue argument, process count, or timeout to align
+with each workload.  For example, the repository also includes
+`services/supervisor/automation-worker.conf`, which keeps the automation queue
+processing the scheduled jobs dispatched from `app/Console/Kernel.php`.
 
 ```ini
 [program:laravel-queue]

@@ -10,6 +10,10 @@ This repository now contains the Laravel 12 service that powers the TravianT aut
 - **Email verification** and password recovery flows with lightweight Blade views.
 - **Multi-account detection** via IP logging, automatic alerts, and Redis sessions for continuity with the existing infrastructure.
 
+## Documentation hub
+
+- [Project migration analysis](./project-analysis.md) — status summary, risks, and next steps for the TravianT migration effort.
+
 ## Getting started
 
 ```bash

@@ -72,8 +72,8 @@ class SitterController extends Controller
         $request->user()->sitters()->detach($sitter->getKey());
 
         SitterAssignment::query()
-            ->where('account_id', $request->user()->getKey())
-            ->where('sitter_id', $sitter->getKey())
+            ->forAccount($request->user())
+            ->forSitter($sitter)
             ->delete();
 
         return response()->noContent();

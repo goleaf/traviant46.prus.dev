@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Provisioning\InfrastructureApiClient;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +12,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(InfrastructureApiClient::class, function ($app) {
+            return new InfrastructureApiClient(
+                $app['config']->get('provisioning.infrastructure', [])
+            );
+        });
     }
 
     /**

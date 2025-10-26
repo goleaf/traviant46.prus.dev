@@ -6,6 +6,7 @@ use Core\Session;
 use Game\Formulas;
 use Core\Locale;
 use Model\AllianceModel;
+use App\ValueObjects\Travian\MapSize;
 
 class mapFlagAdd extends AjaxBase
 {
@@ -20,7 +21,7 @@ class mapFlagAdd extends AjaxBase
             return;
         }
         $kid = Formulas::xy2kid($data['x'], $data['y']);
-        if($kid < 0 || $kid > pow((2 * MAP_SIZE + 1), 2)) {
+        if($kid < 0 || $kid > pow((2 * MapSize::value() + 1), 2)) {
             $this->response['error'] = TRUE;
             $this->response['errorMsg'] = T("map", "invalid_coordinates");
             return;

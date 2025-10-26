@@ -1,4 +1,5 @@
 <?php
+use App\ValueObjects\Travian\MapSize;
 use Core\Helper\PreferencesHelper;
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -40,12 +41,12 @@ use Core\Helper\PreferencesHelper;
         $data = [
             'Map' => [
                 'Size' => [
-                    'width'  => (2 * MAP_SIZE) + 1,
-                    'height' => (2 * MAP_SIZE) + 1,
-                    'left'   => -MAP_SIZE,
-                    'right'  => MAP_SIZE,
-                    'bottom' => -MAP_SIZE,
-                    'top'    => MAP_SIZE,
+                    'width'  => (2 * MapSize::value()) + 1,
+                    'height' => (2 * MapSize::value()) + 1,
+                    'left'   => -MapSize::value(),
+                    'right'  => MapSize::value(),
+                    'bottom' => -MapSize::value(),
+                    'top'    => MapSize::value(),
                 ],
             ],
             'Season' => detect_season(),

@@ -1,5 +1,6 @@
 <?php
 
+use App\ValueObjects\Travian\MapSize;
 use Core\Caching\Caching;
 use Core\Config;
 use Core\Database\DB;
@@ -27,7 +28,7 @@ class ConfigurationDetailsCtrl
         $this->addInfo($params['content'], 'World Unique ID', getWorldUniqueId());
         $this->addInfo($params['content'], 'Speed', getGameSpeed());
         $this->addInfo($params['content'], 'Movement speed', getGame("movement_speed_increase"));
-        $this->addInfo($params['content'], 'Map size', MAP_SIZE . 'x' . MAP_SIZE);
+        $this->addInfo($params['content'], 'Map size', MapSize::value() . 'x' . MapSize::value());
         $this->addInfo($params['content'], 'Min distance', round(Formulas::getMapMinDistanceFromCenter(), 1));
         $this->addInfo($params['content'], 'Storage multiplier', getGame("storage_multiplier"));
         $this->addInfo($params['content'],

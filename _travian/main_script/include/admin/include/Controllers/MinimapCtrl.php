@@ -1,5 +1,6 @@
 <?php
 
+use App\ValueObjects\Travian\MapSize;
 use Core\Database\DB;
 use Game\Formulas;
 
@@ -41,7 +42,7 @@ class MinimapCtrl
 HTML_ENTITIES;
             $p_info = '<a href="admin.php?action=editVillage&kid=' . $row['kid'] . '" target="_blank"><img src="img/admin/map_' . ($row['kid'] == $cap_kid ? 0 : $row['race']) . '.gif" border="0" onmouseout="med_closeDescription()" onmousemove="med_mouseMoveHandler(arguments[0], \'' . $HTML . '\')"></a>';
             //250px=0
-            $xdiv = 250 / MAP_SIZE;
+            $xdiv = 250 / MapSize::value();
             if ($row['x'] < 0) { //-
                 $p_x = 250 - (int)abs($row['x'] * $xdiv);
             }
