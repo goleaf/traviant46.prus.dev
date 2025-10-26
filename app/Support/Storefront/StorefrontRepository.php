@@ -37,7 +37,7 @@ class StorefrontRepository
             ],
             'next_release' => 'New launch bundles arrive next season.',
             'meta' => [
-                'og_image' => 'images/storefront/checkout-og.jpg',
+                'og_image' => 'images/storefront/checkout-og.png',
             ],
         ];
     }
@@ -186,7 +186,7 @@ class StorefrontRepository
             'name' => $product['name'] ?? '',
             'summary' => $product['summary'] ?? '',
             'price' => $product['price'] ?? 0.0,
-            'image' => $product['image'] ?? 'images/storefront/product-og.jpg',
+            'image' => $product['image'] ?? 'images/storefront/product-og.png',
         ];
     }
 }

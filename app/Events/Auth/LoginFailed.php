@@ -2,35 +2,23 @@
 
 namespace App\Events\Auth;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class LoginFailed
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    public function broadcastOn(): array
-    {
-        return [
-            new PrivateChannel('channel-name'),
-        ];
-    }
+    public function __construct(
+        public readonly ?User $user,
+        public readonly string $identifier,
+        public readonly string $guard,
+        public readonly string $ipAddress,
+        public readonly ?string $userAgent,
+        public readonly int $attempts,
+        public readonly int $maxAttempts,
+        public readonly int $secondsUntilNextAttempt,
+    ) {}
 }

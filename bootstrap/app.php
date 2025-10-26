@@ -66,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             : 0;
 
         $headerMap = [
-            'forwarded' => $forwardedAll,
+            'forwarded' => SymfonyRequest::HEADER_FORWARDED,
             'x-forwarded' => $forwardedAll,
             'aws' => SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB,
             'cloudflare' => $forwardedAll,

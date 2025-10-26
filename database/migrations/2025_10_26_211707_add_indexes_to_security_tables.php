@@ -13,17 +13,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('login_activities', function (Blueprint $table) {
-            $table->index(['user_id', 'created_at'], 'login_activities_user_created_at_index');
-            $table->index(['ip_address', 'user_id'], 'login_activities_ip_user_index');
-            $table->index(['acting_sitter_id', 'created_at'], 'login_activities_sitter_created_at_index');
-        });
+        if (! Schema::hasColumn('login_activities', 'logged_at')) {
+            Schema::table('login_activities', function (Blueprint $table) {
+                $table->index(['user_id', 'created_at'], 'login_activities_user_created_at_index');
+                $table->index(['ip_address', 'user_id'], 'login_activities_ip_user_index');
+                $table->index(['acting_sitter_id', 'created_at'], 'login_activities_sitter_created_at_index');
+            });
+        }
 
-        Schema::table('multi_account_alerts', function (Blueprint $table) {
-            $table->index(['ip_address', 'last_seen_at'], 'multi_account_alerts_ip_last_seen_index');
-            $table->index(['primary_user_id', 'last_seen_at'], 'multi_account_alerts_primary_last_seen_index');
-            $table->index(['conflict_user_id', 'last_seen_at'], 'multi_account_alerts_conflict_last_seen_index');
-        });
+        if (Schema::hasColumn('multi_account_alerts', 'primary_user_id')) {
+            Schema::table('multi_account_alerts', function (Blueprint $table) {
+                $table->index(['ip_address', 'last_seen_at'], 'multi_account_alerts_ip_last_seen_index');
+                $table->index(['primary_user_id', 'last_seen_at'], 'multi_account_alerts_primary_last_seen_index');
+                $table->index(['conflict_user_id', 'last_seen_at'], 'multi_account_alerts_conflict_last_seen_index');
+            });
+        }
 
         Schema::table('sitter_delegations', function (Blueprint $table) {
             $table->index(['owner_user_id', 'updated_at'], 'sitter_delegations_owner_updated_index');
@@ -36,17 +40,21 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('login_activities', function (Blueprint $table) {
-            $table->dropIndex('login_activities_user_created_at_index');
-            $table->dropIndex('login_activities_ip_user_index');
-            $table->dropIndex('login_activities_sitter_created_at_index');
-        });
+        if (! Schema::hasColumn('login_activities', 'logged_at')) {
+            Schema::table('login_activities', function (Blueprint $table) {
+                $table->dropIndex('login_activities_user_created_at_index');
+                $table->dropIndex('login_activities_ip_user_index');
+                $table->dropIndex('login_activities_sitter_created_at_index');
+            });
+        }
 
-        Schema::table('multi_account_alerts', function (Blueprint $table) {
-            $table->dropIndex('multi_account_alerts_ip_last_seen_index');
-            $table->dropIndex('multi_account_alerts_primary_last_seen_index');
-            $table->dropIndex('multi_account_alerts_conflict_last_seen_index');
-        });
+        if (Schema::hasColumn('multi_account_alerts', 'primary_user_id')) {
+            Schema::table('multi_account_alerts', function (Blueprint $table) {
+                $table->dropIndex('multi_account_alerts_ip_last_seen_index');
+                $table->dropIndex('multi_account_alerts_primary_last_seen_index');
+                $table->dropIndex('multi_account_alerts_conflict_last_seen_index');
+            });
+        }
 
         Schema::table('sitter_delegations', function (Blueprint $table) {
             $table->dropIndex('sitter_delegations_owner_updated_index');

@@ -12,7 +12,7 @@ class QueuedVerifyEmailNotification extends BaseVerifyEmail implements ShouldQue
 
     public function __construct()
     {
-        $this->onQueue(config('queue.mail_queue', 'mail'));
+        $this->configureQueue();
     }
 
     /**
@@ -22,10 +22,32 @@ class QueuedVerifyEmailNotification extends BaseVerifyEmail implements ShouldQue
      */
     public function viaQueues(): array
     {
-        $queue = config('queue.mail_queue', 'mail');
+        $queueConfiguration = config('mail.queue', []);
+        $queue = $queueConfiguration['name'] ?? config('queue.mail_queue', 'mail');
 
         return [
             'mail' => $queue,
         ];
+    }
+
+    private function configureQueue(): void
+    {
+        $queueConfiguration = config('mail.queue', []);
+
+        $connection = $queueConfiguration['connection'] ?? null;
+        $queue = $queueConfiguration['name'] ?? config('queue.mail_queue', 'mail');
+        $retryAfter = $queueConfiguration['retry_after'] ?? null;
+
+        if ($connection) {
+            $this->onConnection($connection);
+        }
+
+        if ($queue) {
+            $this->onQueue($queue);
+        }
+
+        if ($retryAfter) {
+            $this->retryAfter((int) $retryAfter);
+        }
     }
 }
