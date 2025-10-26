@@ -9,6 +9,7 @@ use App\Enums\MultiAccountAlertStatus;
 use App\Models\LoginActivity;
 use App\Models\MultiAccountAlert;
 use App\Models\User;
+use App\Notifications\MultiAccountAlertRaised;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Notifications\Notification as IlluminateNotification;
 use Illuminate\Support\Carbon;
@@ -244,7 +245,7 @@ class MultiAccountDetector
 
     protected function buildNotification(MultiAccountAlert $alert): ?IlluminateNotification
     {
-        return new Notifications\MultiAccountAlertRaised($alert);
+        return new MultiAccountAlertRaised($alert);
     }
 
     /**

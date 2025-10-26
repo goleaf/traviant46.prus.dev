@@ -35,7 +35,7 @@ class StorefrontRepository
                 'payment',
                 'confirmation',
             ],
-            'next_release' => 'storefront.checkout.next_release',
+            'next_release' => 'New launch bundles arrive next season.',
             'meta' => [
                 'og_image' => 'images/storefront/checkout-og.jpg',
             ],

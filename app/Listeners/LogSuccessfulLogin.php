@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Models\LoginActivity;
 use App\Models\User;
+use App\Services\Security\DeviceFingerprintService;
 use App\Services\Security\MultiAccountDetector;
 use Illuminate\Auth\Events\Login;
 
@@ -13,6 +14,7 @@ class LogSuccessfulLogin
 {
     public function __construct(
         protected MultiAccountDetector $detector,
+        protected DeviceFingerprintService $fingerprintService,
     ) {}
 
     public function handle(Login $event): void
@@ -34,26 +36,18 @@ class LogSuccessfulLogin
         ], static fn ($value) => $value !== null))
             ->save();
 
+        $deviceHash = $this->fingerprintService->hash($request);
+
         $activity = LoginActivity::create([
             'user_id' => $user->getKey(),
             'acting_sitter_id' => $actingAsSitter ? $actingSitterId : null,
             'ip_address' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
-            'device_hash' => hash('sha256', implode('|', [
-                $request->userAgent(),
-                $request->ip(),
-                $request->header('X-Forwarded-For'),
-            ])),
+            'device_hash' => $deviceHash,
             'logged_at' => $now,
             'via_sitter' => $actingAsSitter,
         ]);
 
-        $this->detector->record(
-            $user,
-            $activity->ip_address,
-            $activity->logged_at ?? $activity->created_at,
-            $actingAsSitter,
-            $activity->acting_sitter_id,
-        );
+        $this->detector->record($activity);
     }
 }

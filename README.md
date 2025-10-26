@@ -109,18 +109,18 @@ sequenceDiagram
     participant Alerts as MultiAccountAlert
     participant Moderation as Moderation UI
 
-    Login->>Detector: record(user, ip, timestamp)
-    Detector->>Alerts: firstOrNew(primary, conflict, ip)
-    Alerts->>Alerts: increment occurrences, stamp last_seen_at
-    Moderation->>Alerts: Poll recent alerts
-    Moderation-->>Moderator: Display unresolved conflicts
-    Moderator->>Alerts: mark resolved (model flag or dismissal)
-    Alerts-->>Moderation: Removed from active queue
+    Login->>Detector: record(activity)
+    Detector->>Alerts: firstOrNew(group_key)
+    Alerts->>Alerts: update user_ids, severity, status
+    Moderation->>Alerts: Pull open alerts
+    Moderation-->>Moderator: Display conflict timeline
+    Moderator->>Alerts: Record resolution event
+    Alerts-->>Moderation: Alert leaves active queue
 ```
 
-- Every successful login (direct or via sitter) records an activity row.
-- Detector cross-references prior logins sharing an IP to create bidirectional alerts.
-- Moderation tooling marks an alert resolved by setting application-level status (see ADR-0003).
+- Every successful login (direct or via sitter) records a `LoginActivity` entity.
+- The detector aggregates activities into alert groups keyed by source type (IP or device) and hashes of `user_ids`.
+- Moderation tooling records resolution notes; new conflicts on the same group key automatically reopen the alert (see ADR-0003).
 
 ## Documentation Index
 

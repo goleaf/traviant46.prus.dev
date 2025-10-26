@@ -14,7 +14,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -62,12 +61,16 @@ return Application::configure(basePath: dirname(__DIR__))
             | SymfonyRequest::HEADER_X_FORWARDED_PORT
             | SymfonyRequest::HEADER_X_FORWARDED_PREFIX;
 
+        $forwardedNone = defined(SymfonyRequest::class.'::HEADER_X_FORWARDED_NONE')
+            ? SymfonyRequest::HEADER_X_FORWARDED_NONE
+            : 0;
+
         $headerMap = [
             'forwarded' => $forwardedAll,
             'x-forwarded' => $forwardedAll,
             'aws' => SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB,
             'cloudflare' => $forwardedAll,
-            'none' => 0,
+            'none' => $forwardedNone,
         ];
 
         $middleware->trustProxies(

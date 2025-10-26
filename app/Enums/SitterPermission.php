@@ -11,6 +11,12 @@ enum SitterPermission: int
     case SendTroops = 4;
     case Trade = 8;
     case SpendGold = 16;
+    case Raid = 32;
+    case Reinforce = 64;
+    case SendResources = 128;
+    case ManageMessages = 256;
+    case ManageArchives = 512;
+    case AllianceContribute = 1024;
 
     public function key(): string
     {
@@ -20,6 +26,12 @@ enum SitterPermission: int
             self::SendTroops => 'send_troops',
             self::Trade => 'trade',
             self::SpendGold => 'spend_gold',
+            self::Raid => 'raid',
+            self::Reinforce => 'reinforce',
+            self::SendResources => 'send_resources',
+            self::ManageMessages => 'manage_messages',
+            self::ManageArchives => 'manage_archives',
+            self::AllianceContribute => 'alliance_contribute',
         };
     }
 
@@ -31,6 +43,12 @@ enum SitterPermission: int
             self::SendTroops => 'Send troops on missions',
             self::Trade => 'Trade resources via the marketplace',
             self::SpendGold => 'Spend gold on premium actions',
+            self::Raid => 'Launch raids on behalf of the account owner',
+            self::Reinforce => 'Send reinforcements to allied villages',
+            self::SendResources => 'Dispatch resources between villages',
+            self::ManageMessages => 'Read and respond to account messages',
+            self::ManageArchives => 'Organise reports and archive records',
+            self::AllianceContribute => 'Manage alliance contributions and spend shared resources',
         };
     }
 
