@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Jobs\Shard\CropStarvation;
-use App\Jobs\Shard\MovementResolver;
-use App\Jobs\Shard\OasisRespawn;
-use App\Jobs\Shard\QueueCompleter;
-use App\Jobs\Shard\ResourceTick;
+use App\Jobs\CropStarvationJob;
+use App\Jobs\MovementResolverJob;
+use App\Jobs\OasisRespawnJob;
+use App\Jobs\ResourceTickJob;
+use App\Jobs\Shard\QueueCompleterJob;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Bus;
 
@@ -17,11 +17,11 @@ it('dispatches shard jobs for the game tick', function (): void {
 
     expect($exitCode)->toBe(0);
 
-    Bus::assertDispatched(ResourceTick::class);
-    Bus::assertDispatched(QueueCompleter::class);
-    Bus::assertDispatched(MovementResolver::class);
-    Bus::assertDispatched(OasisRespawn::class);
-    Bus::assertDispatched(CropStarvation::class);
+    Bus::assertDispatched(ResourceTickJob::class);
+    Bus::assertDispatched(QueueCompleterJob::class);
+    Bus::assertDispatched(MovementResolverJob::class);
+    Bus::assertDispatched(OasisRespawnJob::class);
+    Bus::assertDispatched(CropStarvationJob::class);
 });
 
 it('can dispatch shard jobs synchronously when requested', function (): void {
@@ -31,9 +31,9 @@ it('can dispatch shard jobs synchronously when requested', function (): void {
 
     expect($exitCode)->toBe(0);
 
-    Bus::assertDispatchedSync(ResourceTick::class);
-    Bus::assertDispatchedSync(QueueCompleter::class);
-    Bus::assertDispatchedSync(MovementResolver::class);
-    Bus::assertDispatchedSync(OasisRespawn::class);
-    Bus::assertDispatchedSync(CropStarvation::class);
+    Bus::assertDispatchedSync(ResourceTickJob::class);
+    Bus::assertDispatchedSync(QueueCompleterJob::class);
+    Bus::assertDispatchedSync(MovementResolverJob::class);
+    Bus::assertDispatchedSync(OasisRespawnJob::class);
+    Bus::assertDispatchedSync(CropStarvationJob::class);
 });

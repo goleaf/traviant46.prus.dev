@@ -12,13 +12,14 @@ use App\Monitoring\Metrics\MetricRecorder;
 use App\Services\Security\DeviceFingerprintService;
 use App\Services\Security\DeviceVerificationService;
 use App\Services\Security\IpAnonymizer;
+use App\Services\Security\IpReputationService;
 use App\Services\Security\MultiAccountDetector;
 use App\Services\Security\SessionSecurity;
 use App\Services\Security\TrustedDeviceManager;
-use App\Services\Security\IpReputationService;
 use App\ValueObjects\Security\IpReputationReport;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class LogSuccessfulLogin
@@ -53,6 +54,7 @@ class LogSuccessfulLogin
         $ipAddress = (string) $request->ip();
         $ipHash = $this->ipAnonymizer->anonymize($ipAddress);
         $userAgent = (string) $request->userAgent();
+        $worldId = $this->resolveWorldId($request);
 
         $reputation = $request->attributes->get('security.ip_reputation');
 
@@ -76,6 +78,7 @@ class LogSuccessfulLogin
             'ip_address' => $ipAddress,
             'ip_address_hash' => $ipHash,
             'user_agent' => $userAgent,
+            'world_id' => $worldId,
             'device_hash' => $deviceHash,
             'logged_at' => $now,
             'via_sitter' => $actingAsSitter,
@@ -119,6 +122,7 @@ class LogSuccessfulLogin
             'ip_address' => $ipAddress,
             'ip_hash' => $ipHash,
             'device_hash' => $deviceHash,
+            'world_id' => $worldId,
             'acting_as_sitter' => $actingAsSitter,
             'acting_sitter_id' => $actingSitterId,
             'two_factor_confirmed' => (bool) $user->two_factor_confirmed_at,
@@ -141,6 +145,31 @@ class LogSuccessfulLogin
             $numeric = ip2long($ip);
 
             return $numeric !== false ? $numeric : null;
+        }
+
+        return null;
+    }
+
+    protected function resolveWorldId(Request $request): ?string
+    {
+        $candidates = [
+            $request->attributes->get('game.world_id'),
+            $request->headers->get('X-Game-World'),
+            $request->input('world_id'),
+            $request->get('world'),
+            $request->session()->get('game.world_id'),
+            config('game.world_id_default'),
+            config('travian.connection.world_id'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate)) {
+                $trimmed = trim($candidate);
+
+                if ($trimmed !== '') {
+                    return $trimmed;
+                }
+            }
         }
 
         return null;

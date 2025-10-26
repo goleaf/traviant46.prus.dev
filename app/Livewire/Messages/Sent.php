@@ -39,7 +39,9 @@ class Sent extends Component
         $query = Message::query()
             ->select('messages.*')
             ->with([
-                'recipients.recipient' => fn ($query) => $query->whereNull('message_recipients.deleted_at'),
+                'recipients' => fn ($relation) => $relation
+                    ->whereNull('deleted_at')
+                    ->with('recipient'),
             ])
             ->where('sender_id', $user->getKey())
             ->orderByDesc('sent_at');

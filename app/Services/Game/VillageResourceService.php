@@ -28,7 +28,10 @@ class VillageResourceService
      */
     private const RESOURCE_KEYS = ['wood', 'clay', 'iron', 'crop'];
 
-    public function __construct(private readonly ResourceService $resourceCalculator) {}
+    public function __construct(
+        private readonly ResourceService $resourceCalculator,
+        private readonly VillageUpkeepService $upkeepService,
+    ) {}
 
     /**
      * Build a resource snapshot for the given village.
@@ -54,20 +57,45 @@ class VillageResourceService
         $baseProduction = $this->extractBaseProduction($village);
         $fieldProduction = $this->aggregateFieldProduction($village);
         $bonuses = $this->aggregateBonuses($village);
+        $troopUpkeep = $this->upkeepService->calculate($village);
 
         $combinedBase = $this->mergeProduction($baseProduction, $fieldProduction);
+
+        $upkeepMap = $bonuses['upkeep'];
+        $cropKey = 'crop';
+
+        $buildingUpkeepPerHour = (float) ($upkeepMap[$cropKey] ?? 0);
+        $totalTroopUpkeepPerHour = (float) ($troopUpkeep['per_hour'] ?? 0);
+        $tickInterval = (float) config('game.tick_interval_seconds', 60);
+        $secondsFactor = $tickInterval / 3600;
+
+        $upkeepMap[$cropKey] = $buildingUpkeepPerHour + $totalTroopUpkeepPerHour;
 
         $production = $this->resourceCalculator->calculateProduction(
             $combinedBase,
             [
                 'percent' => $bonuses['percent'],
                 'flat' => $bonuses['flat'],
-                'upkeep' => $bonuses['upkeep'],
+                'upkeep' => $upkeepMap,
                 'options' => [
                     'minimum' => 0,
+                    'allow_negative_crop' => true,
                 ],
             ],
         );
+
+        $upkeepSummary = [
+            'resource' => $cropKey,
+            'per_hour' => $upkeepMap[$cropKey],
+            'per_tick' => $upkeepMap[$cropKey] * $secondsFactor,
+            'sources' => [
+                'buildings' => [
+                    'per_hour' => $buildingUpkeepPerHour,
+                    'per_tick' => $buildingUpkeepPerHour * $secondsFactor,
+                ],
+                'troops' => $troopUpkeep,
+            ],
+        ];
 
         return [
             'village_id' => (int) $village->getKey(),
@@ -76,6 +104,7 @@ class VillageResourceService
             'bonuses' => $bonuses,
             'production' => array_map('floatval', $production),
             'storage' => $this->aggregateStorage($village),
+            'upkeep' => $upkeepSummary,
             'generated_at' => Carbon::now()->toIso8601String(),
         ];
     }

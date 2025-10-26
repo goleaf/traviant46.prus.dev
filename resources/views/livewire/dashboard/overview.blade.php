@@ -3,6 +3,10 @@
     $delegatedAccounts = data_get($metrics, 'delegatedAccounts', 0);
     $twoFactorEnabled = data_get($metrics, 'twoFactorEnabled', false);
     $recentLogins = data_get($metrics, 'recentLogins', []);
+    $beginnerProtection = data_get($metrics, 'beginnerProtection', []);
+    $beginnerProtectionActive = data_get($beginnerProtection, 'active', false);
+    $beginnerProtectionRemaining = data_get($beginnerProtection, 'remaining');
+    $beginnerProtectionEndsAt = data_get($beginnerProtection, 'endsAtLabel');
 @endphp
 
 <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.65)] backdrop-blur">
@@ -25,6 +29,20 @@
             </span>
         </div>
     </div>
+
+    @if ($beginnerProtectionActive)
+        <flux:callout icon="shield-check" variant="subtle" class="mt-6 border-emerald-500/20 bg-emerald-500/10 text-emerald-100 dark:text-emerald-50">
+            <div class="flex flex-col gap-1">
+                <span class="text-sm font-semibold uppercase tracking-wide">{{ __('Beginner protection active') }}</span>
+                <p class="text-sm leading-6 text-emerald-100/90 dark:text-emerald-100">
+                    {{ __('Your villages cannot be attacked for another :remaining.', ['remaining' => $beginnerProtectionRemaining ?? __('moments')]) }}
+                    <span class="block text-xs uppercase tracking-wide text-emerald-200/80 dark:text-emerald-200/90">
+                        {{ __('Ends at :timestamp', ['timestamp' => $beginnerProtectionEndsAt ?? __('Unknown')]) }}
+                    </span>
+                </p>
+            </div>
+        </flux:callout>
+    @endif
 
     <div class="mt-8 grid gap-4 md:grid-cols-3">
         <div class="rounded-2xl border border-white/10 bg-slate-950/60 p-5">

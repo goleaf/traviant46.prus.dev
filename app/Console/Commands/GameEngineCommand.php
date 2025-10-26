@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Jobs\ProcessAdventures;
 use App\Jobs\ProcessBuildingCompletion;
 use App\Jobs\ProcessTroopTraining;
+use App\Jobs\ResourceTickJob;
 use App\Support\ShardResolver;
 use Illuminate\Console\Command;
 
@@ -22,6 +23,7 @@ class GameEngineCommand extends Command
         $shards = app(ShardResolver::class)->shards();
 
         foreach ($shards as $shard) {
+            $this->dispatchJob($dispatchSync, ResourceTickJob::class, $shard);
             $this->dispatchJob($dispatchSync, ProcessBuildingCompletion::class, $shard);
             $this->dispatchJob($dispatchSync, ProcessTroopTraining::class, $shard);
             $this->dispatchJob($dispatchSync, ProcessAdventures::class, $shard);

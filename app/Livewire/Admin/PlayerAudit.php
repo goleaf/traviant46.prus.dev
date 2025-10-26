@@ -166,16 +166,17 @@ class PlayerAudit extends Component
             ->select(['id', 'legacy_uid', 'username', 'email'])
             ->limit(15);
 
-        $query->where(function ($builder) use ($term): void {
-            $numericTerm = ctype_digit(Str::replace(['#', ' '], '', $term)) ? (int) Str::replace(['#', ' '], '', $term) : null;
+        $normalized = Str::replace(['#', ' '], '', $term);
+        $numericTerm = ctype_digit($normalized) ? (int) $normalized : null;
+
+        $query->where(function ($builder) use ($term, $numericTerm): void {
+            $builder->where('username', 'like', '%'.$term.'%')
+                ->orWhere('email', 'like', '%'.$term.'%');
 
             if ($numericTerm !== null) {
-                $builder->orWhere('legacy_uid', $numericTerm);
-                $builder->orWhere('id', $numericTerm);
+                $builder->orWhere('legacy_uid', $numericTerm)
+                    ->orWhere('id', $numericTerm);
             }
-
-            $builder->orWhere('username', 'like', '%'.$term.'%');
-            $builder->orWhere('email', 'like', '%'.$term.'%');
         });
 
         return $query->orderBy('username')->get();
@@ -310,7 +311,7 @@ class PlayerAudit extends Component
     }
 
     /**
-     * @param  list<array<string, mixed>>  $loginActivities
+     * @param list<array<string, mixed>> $loginActivities
      * @return list<array<string, mixed>>
      */
     protected function summarizeIpAddresses(array $loginActivities): array

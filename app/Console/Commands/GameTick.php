@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Jobs\Shard\CropStarvation;
-use App\Jobs\Shard\MovementResolver;
-use App\Jobs\Shard\OasisRespawn;
-use App\Jobs\Shard\QueueCompleter;
-use App\Jobs\Shard\ResourceTick;
+use App\Jobs\CropStarvationJob;
+use App\Jobs\MovementResolverJob;
+use App\Jobs\OasisRespawnJob;
+use App\Jobs\ResourceTickJob;
+use App\Jobs\Shard\QueueCompleterJob;
 use Illuminate\Console\Command;
 
 class GameTick extends Command
@@ -21,11 +21,11 @@ class GameTick extends Command
     {
         $dispatchSync = (bool) $this->option('sync');
 
-        $this->dispatchJob($dispatchSync, ResourceTick::class);
-        $this->dispatchJob($dispatchSync, QueueCompleter::class);
-        $this->dispatchJob($dispatchSync, MovementResolver::class);
-        $this->dispatchJob($dispatchSync, OasisRespawn::class);
-        $this->dispatchJob($dispatchSync, CropStarvation::class);
+        $this->dispatchJob($dispatchSync, ResourceTickJob::class);
+        $this->dispatchJob($dispatchSync, QueueCompleterJob::class);
+        $this->dispatchJob($dispatchSync, MovementResolverJob::class);
+        $this->dispatchJob($dispatchSync, OasisRespawnJob::class);
+        $this->dispatchJob($dispatchSync, CropStarvationJob::class);
 
         $this->components->info('Shard jobs dispatched successfully.');
 

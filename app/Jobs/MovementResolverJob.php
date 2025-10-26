@@ -30,9 +30,10 @@ class MovementResolverJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public string $queue = 'automation';
-
-    public function __construct(private readonly int $chunkSize = 100) {}
+    public function __construct(private readonly int $chunkSize = 100)
+    {
+        $this->onQueue('automation');
+    }
 
     public function handle(ResolveCombatAction $resolveCombat): void
     {

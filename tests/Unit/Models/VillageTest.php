@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Models\Game\Building;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
 use App\Models\Game\VillageBuilding;
@@ -74,8 +73,8 @@ class VillageTest extends TestCase
             });
         }
 
-        if (! Schema::hasTable('buildings')) {
-            Schema::create('buildings', function (Blueprint $table) {
+        if (! Schema::hasTable('village_buildings')) {
+            Schema::create('village_buildings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
                 $table->unsignedTinyInteger('slot_number');
@@ -118,7 +117,7 @@ class VillageTest extends TestCase
 
         $village = Village::factory()->create(['population' => 120, 'production' => ['wood' => 50]]);
 
-        $building = Building::query()->create([
+        $building = VillageBuilding::query()->create([
             'village_id' => $village->id,
             'slot_number' => 3,
             'building_type' => 19,

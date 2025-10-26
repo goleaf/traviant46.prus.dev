@@ -24,8 +24,8 @@ class BuildQueue extends Model
         'village_id',
         'building_type',
         'target_level',
-        'finishes_at',
         'state',
+        'finishes_at',
     ];
 
     /**
@@ -34,6 +34,8 @@ class BuildQueue extends Model
     protected function casts(): array
     {
         return [
+            'building_type' => 'integer',
+            'target_level' => 'integer',
             'finishes_at' => 'datetime',
             'state' => BuildQueueState::class,
         ];

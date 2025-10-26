@@ -16,8 +16,10 @@ class TrainingQueue extends Model
 
     protected $table = 'training_queues';
 
+    public $timestamps = false;
+
     /**
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'village_id',
@@ -28,19 +30,23 @@ class TrainingQueue extends Model
     ];
 
     /**
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'finishes_at' => 'datetime',
-            'count' => 'int',
-        ];
-    }
+    protected $casts = [
+        'village_id' => 'integer',
+        'troop_type_id' => 'integer',
+        'count' => 'integer',
+        'finishes_at' => 'datetime',
+    ];
 
     public function village(): BelongsTo
     {
         return $this->belongsTo(Village::class);
+    }
+
+    public function troopType(): BelongsTo
+    {
+        return $this->belongsTo(TroopType::class, 'troop_type_id');
     }
 
     public function scopeDue(Builder $query): Builder
@@ -58,6 +64,6 @@ class TrainingQueue extends Model
 
         $normalisedIndex = ($shardIndex % $shardCount + $shardCount) % $shardCount;
 
-        return $query->whereRaw('MOD(village_id, ?) = ?', [$shardCount, $normalisedIndex]);
+        return $query->whereRaw('(village_id % ?) = ?', [$shardCount, $normalisedIndex]);
     }
 }

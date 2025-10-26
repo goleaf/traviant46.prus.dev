@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
+use App\Models\User;
 use App\Services\Security\DeviceFingerprintService;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class LoginRateLimiter extends BaseLoginRateLimiter
 {
     public function __construct(
         RateLimiter $limiter,
-        protected DeviceFingerprintService $fingerprint
+        protected DeviceFingerprintService $fingerprint,
+        protected AuthLookupCache $lookupCache
     ) {
         parent::__construct($limiter);
     }
@@ -44,6 +46,12 @@ class LoginRateLimiter extends BaseLoginRateLimiter
             return true;
         }
 
+        $userKey = $this->userKey($request);
+
+        if ($userKey !== null && $this->limiter->tooManyAttempts($userKey, $this->userMaxAttempts())) {
+            return true;
+        }
+
         return false;
     }
 
@@ -57,6 +65,10 @@ class LoginRateLimiter extends BaseLoginRateLimiter
 
         if (($deviceKey = $this->deviceKey($request)) !== null) {
             $this->limiter->hit($deviceKey, $this->deviceDecaySeconds());
+        }
+
+        if (($userKey = $this->userKey($request)) !== null) {
+            $this->limiter->hit($userKey, $this->userDecaySeconds());
         }
     }
 
@@ -72,6 +84,10 @@ class LoginRateLimiter extends BaseLoginRateLimiter
             $waits[] = $this->limiter->availableIn($deviceKey);
         }
 
+        if (($userKey = $this->userKey($request)) !== null) {
+            $waits[] = $this->limiter->availableIn($userKey);
+        }
+
         return max($waits);
     }
 
@@ -85,6 +101,10 @@ class LoginRateLimiter extends BaseLoginRateLimiter
 
         if (($deviceKey = $this->deviceKey($request)) !== null) {
             $this->limiter->clear($deviceKey);
+        }
+
+        if (($userKey = $this->userKey($request)) !== null) {
+            $this->limiter->clear($userKey);
         }
     }
 
@@ -119,7 +139,27 @@ class LoginRateLimiter extends BaseLoginRateLimiter
         return 'device:'.$this->fingerprint->hash($request);
     }
 
+    private function userKey(Request $request): ?string
+    {
+        if ($this->userMaxAttempts() <= 0) {
+            return null;
+        }
+
+        $userId = $this->resolveUserId($request);
+
+        if ($userId === null) {
+            return null;
+        }
+
+        return 'user:'.$userId;
+    }
+
     private function identifierFromRequest(Request $request): string
+    {
+        return $this->normalizedIdentifier($request) ?? 'guest';
+    }
+
+    private function normalizedIdentifier(Request $request): ?string
     {
         $identifierField = Fortify::username();
         $identifier = (string) $request->input($identifierField, '');
@@ -128,7 +168,9 @@ class LoginRateLimiter extends BaseLoginRateLimiter
             $identifier = (string) $request->input('email');
         }
 
-        return Str::transliterate(Str::lower($identifier) ?: 'guest');
+        $normalized = Str::transliterate(Str::lower(trim($identifier)));
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     private function settings(): array
@@ -178,5 +220,44 @@ class LoginRateLimiter extends BaseLoginRateLimiter
     private function deviceDecaySeconds(): int
     {
         return max(60, (int) (Arr::get($this->deviceSettings(), 'decay_minutes', Arr::get($this->settings(), 'decay_minutes', 1)) * 60));
+    }
+
+    private function userSettings(): array
+    {
+        $settings = Arr::get($this->settings(), 'per_user');
+
+        return is_array($settings) ? $settings : [];
+    }
+
+    private function userMaxAttempts(): int
+    {
+        return max(0, (int) Arr::get($this->userSettings(), 'max_attempts', 0));
+    }
+
+    private function userDecaySeconds(): int
+    {
+        $fallback = Arr::get($this->settings(), 'decay_minutes', 1);
+
+        return max(60, (int) (Arr::get($this->userSettings(), 'decay_minutes', $fallback) * 60));
+    }
+
+    private function resolveUserId(Request $request): ?int
+    {
+        $normalized = $this->normalizedIdentifier($request);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        $user = $this->lookupCache->rememberUser($normalized, function () use ($normalized) {
+            return User::query()
+                ->where(function ($query) use ($normalized) {
+                    $query->whereRaw('LOWER(username) = ?', [$normalized])
+                        ->orWhereRaw('LOWER(email) = ?', [$normalized]);
+                })
+                ->first();
+        });
+
+        return $user?->getKey();
     }
 }

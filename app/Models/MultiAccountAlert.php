@@ -26,6 +26,7 @@ class MultiAccountAlert extends Model
         'alert_id',
         'group_key',
         'source_type',
+        'world_id',
         'ip_address',
         'device_hash',
         'ip_address_hash',
@@ -49,6 +50,7 @@ class MultiAccountAlert extends Model
     protected function casts(): array
     {
         return [
+            'world_id' => 'string',
             'user_ids' => 'array',
             'metadata' => 'array',
             'first_seen_at' => 'datetime',

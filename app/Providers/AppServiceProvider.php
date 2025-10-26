@@ -30,7 +30,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use PDOException;
 
@@ -82,6 +81,14 @@ class AppServiceProvider extends ServiceProvider
             },
         );
 
+        if (! $this->app->bound(SessionFactoryContract::class)) {
+            $this->app->alias('session', SessionFactoryContract::class);
+        }
+
+        if (! $this->app->bound(SessionContract::class)) {
+            $this->app->alias('session.store', SessionContract::class);
+        }
+
         $this->app->scoped(HttpSitterSessionContext::class, fn ($app): HttpSitterSessionContext => new HttpSitterSessionContext($app['request']));
 
         $this->app->afterResolving('cache', function (CacheManager $manager, $app): void {
@@ -120,10 +127,6 @@ class AppServiceProvider extends ServiceProvider
             $this->registerQueueBackpressure();
         }
 
-        View::composer('layouts.app', function ($view): void {
-            $view->with('sitterContext', app(HttpSitterSessionContext::class)->resolve());
-        });
-
         RateLimiter::for('sitter-mutations', function (Request $request): array {
             $limits = config('security.rate_limits.sitter_mutations', []);
 
@@ -153,6 +156,88 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perHour($perHour)->by($key),
             ];
         });
+
+        $this->registerPerUserThrottle(
+            'game.market',
+            config('security.rate_limits.market', []),
+            'Too many marketplace actions. Try again in :seconds seconds.',
+        );
+
+        $this->registerPerUserThrottle(
+            'game.send',
+            config('security.rate_limits.send', []),
+            'Too many send operations. Try again in :seconds seconds.',
+        );
+
+        $this->registerPerUserThrottle(
+            'game.messages',
+            config('security.rate_limits.messages', []),
+            'Too many messages are being sent. Try again in :seconds seconds.',
+        );
+    }
+
+    private function registerPerUserThrottle(string $limiter, array $limits, string $message): void
+    {
+        RateLimiter::for($limiter, function (Request $request) use ($limits, $message, $limiter) {
+            $perMinute = max(0, (int) ($limits['per_minute'] ?? 0));
+            $perHour = max(0, (int) ($limits['per_hour'] ?? 0));
+
+            $userId = optional($request->user())->getAuthIdentifier();
+            $key = $userId !== null ? 'user:'.$userId : 'ip:'.$request->ip();
+
+            $configuredLimits = [];
+
+            if ($perMinute > 0) {
+                $configuredLimits[] = Limit::perMinute($perMinute)
+                    ->by('minute:'.$key)
+                    ->response(function () use ($limiter, $key, $message, $perMinute) {
+                        $cacheKey = $this->limiterCacheKey($limiter, 'minute:'.$key);
+                        $seconds = (int) RateLimiter::availableIn($cacheKey);
+
+                        if ($seconds <= 0) {
+                            $seconds = 60;
+                        }
+
+                        return ThrottleResponse::json(
+                            strtr($message, [':seconds' => (string) $seconds]),
+                            $seconds,
+                            $perMinute,
+                        );
+                    });
+            }
+
+            if ($perHour > 0) {
+                $perHour = max($perHour, $perMinute);
+
+                $configuredLimits[] = Limit::perHour($perHour)
+                    ->by('hour:'.$key)
+                    ->response(function () use ($limiter, $key, $message, $perHour) {
+                        $cacheKey = $this->limiterCacheKey($limiter, 'hour:'.$key);
+                        $seconds = (int) RateLimiter::availableIn($cacheKey);
+
+                        if ($seconds <= 0) {
+                            $seconds = 3600;
+                        }
+
+                        return ThrottleResponse::json(
+                            strtr($message, [':seconds' => (string) $seconds]),
+                            $seconds,
+                            $perHour,
+                        );
+                    });
+            }
+
+            if ($configuredLimits === []) {
+                return Limit::none();
+            }
+
+            return $configuredLimits;
+        });
+    }
+
+    private function limiterCacheKey(string $limiter, string $key): string
+    {
+        return md5($limiter.$key);
     }
 
     protected function registerQueueBackpressure(): void
@@ -215,3 +300,4 @@ class AppServiceProvider extends ServiceProvider
         return $previous instanceof Throwable && $this->isDatabaseException($previous);
     }
 }
+use Illuminate\Support\Facades\View;

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Models\Game\Movement;
+use App\Models\Game\Village;
+use App\Models\User;
 use App\Services\Game\MovementService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +17,8 @@ use Tests\TestCase;
 
 class MovementServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected string $legacyDatabase = '';
 
     protected function setUp(): void
@@ -225,6 +230,39 @@ class MovementServiceTest extends TestCase
         $this->assertNotNull($movement);
         $this->assertSame($start->timestamp, $movement->start_time);
         $this->assertSame($end->timestamp, $movement->end_time);
+    }
+
+    public function test_add_movement_blocks_beginner_protected_targets(): void
+    {
+        $service = new MovementService;
+
+        $defender = User::factory()->create([
+            'beginner_protection_until' => Carbon::now()->addHour(),
+        ]);
+
+        $village = Village::factory()->create([
+            'legacy_kid' => 505,
+            'user_id' => $defender->getKey(),
+        ]);
+
+        $result = $service->addMovement(
+            kid: 100,
+            toKid: (int) $village->legacy_kid,
+            race: 1,
+            units: [1 => 50],
+            ctar1: 0,
+            ctar2: 0,
+            spyType: 0,
+            redeployHero: false,
+            mode: MovementService::SORTTYPE_GOING,
+            attackType: MovementService::ATTACKTYPE_NORMAL,
+            startTime: Carbon::now()->timestamp,
+            endTime: Carbon::now()->addMinutes(30)->timestamp,
+            data: null,
+        );
+
+        $this->assertSame(0, $result);
+        $this->assertSame(0, Movement::query()->count());
     }
 
     /**

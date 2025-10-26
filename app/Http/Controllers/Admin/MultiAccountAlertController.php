@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\MultiAccountAlertSeverity;
-use App\Enums\MultiAccountAlertStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DismissMultiAccountAlertRequest;
 use App\Http\Requests\Admin\FilterMultiAccountAlertsRequest;
@@ -16,7 +14,7 @@ use App\Models\LoginActivity;
 use App\Models\MultiAccountAlert;
 use App\Models\User;
 use App\Services\Security\IpLookupService;
-use App\Services\Security\MultiAccountDetector;
+use App\Services\Security\MultiAccountAlertsService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,37 +28,9 @@ class MultiAccountAlertController extends Controller
 {
     public function index(FilterMultiAccountAlertsRequest $request): View
     {
-        $filters = array_filter($request->validated(), static fn ($value) => $value !== null && $value !== '');
+        $request->validated();
 
-        $alerts = MultiAccountAlert::query()
-            ->with(['resolvedBy', 'dismissedBy'])
-            ->when(isset($filters['status']), fn ($query) => $query->where('status', $filters['status']))
-            ->when(isset($filters['severity']), fn ($query) => $query->where('severity', $filters['severity']))
-            ->when(isset($filters['source_type']), fn ($query) => $query->where('source_type', $filters['source_type']))
-            ->when(isset($filters['ip']), fn ($query) => $query->where('ip_address', 'like', $filters['ip'].'%'))
-            ->when(isset($filters['device_hash']), fn ($query) => $query->where('device_hash', $filters['device_hash']))
-            ->when(isset($filters['search']), function ($query) use ($filters) {
-                $term = $filters['search'];
-
-                $query->where(function ($inner) use ($term) {
-                    $inner->where('ip_address', 'like', '%'.$term.'%')
-                        ->orWhere('device_hash', 'like', '%'.$term.'%');
-
-                    if (is_numeric($term)) {
-                        $inner->orWhereJsonContains('user_ids', (int) $term);
-                    }
-                });
-            })
-            ->orderByDesc('last_seen_at')
-            ->paginate(25)
-            ->withQueryString();
-
-        return view('admin.multi-account-alerts.index', [
-            'alerts' => $alerts,
-            'filters' => $filters,
-            'severityOptions' => MultiAccountAlertSeverity::cases(),
-            'statusOptions' => MultiAccountAlertStatus::cases(),
-        ]);
+        return view('admin.multi-account-alerts.index');
     }
 
     public function show(MultiAccountAlert $multiAccountAlert): View
@@ -79,6 +49,7 @@ class MultiAccountAlertController extends Controller
             ->with(['user', 'actingSitter'])
             ->when($multiAccountAlert->source_type === 'ip', fn ($query) => $query->where('ip_address', $multiAccountAlert->ip_address))
             ->when($multiAccountAlert->source_type === 'device', fn ($query) => $query->where('device_hash', $multiAccountAlert->device_hash))
+            ->when($multiAccountAlert->world_id !== null && $multiAccountAlert->world_id !== '', fn ($query) => $query->where('world_id', $multiAccountAlert->world_id))
             ->when($timelineStart !== null, fn ($query) => $query->where('logged_at', '>=', $timelineStart))
             ->when($timelineEnd !== null, fn ($query) => $query->where('logged_at', '<=', $timelineEnd))
             ->orderByDesc('logged_at')
@@ -93,18 +64,18 @@ class MultiAccountAlertController extends Controller
         ]);
     }
 
-    public function resolve(ResolveMultiAccountAlertRequest $request, MultiAccountAlert $multiAccountAlert, MultiAccountDetector $detector): RedirectResponse
+    public function resolve(ResolveMultiAccountAlertRequest $request, MultiAccountAlert $multiAccountAlert, MultiAccountAlertsService $alertsService): RedirectResponse
     {
-        $detector->resolveAlert($multiAccountAlert, $request->user(), $request->validated('notes'));
+        $alertsService->resolve($multiAccountAlert, $request->user(), $request->validated('notes'));
 
         return redirect()
             ->route('admin.multi-account-alerts.show', $multiAccountAlert)
             ->with('status', 'Alert resolved successfully.');
     }
 
-    public function dismiss(DismissMultiAccountAlertRequest $request, MultiAccountAlert $multiAccountAlert, MultiAccountDetector $detector): RedirectResponse
+    public function dismiss(DismissMultiAccountAlertRequest $request, MultiAccountAlert $multiAccountAlert, MultiAccountAlertsService $alertsService): RedirectResponse
     {
-        $detector->dismissAlert($multiAccountAlert, $request->user(), $request->validated('notes'));
+        $alertsService->dismiss($multiAccountAlert, $request->user(), $request->validated('notes'));
 
         return redirect()
             ->route('admin.multi-account-alerts.show', $multiAccountAlert)
@@ -124,6 +95,7 @@ class MultiAccountAlertController extends Controller
             ->with(['user', 'actingSitter'])
             ->when($multiAccountAlert->source_type === 'ip', fn ($query) => $query->where('ip_address', $multiAccountAlert->ip_address))
             ->when($multiAccountAlert->source_type === 'device', fn ($query) => $query->where('device_hash', $multiAccountAlert->device_hash))
+            ->when($multiAccountAlert->world_id !== null && $multiAccountAlert->world_id !== '', fn ($query) => $query->where('world_id', $multiAccountAlert->world_id))
             ->when($timelineStart !== null, fn ($query) => $query->where('logged_at', '>=', $timelineStart))
             ->when($timelineEnd !== null, fn ($query) => $query->where('logged_at', '<=', $timelineEnd))
             ->orderByDesc('logged_at')

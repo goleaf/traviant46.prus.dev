@@ -118,7 +118,9 @@ class VillageQueueService
                 ?? __('Building :gid', ['gid' => $upgrade->building_type ?? '?']),
             'current_level' => (int) $upgrade->current_level,
             'target_level' => (int) $upgrade->target_level,
-            'status' => (string) $upgrade->status,
+            'status' => $upgrade->status instanceof VillageBuildingUpgradeStatus
+                ? $upgrade->status->value
+                : (string) $upgrade->status,
             'queue_position' => (int) $queuePosition,
             'is_active' => $isActive,
             'starts_at' => $startsAt,

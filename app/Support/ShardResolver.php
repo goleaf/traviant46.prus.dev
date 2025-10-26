@@ -54,7 +54,7 @@ class ShardResolver
 
         $qualifiedColumn = $this->qualifyColumn($query, $column);
 
-        return $query->whereRaw("MOD({$qualifiedColumn}, ?) = ?", [$total, $shard]);
+        return $query->whereRaw("({$qualifiedColumn} % ?) = ?", [$total, $shard]);
     }
 
     public function assertValidShard(int $shard): void

@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $origin_village_id
  * @property int $target_village_id
  * @property string $movement_type
- * @property string $status
+ * @property MovementOrderStatus $status
  * @property array<string, mixed>|null $payload
  * @property array<string, mixed>|null $metadata
  * @property \Illuminate\Support\Carbon|null $depart_at

@@ -15,6 +15,8 @@ use App\Http\Middleware\EnsurePrivilegeSnapshotIsFresh;
 use App\Http\Middleware\EnsureSitterSessionIsValid;
 use App\Http\Middleware\InjectRequestContext;
 use App\Http\Middleware\LogStaffAction;
+use App\Http\Middleware\SitterContextMiddleware;
+use App\Http\Middleware\ThrottleGameEndpoints;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Configuration\Middleware as MiddlewareConfig;
 
@@ -29,6 +31,7 @@ class Kernel
             'game.banned' => EnsureAccountNotBanned::class,
             'game.verified' => EnsureAccountVerified::class,
             'game.sitter' => EnsureSitterSessionIsValid::class,
+            'context.sitter' => SitterContextMiddleware::class,
             'auth.admin' => Authenticate::using('admin'),
             'auth.multihunter' => Authenticate::using('multihunter'),
             'session.ttl' => EnforceSessionTtl::class,
@@ -45,8 +48,14 @@ class Kernel
             EnsureAccountVerified::class,
             EnsurePrivilegeSnapshotIsFresh::class,
             EnsureSitterSessionIsValid::class,
+            SitterContextMiddleware::class,
             EnforceSessionTtl::class,
             ApplySecurityHeaders::class,
+            ThrottleGameEndpoints::class,
+        ]);
+
+        $middleware->appendToGroup('api', [
+            ThrottleGameEndpoints::class,
         ]);
     }
 }

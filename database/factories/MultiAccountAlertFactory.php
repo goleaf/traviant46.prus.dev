@@ -27,6 +27,7 @@ class MultiAccountAlertFactory extends Factory
             'alert_id' => (string) Str::uuid(),
             'group_key' => Str::uuid()->toString(),
             'source_type' => fake()->randomElement(['ip', 'device']),
+            'world_id' => 'world-1',
             'ip_address' => fake()->ipv4(),
             'device_hash' => hash('sha256', Str::random(32)),
             'ip_address_hash' => hash('sha256', Str::random(16)),

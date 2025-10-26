@@ -10,12 +10,15 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController as AppEmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController as AppPasswordResetLinkController;
+use App\Models\User;
 use App\Monitoring\Metrics\MetricRecorder;
+use App\Services\Auth\AuthLookupCache;
 use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
 use App\Services\Auth\LoginRateLimiter as AppLoginRateLimiter;
 use App\Services\Security\DeviceFingerprintService;
 use App\Services\Security\IpReputationService;
+use App\Support\Http\ThrottleResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -150,34 +153,57 @@ class FortifyServiceProvider extends ServiceProvider
             $decayMinutes = max(1, (int) ($loginRateLimit['decay_minutes'] ?? 1));
 
             $identifierField = Fortify::username();
-            $identifier = (string) $request->input($identifierField, '');
+            $identifier = trim((string) $request->input($identifierField, ''));
 
             if ($identifier === '' && $request->filled('email')) {
-                $identifier = (string) $request->input('email');
+                $identifier = trim((string) $request->input('email'));
             }
 
-            $normalizedIdentifier = Str::transliterate(Str::lower($identifier) ?: 'guest');
+            $rawNormalizedIdentifier = Str::transliterate(Str::lower($identifier));
+            $normalizedIdentifier = $rawNormalizedIdentifier !== '' ? $rawNormalizedIdentifier : 'guest';
             $ipAddress = (string) $request->ip();
 
             $limits = [
                 Limit::perMinutes($decayMinutes, $maxAttempts)
                     ->by($normalizedIdentifier.'|'.$ipAddress)
-                    ->response(function () use ($normalizedIdentifier, $ipAddress, $decayMinutes) {
-                        $lockoutKey = md5('login'.$normalizedIdentifier.'|'.$ipAddress);
+                    ->response(function () use ($request, $normalizedIdentifier, $ipAddress, $decayMinutes, $maxAttempts) {
+                        $lockoutKey = $this->limiterStorageKey('login', $normalizedIdentifier.'|'.$ipAddress);
                         $seconds = (int) RateLimiter::availableIn($lockoutKey);
 
                         if ($seconds <= 0) {
                             $seconds = $decayMinutes * 60;
                         }
 
-                        throw ValidationException::withMessages([
-                            Fortify::username() => __('auth.throttle', [
-                                'seconds' => $seconds,
-                                'minutes' => (int) ceil($seconds / 60),
-                            ]),
-                        ])->status(429);
+                        return $this->respondToLoginThrottle($request, $seconds, $maxAttempts);
                     }),
             ];
+
+            $userConfig = $loginRateLimit['per_user'] ?? null;
+
+            if (is_array($userConfig)) {
+                $userMaxAttempts = (int) ($userConfig['max_attempts'] ?? 0);
+
+                if ($userMaxAttempts > 0 && $rawNormalizedIdentifier !== '') {
+                    $userId = $this->resolveLoginUserId($rawNormalizedIdentifier);
+
+                    if ($userId !== null) {
+                        $userDecayMinutes = max(1, (int) ($userConfig['decay_minutes'] ?? $decayMinutes));
+
+                        $limits[] = Limit::perMinutes($userDecayMinutes, $userMaxAttempts)
+                            ->by('user:'.$userId)
+                            ->response(function () use ($request, $userId, $userDecayMinutes, $userMaxAttempts, $decayMinutes) {
+                                $lockoutKey = $this->limiterStorageKey('login', 'user:'.$userId);
+                                $seconds = (int) RateLimiter::availableIn($lockoutKey);
+
+                                if ($seconds <= 0) {
+                                    $seconds = max($userDecayMinutes, $decayMinutes) * 60;
+                                }
+
+                                return $this->respondToLoginThrottle($request, $seconds, $userMaxAttempts);
+                            });
+                    }
+                }
+            }
 
             $ipConfig = $loginRateLimit['per_ip'] ?? null;
 
@@ -188,20 +214,15 @@ class FortifyServiceProvider extends ServiceProvider
                     $ipDecayMinutes = max(1, (int) ($ipConfig['decay_minutes'] ?? $decayMinutes));
                     $limits[] = Limit::perMinutes($ipDecayMinutes, $ipMaxAttempts)
                         ->by('ip:'.$ipAddress)
-                        ->response(function () use ($ipAddress, $ipDecayMinutes) {
-                            $lockoutKey = md5('login'.'ip:'.$ipAddress);
+                        ->response(function () use ($request, $ipAddress, $ipDecayMinutes, $ipMaxAttempts) {
+                            $lockoutKey = $this->limiterStorageKey('login', 'ip:'.$ipAddress);
                             $seconds = (int) RateLimiter::availableIn($lockoutKey);
 
                             if ($seconds <= 0) {
                                 $seconds = $ipDecayMinutes * 60;
                             }
 
-                            throw ValidationException::withMessages([
-                                Fortify::username() => __('auth.throttle', [
-                                    'seconds' => $seconds,
-                                    'minutes' => (int) ceil($seconds / 60),
-                                ]),
-                            ])->status(429);
+                            return $this->respondToLoginThrottle($request, $seconds, $ipMaxAttempts);
                         });
                 }
             }
@@ -217,20 +238,15 @@ class FortifyServiceProvider extends ServiceProvider
 
                     $limits[] = Limit::perMinutes($deviceDecayMinutes, $deviceMaxAttempts)
                         ->by('device:'.$fingerprint)
-                        ->response(function () use ($fingerprint, $deviceDecayMinutes, $decayMinutes) {
-                            $lockoutKey = md5('login'.'device:'.$fingerprint);
+                        ->response(function () use ($request, $fingerprint, $deviceDecayMinutes, $decayMinutes, $deviceMaxAttempts) {
+                            $lockoutKey = $this->limiterStorageKey('login', 'device:'.$fingerprint);
                             $seconds = (int) RateLimiter::availableIn($lockoutKey);
 
                             if ($seconds <= 0) {
                                 $seconds = max($deviceDecayMinutes, $decayMinutes) * 60;
                             }
 
-                            throw ValidationException::withMessages([
-                                Fortify::username() => __('auth.throttle', [
-                                    'seconds' => $seconds,
-                                    'minutes' => (int) ceil($seconds / 60),
-                                ]),
-                            ])->status(429);
+                            return $this->respondToLoginThrottle($request, $seconds, $deviceMaxAttempts);
                         });
                 }
             }
@@ -264,5 +280,47 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinutes($decayMinutes, $maxAttempts)->by($userId !== null ? 'user:'.$userId : 'ip:'.$request->ip());
         });
+    }
+
+    private function respondToLoginThrottle(Request $request, int $seconds, int $limit)
+    {
+        $message = __('auth.throttle', [
+            'seconds' => $seconds,
+            'minutes' => (int) ceil($seconds / 60),
+        ]);
+
+        if ($request->expectsJson() || $request->wantsJson() || $request->is('api/*')) {
+            return ThrottleResponse::json($message, $seconds, $limit);
+        }
+
+        throw ValidationException::withMessages([
+            Fortify::username() => $message,
+        ])->status(429);
+    }
+
+    private function limiterStorageKey(string $name, string $key): string
+    {
+        return md5($name.$key);
+    }
+
+    private function resolveLoginUserId(string $normalizedIdentifier): ?int
+    {
+        if ($normalizedIdentifier === '') {
+            return null;
+        }
+
+        /** @var AuthLookupCache $lookup */
+        $lookup = app(AuthLookupCache::class);
+
+        $user = $lookup->rememberUser($normalizedIdentifier, function () use ($normalizedIdentifier) {
+            return User::query()
+                ->where(function ($query) use ($normalizedIdentifier) {
+                    $query->whereRaw('LOWER(username) = ?', [$normalizedIdentifier])
+                        ->orWhereRaw('LOWER(email) = ?', [$normalizedIdentifier]);
+                })
+                ->first();
+        });
+
+        return $user?->getKey();
     }
 }

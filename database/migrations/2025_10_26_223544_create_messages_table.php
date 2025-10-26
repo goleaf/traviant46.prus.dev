@@ -11,6 +11,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('messages')) {
+            return;
+        }
+
         Schema::create('messages', function (Blueprint $table): void {
             $table->id();
             $table->foreignIdFor(User::class, 'from_user_id')->constrained('users')->cascadeOnDelete();
@@ -24,6 +28,14 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('messages')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('messages', 'from_user_id')) {
+            return;
+        }
+
         Schema::dropIfExists('messages');
     }
 };

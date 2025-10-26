@@ -35,7 +35,7 @@ class BuildingType extends Model
 
     public function buildings(): MorphMany
     {
-        return $this->morphMany(Building::class, 'buildable');
+        return $this->morphMany(VillageBuilding::class, 'buildable');
     }
 
     public function maxLevel(): ?int

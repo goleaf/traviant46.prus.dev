@@ -63,7 +63,7 @@
 
                             const amount = base + perHour * (elapsedSeconds / 3600);
                             const cappedAmount = capacity > 0 ? Math.min(amount, capacity) : amount;
-                            const percent = capacity > 0 && capacity !== Infinity
+                            const percent = capacity > 0
                                 ? Math.min(100, (cappedAmount / capacity) * 100)
                                 : 0;
 
@@ -162,6 +162,114 @@
     x-on:livewire:navigating.window="cleanup()"
     class="space-y-8"
 >
+    <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_40px_120px_-60px_rgba(124,58,237,0.45)] backdrop-blur dark:bg-slate-950/70">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="space-y-1">
+                <flux:heading size="lg" class="text-white">
+                    {{ __('Command center') }}
+                </flux:heading>
+                <flux:description class="text-slate-400">
+                    {{ __('Launch high-impact village actions; sitter restrictions automatically disable protected options.') }}
+                </flux:description>
+            </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
+            @php
+                $buildRestriction = data_get($actionRestrictions, 'build', []);
+                $trainRestriction = data_get($actionRestrictions, 'train', []);
+                $sendRestriction = data_get($actionRestrictions, 'send', []);
+                $buildAllowed = (bool) ($buildRestriction['permitted'] ?? true);
+                $trainAllowed = (bool) ($trainRestriction['permitted'] ?? true);
+                $sendAllowed = (bool) ($sendRestriction['permitted'] ?? true);
+                $buildReason = $buildRestriction['reason'] ?? null;
+                $trainReason = $trainRestriction['reason'] ?? null;
+                $sendReason = $sendRestriction['reason'] ?? null;
+            @endphp
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 dark:bg-slate-950/60">
+                <div class="flex items-center justify-between">
+                    <flux:heading size="md" class="text-white">{{ __('Construction') }}</flux:heading>
+                    <flux:badge variant="subtle" color="{{ $buildAllowed ? 'emerald' : 'rose' }}">
+                        {{ $buildAllowed ? __('Allowed') : __('Restricted') }}
+                    </flux:badge>
+                </div>
+                <p class="mt-2 text-sm text-slate-300">
+                    {{ __('Queue a new building upgrade without leaving the dashboard.') }}
+                </p>
+                <flux:button
+                    wire:click="startBuild"
+                    icon="home-modern"
+                    variant="primary"
+                    color="sky"
+                    class="mt-4 w-full"
+                    @disabled(! $buildAllowed)
+                >
+                    {{ __('Queue build') }}
+                </flux:button>
+                @if (! $buildAllowed)
+                    <p class="mt-2 text-xs text-rose-300">
+                        {{ $buildReason ?? __('The account owner disabled construction while you are a sitter.') }}
+                    </p>
+                @endif
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 dark:bg-slate-950/60">
+                <div class="flex items-center justify-between">
+                    <flux:heading size="md" class="text-white">{{ __('Troop training') }}</flux:heading>
+                    <flux:badge variant="subtle" color="{{ $trainAllowed ? 'emerald' : 'rose' }}">
+                        {{ $trainAllowed ? __('Allowed') : __('Restricted') }}
+                    </flux:badge>
+                </div>
+                <p class="mt-2 text-sm text-slate-300">
+                    {{ __('Schedule barracks, stable, or workshop training batches.') }}
+                </p>
+                <flux:button
+                    wire:click="startTrain"
+                    icon="flag"
+                    variant="primary"
+                    color="violet"
+                    class="mt-4 w-full"
+                    @disabled(! $trainAllowed)
+                >
+                    {{ __('Train troops') }}
+                </flux:button>
+                @if (! $trainAllowed)
+                    <p class="mt-2 text-xs text-rose-300">
+                        {{ $trainReason ?? __('Troop training is reserved for the account owner while you are sitting.') }}
+                    </p>
+                @endif
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5 dark:bg-slate-950/60">
+                <div class="flex items-center justify-between">
+                    <flux:heading size="md" class="text-white">{{ __('Troop movements') }}</flux:heading>
+                    <flux:badge variant="subtle" color="{{ $sendAllowed ? 'emerald' : 'rose' }}">
+                        {{ $sendAllowed ? __('Allowed') : __('Restricted') }}
+                    </flux:badge>
+                </div>
+                <p class="mt-2 text-sm text-slate-300">
+                    {{ __('Dispatch raids, reinforcements, or attacks from this village.') }}
+                </p>
+                <flux:button
+                    wire:click="startSend"
+                    icon="paper-airplane"
+                    variant="primary"
+                    color="amber"
+                    class="mt-4 w-full"
+                    @disabled(! $sendAllowed)
+                >
+                    {{ __('Send troops') }}
+                </flux:button>
+                @if (! $sendAllowed)
+                    <p class="mt-2 text-xs text-rose-300">
+                        {{ $sendReason ?? __('The account owner has blocked troop dispatch for sitters.') }}
+                    </p>
+                @endif
+            </div>
+        </div>
+    </section>
+
     <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_40px_120px_-60px_rgba(37,99,235,0.55)] backdrop-blur dark:bg-slate-950/70">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div class="space-y-2">

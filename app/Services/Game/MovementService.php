@@ -7,8 +7,11 @@ namespace App\Services\Game;
 use App\Models\Game\Enforcement;
 use App\Models\Game\Movement;
 use App\Models\Game\Trapped;
+use App\Models\Game\Village;
 use DateTimeInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class MovementService
 {
@@ -48,6 +51,16 @@ class MovementService
         int|DateTimeInterface $endTime,
         ?string $data = null,
     ): int {
+        if ($this->shouldBlockAttack($mode, $attackType, $toKid)) {
+            Log::notice('movement.blocked_by_beginner_protection', [
+                'kid' => $kid,
+                'to_kid' => $toKid,
+                'attack_type' => $attackType,
+            ]);
+
+            return 0;
+        }
+
         $movement = new Movement;
 
         $movement->fill(array_merge(
@@ -290,6 +303,46 @@ class MovementService
         }
 
         return (int) round((float) $value);
+    }
+
+    private function shouldBlockAttack(int $mode, int $attackType, int $toKid): bool
+    {
+        if ($mode !== self::SORTTYPE_GOING || ! $this->isOffensiveAttack($attackType)) {
+            return false;
+        }
+
+        if (! Schema::hasTable('villages') || ! Schema::hasTable('users')) {
+            return false;
+        }
+
+        $village = Village::query()
+            ->with('owner')
+            ->where('legacy_kid', $toKid)
+            ->first();
+
+        if (! $village?->owner) {
+            return false;
+        }
+
+        $protectionEndsAt = $village->owner->beginner_protection_until;
+
+        if ($protectionEndsAt === null) {
+            return false;
+        }
+
+        if ($protectionEndsAt instanceof DateTimeInterface) {
+            return $protectionEndsAt > Carbon::now();
+        }
+
+        return Carbon::parse((string) $protectionEndsAt)->isFuture();
+    }
+
+    private function isOffensiveAttack(int $attackType): bool
+    {
+        return in_array($attackType, [
+            self::ATTACKTYPE_NORMAL,
+            self::ATTACKTYPE_RAID,
+        ], true);
     }
 
     /**

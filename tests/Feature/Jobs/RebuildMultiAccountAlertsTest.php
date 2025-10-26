@@ -46,11 +46,14 @@ beforeEach(function (): void {
         $table->timestamp('email_verified_at')->nullable();
         $table->string('password');
         $table->string('role')->nullable();
+        $table->unsignedTinyInteger('race')->nullable();
+        $table->unsignedTinyInteger('tribe')->nullable();
         $table->rememberToken();
         $table->boolean('is_banned')->default(false);
         $table->string('ban_reason')->nullable();
         $table->timestamp('ban_issued_at')->nullable();
         $table->timestamp('ban_expires_at')->nullable();
+        $table->timestamp('beginner_protection_until')->nullable();
         $table->timestamps();
     });
 
@@ -59,6 +62,8 @@ beforeEach(function (): void {
         $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
         $table->foreignId('acting_sitter_id')->nullable()->constrained('users')->nullOnDelete();
         $table->string('ip_address')->nullable();
+        $table->string('ip_address_hash')->nullable();
+        $table->string('world_id')->nullable();
         $table->string('user_agent')->nullable();
         $table->string('device_hash')->nullable();
         $table->timestamp('logged_at')->nullable();
@@ -71,7 +76,9 @@ beforeEach(function (): void {
         $table->uuid('alert_id')->unique();
         $table->string('group_key')->unique();
         $table->string('source_type');
+        $table->string('world_id')->nullable();
         $table->string('ip_address')->nullable();
+        $table->string('ip_address_hash')->nullable();
         $table->string('device_hash')->nullable();
         $table->json('user_ids');
         $table->unsignedInteger('occurrences')->default(0);
@@ -117,18 +124,22 @@ it('rebuilds multi account alerts without triggering notifications', function ()
         [
             'user_id' => $conflict->getKey(),
             'ip_address' => '198.51.100.10',
+            'ip_address_hash' => hash('sha256', '198.51.100.10'),
             'user_agent' => 'BrowserA',
             'device_hash' => 'device-conflict',
             'logged_at' => $timestamp->copy()->subMinutes(10),
+            'world_id' => 'world-1',
             'created_at' => $timestamp->copy()->subMinutes(10),
             'updated_at' => $timestamp->copy()->subMinutes(10),
         ],
         [
             'user_id' => $primary->getKey(),
             'ip_address' => '198.51.100.10',
+            'ip_address_hash' => hash('sha256', '198.51.100.10'),
             'user_agent' => 'BrowserB',
             'device_hash' => 'device-primary',
             'logged_at' => $timestamp,
+            'world_id' => 'world-1',
             'created_at' => $timestamp,
             'updated_at' => $timestamp,
         ],

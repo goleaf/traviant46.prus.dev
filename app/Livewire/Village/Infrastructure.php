@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Village;
 
-use App\Models\Game\Building;
 use App\Models\Game\Village;
+use App\Models\Game\VillageBuilding;
 use App\Services\Game\VillageQueueService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -78,7 +78,7 @@ class Infrastructure extends Component
 
         return collect(self::SLOT_RANGE)
             ->map(function (int $slot) use ($buildings, $queueEntries): array {
-                /** @var Building|null $building */
+                /** @var VillageBuilding|null $building */
                 $building = $buildings->get($slot);
                 $queued = $queueEntries->firstWhere('slot', $slot);
 

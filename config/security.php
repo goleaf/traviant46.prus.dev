@@ -63,6 +63,10 @@ return [
         'login' => [
             'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_ATTEMPTS', 5),
             'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_DECAY_MINUTES', 1),
+            'per_user' => [
+                'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_USER_ATTEMPTS', 20),
+                'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_USER_DECAY_MINUTES', 5),
+            ],
             'per_ip' => [
                 'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_IP_ATTEMPTS', 50),
                 'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_IP_DECAY_MINUTES', 10),
@@ -71,6 +75,18 @@ return [
                 'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_DEVICE_ATTEMPTS', 15),
                 'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_DEVICE_DECAY_MINUTES', 5),
             ],
+        ],
+        'market' => [
+            'per_minute' => (int) env('SECURITY_RATE_LIMIT_MARKET_PER_MINUTE', 30),
+            'per_hour' => (int) env('SECURITY_RATE_LIMIT_MARKET_PER_HOUR', 150),
+        ],
+        'send' => [
+            'per_minute' => (int) env('SECURITY_RATE_LIMIT_SEND_PER_MINUTE', 20),
+            'per_hour' => (int) env('SECURITY_RATE_LIMIT_SEND_PER_HOUR', 90),
+        ],
+        'messages' => [
+            'per_minute' => (int) env('SECURITY_RATE_LIMIT_MESSAGES_PER_MINUTE', 15),
+            'per_hour' => (int) env('SECURITY_RATE_LIMIT_MESSAGES_PER_HOUR', 60),
         ],
         'two_factor' => [
             'max_attempts' => (int) env('SECURITY_RATE_LIMIT_TWO_FACTOR_ATTEMPTS', 5),

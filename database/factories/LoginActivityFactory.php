@@ -27,6 +27,7 @@ class LoginActivityFactory extends Factory
             'ip_address' => $ip,
             'ip_address_hash' => hash('sha256', $ip),
             'user_agent' => fake()->userAgent(),
+            'world_id' => 'world-1',
             'device_hash' => hash('sha256', $ip.'-'.Str::random(10)),
             'geo' => [
                 'country' => fake()->countryCode(),

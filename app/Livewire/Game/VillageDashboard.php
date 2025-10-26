@@ -7,8 +7,11 @@ namespace App\Livewire\Game;
 use App\Events\Game\BuildCompleted;
 use App\Events\Game\ResourcesProduced;
 use App\Models\Game\Village;
+use App\Models\User;
 use App\Services\Game\VillageQueueService;
 use App\Services\Game\VillageResourceService;
+use App\Support\Auth\SitterPermissionMatrixResolver;
+use App\ValueObjects\SitterRestriction;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Arr;
@@ -47,6 +50,11 @@ class VillageDashboard extends Component
      */
     public array $queueSummary = [];
 
+    /**
+     * @var array<string, array{action: string, permitted: bool, reason: ?string, permission: string}>
+     */
+    public array $actionRestrictions = [];
+
     public string $timezone = '';
 
     private string $channelName = '';
@@ -68,6 +76,7 @@ class VillageDashboard extends Component
         $this->authorize('viewResources', $village);
 
         $this->village = $village->loadMissing([
+            'owner',
             'resources',
             'buildingUpgrades.buildingType',
         ]);
@@ -77,6 +86,7 @@ class VillageDashboard extends Component
 
         $this->hydrateResources();
         $this->hydrateQueue();
+        $this->refreshActionRestrictions();
     }
 
     public function getListeners(): array
@@ -116,6 +126,21 @@ class VillageDashboard extends Component
         }
     }
 
+    public function startBuild(): void
+    {
+        $this->attemptAction('build');
+    }
+
+    public function startTrain(): void
+    {
+        $this->attemptAction('train');
+    }
+
+    public function startSend(): void
+    {
+        $this->attemptAction('send');
+    }
+
     public function render(): View
     {
         return view('livewire.game.village-dashboard');
@@ -135,7 +160,6 @@ class VillageDashboard extends Component
         );
         $this->production = $this->normaliseResourceMap((array) ($snapshot['production'] ?? []));
         $this->storage = $this->normaliseResourceMap((array) ($snapshot['storage'] ?? []));
-
         $this->lastTickAt = $this->resolveLastTick()->toIso8601String();
         $this->snapshotGeneratedAt = (string) ($snapshot['generated_at'] ?? Carbon::now()->toIso8601String());
     }
@@ -155,12 +179,71 @@ class VillageDashboard extends Component
 
         $this->hydrateResources();
         $this->hydrateQueue();
+        $this->refreshActionRestrictions();
     }
 
     private function reloadVillageQueue(): void
     {
         $this->village->load(['buildingUpgrades.buildingType']);
         $this->hydrateQueue();
+        $this->refreshActionRestrictions();
+    }
+
+    private function refreshActionRestrictions(): void
+    {
+        $resolver = $this->permissionResolver();
+
+        if ($resolver === null) {
+            $this->actionRestrictions = [];
+
+            return;
+        }
+
+        $restrictions = $resolver->restrictions();
+
+        $this->actionRestrictions = [];
+
+        foreach ($restrictions as $action => $restriction) {
+            if ($restriction instanceof SitterRestriction) {
+                $this->actionRestrictions[$action] = $restriction->toArray();
+            }
+        }
+    }
+
+    private function attemptAction(string $action): void
+    {
+        $resolver = $this->permissionResolver();
+
+        if ($resolver === null) {
+            return;
+        }
+
+        $restriction = $resolver->restriction($action);
+        $this->actionRestrictions[$action] = $restriction->toArray();
+    }
+
+    private function permissionResolver(): ?SitterPermissionMatrixResolver
+    {
+        $owner = $this->resolveOwner();
+
+        return $owner instanceof User ? new SitterPermissionMatrixResolver($owner) : null;
+    }
+
+    private function resolveOwner(): ?User
+    {
+        $owner = $this->village->getRelationValue('owner');
+
+        if ($owner instanceof User) {
+            return $owner;
+        }
+
+        $owner = $this->village->owner()->first();
+
+        if ($owner instanceof User) {
+            $this->village->setRelation('owner', $owner);
+        }
+
+        return $owner instanceof User ? $owner : null;
     }
 
     /**

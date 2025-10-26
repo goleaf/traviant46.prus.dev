@@ -15,8 +15,13 @@ use App\Livewire\Account\BannedNotice;
 use App\Livewire\Account\TrustedDevices;
 use App\Livewire\Account\VerificationPrompt;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\PlayerAudit as AdminPlayerAudit;
+use App\Livewire\Game\Market as GameMarket;
 use App\Livewire\Game\Messages as GameMessages;
 use App\Livewire\Game\RallyPoint as GameRallyPoint;
+use App\Livewire\Game\Reports as GameReports;
+use App\Livewire\Game\Send as GameSend;
+use App\Livewire\Game\Troops as GameTroops;
 use App\Livewire\System\MaintenanceNotice;
 use App\Livewire\Village\Infrastructure as VillageInfrastructure;
 use App\Livewire\Village\Overview as VillageOverview;
@@ -63,16 +68,32 @@ Route::middleware(["auth:{$playerGuard}"])->group(function (): void {
 
     Route::middleware(['verified', 'game.banned', 'game.verified', 'game.maintenance', 'game.sitter', 'security.enforce-2fa'])->group(function (): void {
         Route::view('/home', 'dashboard')->name('home');
+        Route::get('/villages/{village}/fields', \App\Livewire\Game\Fields::class)
+            ->middleware('can:viewResources,village')
+            ->name('game.villages.fields');
         Route::get('/messages', GameMessages::class)->name('game.messages');
+        Route::get('/reports', GameReports::class)->name('game.reports');
         Route::get('/villages/{village}/resources', VillageOverview::class)
             ->middleware('can:viewResources,village')
             ->name('game.villages.overview');
         Route::get('/villages/{village}/infrastructure', VillageInfrastructure::class)
             ->middleware('can:viewInfrastructure,village')
             ->name('game.villages.infrastructure');
+        Route::get('/villages/{village}/troops', GameTroops::class)
+            ->middleware('can:manageTroops,village')
+            ->name('game.villages.troops');
+        Route::get('/villages/{village}/market', GameMarket::class)
+            ->middleware('can:viewResources,village')
+            ->name('game.villages.market');
+        Route::get('/villages/{village}/buildings', \App\Livewire\Game\Buildings::class)
+            ->middleware('can:viewInfrastructure,village')
+            ->name('game.villages.buildings');
         Route::get('/villages/{village}/rally-point', GameRallyPoint::class)
             ->middleware('can:viewRallyPoint,village')
             ->name('game.villages.rally-point');
+        Route::get('/villages/{village}/rally-point/send', GameSend::class)
+            ->middleware('can:manageRallyPoint,village')
+            ->name('game.villages.send');
         Route::get('/account/security', TrustedDevices::class)->name('account.security');
     });
 });
@@ -84,6 +105,7 @@ Route::prefix('admin')->name('admin.')->middleware([
     'throttle:admin-actions',
 ])->group(function () {
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
+    Route::get('/player-audit', AdminPlayerAudit::class)->name('player-audit');
     Route::resource('campaign-customer-segments', CampaignCustomerSegmentController::class)->except(['show']);
     Route::post(
         'campaign-customer-segments/{campaignCustomerSegment}/recalculate',

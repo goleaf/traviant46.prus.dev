@@ -8,7 +8,7 @@ use App\Enums\MultiAccountAlertSeverity;
 use App\Enums\MultiAccountAlertStatus;
 use App\Models\MultiAccountAlert;
 use App\Models\User;
-use App\Services\Security\MultiAccountDetector;
+use App\Services\Security\MultiAccountAlertsService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -52,6 +52,10 @@ class Alerts extends Component
     #[Validate('nullable|string|max:64')]
     public ?string $deviceHash = null;
 
+    #[Url(as: 'world_id')]
+    #[Validate('nullable|string|max:64')]
+    public ?string $worldId = null;
+
     #[Validate('nullable|string|max:1000')]
     public ?string $notes = null;
 
@@ -74,6 +78,7 @@ class Alerts extends Component
         $this->search = $this->normalizeString($this->search);
         $this->ip = $this->normalizeString($this->ip);
         $this->deviceHash = $this->normalizeString($this->deviceHash);
+        $this->worldId = $this->normalizeString($this->worldId);
     }
 
     #[Computed]
@@ -115,6 +120,10 @@ class Alerts extends Component
             $query->where('device_hash', $this->deviceHash);
         }
 
+        if ($this->worldId !== null) {
+            $query->where('world_id', $this->worldId);
+        }
+
         if ($this->search !== null && $this->search !== '') {
             $term = $this->search;
 
@@ -129,6 +138,44 @@ class Alerts extends Component
         }
 
         return $query->paginate(25, ['*'], $this->pageName, $this->page);
+    }
+
+    #[Computed]
+    public function sharedIpGroups(): array
+    {
+        $alerts = MultiAccountAlert::query()
+            ->select(['id', 'world_id', 'severity', 'status'])
+            ->where('source_type', 'ip')
+            ->where('status', MultiAccountAlertStatus::Open)
+            ->orderByDesc('last_seen_at')
+            ->limit(200)
+            ->get();
+
+        $severityCases = MultiAccountAlertSeverity::cases();
+
+        return $alerts
+            ->groupBy(fn (MultiAccountAlert $alert) => $alert->world_id ?? 'global')
+            ->map(function ($group, string $world) use ($severityCases): array {
+                $bySeverity = [];
+
+                foreach ($severityCases as $severity) {
+                    $bySeverity[$severity->value] = $group
+                        ->filter(static fn (MultiAccountAlert $alert): bool => $alert->severity === $severity)
+                        ->count();
+                }
+
+                $label = $world === 'global' ? __('Global') : $world;
+
+                return [
+                    'world_key' => $world,
+                    'label' => $label,
+                    'total' => $group->count(),
+                    'by_severity' => $bySeverity,
+                ];
+            })
+            ->sortByDesc('total')
+            ->values()
+            ->all();
     }
 
     public function updatingSeverity(): void
@@ -167,6 +214,12 @@ class Alerts extends Component
         $this->resetPage();
     }
 
+    public function updatingWorldId(): void
+    {
+        $this->worldId = $this->normalizeString($this->worldId);
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
         $this->severity = null;
@@ -175,6 +228,7 @@ class Alerts extends Component
         $this->sourceType = null;
         $this->ip = null;
         $this->deviceHash = null;
+        $this->worldId = null;
         $this->resetPage();
     }
 
@@ -188,7 +242,7 @@ class Alerts extends Component
         $this->prepareAction('dismiss', $alertId);
     }
 
-    public function performAction(MultiAccountDetector $detector): void
+    public function performAction(MultiAccountAlertsService $alertsService): void
     {
         if ($this->actionAlertId === null || $this->actionType === null) {
             return;
@@ -214,10 +268,10 @@ class Alerts extends Component
         }
 
         if ($this->actionType === 'resolve') {
-            $detector->resolveAlert($alert, $actor, $notes);
+            $alertsService->resolve($alert, $actor, $notes);
             $message = __('Alert marked as resolved. Notes saved to audit trail.');
         } else {
-            $detector->dismissAlert($alert, $actor, $notes);
+            $alertsService->dismiss($alert, $actor, $notes);
             $message = __('Alert dismissed. Notes saved to audit trail.');
         }
 
@@ -238,6 +292,7 @@ class Alerts extends Component
             'alerts' => $this->alerts,
             'severityOptions' => $this->severityOptions,
             'statusOptions' => $this->statusOptions,
+            'sharedIpGroups' => $this->sharedIpGroups,
         ]);
     }
 

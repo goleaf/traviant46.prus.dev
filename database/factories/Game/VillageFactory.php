@@ -6,6 +6,7 @@ namespace Database\Factories\Game;
 
 use App\Models\Game\BuildingType;
 use App\Models\Game\Village;
+use App\Support\Travian\StarterVillageBlueprint;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -74,37 +75,27 @@ class VillageFactory extends Factory
 
     public function starter(): self
     {
-        return $this->state(function (): array {
+        return $this->state(function (array $attributes): array {
             $now = Carbon::now();
+            $storageMultiplier = (float) config('travian.settings.game.storage_multiplier', 1);
 
             return [
-                'name' => 'New Village',
-                'population' => 2,
-                'loyalty' => 100,
-                'culture_points' => 0,
-                'x_coordinate' => 0,
-                'y_coordinate' => 0,
-                'terrain_type' => 1,
-                'village_category' => 'capital',
-                'is_capital' => true,
-                'resource_balances' => [
-                    'wood' => 750,
-                    'clay' => 750,
-                    'iron' => 750,
-                    'crop' => 750,
-                ],
-                'storage' => [
-                    'warehouse' => 800,
-                    'granary' => 800,
-                    'extra' => ['warehouse' => 0, 'granary' => 0],
-                ],
-                'production' => [
-                    'wood' => 2,
-                    'clay' => 2,
-                    'iron' => 2,
-                    'crop' => 2,
-                ],
-                'founded_at' => $now,
+                'name' => $attributes['name'] ?? 'New Village',
+                'population' => $attributes['population'] ?? 2,
+                'loyalty' => $attributes['loyalty'] ?? 100,
+                'culture_points' => $attributes['culture_points'] ?? 0,
+                'x_coordinate' => $attributes['x_coordinate'] ?? 0,
+                'y_coordinate' => $attributes['y_coordinate'] ?? 0,
+                'terrain_type' => $attributes['terrain_type'] ?? 1,
+                'village_category' => $attributes['village_category'] ?? 'capital',
+                'is_capital' => $attributes['is_capital'] ?? true,
+                'resource_balances' => $attributes['resource_balances']
+                    ?? StarterVillageBlueprint::baseResourceBalances($storageMultiplier),
+                'storage' => $attributes['storage']
+                    ?? StarterVillageBlueprint::baseStorage($storageMultiplier),
+                'production' => $attributes['production']
+                    ?? StarterVillageBlueprint::baseProduction(),
+                'founded_at' => $attributes['founded_at'] ?? $now,
                 'is_wonder_village' => false,
             ];
         })->afterCreating(function (Village $village): void {
@@ -120,23 +111,17 @@ class VillageFactory extends Factory
         }
 
         $now = Carbon::now();
-
-        $entries = [];
-
-        foreach (self::STARTER_RESOURCE_FIELDS as $index => $kind) {
-            $slot = $index + 1;
-            $level = $kind === 'crop' ? 1 : 0;
-
-            $entries[] = [
+        $entries = collect(StarterVillageBlueprint::resourceFieldBlueprint())
+            ->map(fn (array $field): array => [
                 'village_id' => $village->getKey(),
-                'slot_number' => $slot,
-                'kind' => $kind,
-                'level' => $level,
+                'slot_number' => $field['slot'],
+                'kind' => $field['kind'],
+                'level' => $field['level'],
                 'production_per_hour_cached' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ];
-        }
+            ])
+            ->all();
 
         DB::table('resource_fields')->upsert(
             $entries,
@@ -151,13 +136,7 @@ class VillageFactory extends Factory
             return;
         }
 
-        $structures = [
-            ['slot' => 1, 'gid' => 1],
-            ['slot' => 2, 'gid' => 10],
-            ['slot' => 3, 'gid' => 11],
-            ['slot' => 4, 'gid' => 16],
-        ];
-
+        $structures = StarterVillageBlueprint::infrastructure();
         $now = Carbon::now();
 
         foreach ($structures as $structure) {

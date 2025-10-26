@@ -8,6 +8,7 @@ use App\Events\Game\CombatResolved;
 use App\Events\Game\MovementCreated;
 use App\Events\Game\ReportCreated;
 use App\Events\Game\ResourcesProduced;
+use App\Events\Game\ResourceStorageWarning;
 use App\Events\Game\TroopsArrived;
 use App\Events\Game\TroopsTrained;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -15,6 +16,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 dataset('game events', [
     ResourcesProduced::class => [ResourcesProduced::class, ResourcesProduced::EVENT],
+    ResourceStorageWarning::class => [ResourceStorageWarning::class, ResourceStorageWarning::EVENT],
     BuildQueued::class => [BuildQueued::class, BuildQueued::EVENT],
     BuildCompleted::class => [BuildCompleted::class, BuildCompleted::EVENT],
     TroopsTrained::class => [TroopsTrained::class, TroopsTrained::EVENT],

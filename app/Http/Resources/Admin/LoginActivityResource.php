@@ -25,6 +25,7 @@ class LoginActivityResource extends JsonResource
             'ip_address' => $this->ip_address,
             'device_hash' => $this->device_hash,
             'user_agent' => $this->user_agent,
+            'world_id' => $this->world_id,
             'logged_at' => optional($this->logged_at ?? $this->created_at)->toAtomString(),
         ];
     }

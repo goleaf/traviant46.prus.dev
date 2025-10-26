@@ -8,6 +8,7 @@ use App\Enums\Game\UnitTrainingBatchStatus;
 use App\Models\Game\UnitTrainingBatch;
 use App\Models\Game\Village;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class TroopTrainingService
@@ -103,6 +104,22 @@ class TroopTrainingService
         $batch->save();
 
         return $batch;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function trainingBuildingOptions(): array
+    {
+        $aliases = array_unique(array_values(self::BUILDING_TYPE_TO_ALIAS));
+
+        $options = [];
+
+        foreach ($aliases as $alias) {
+            $options[$alias] = Str::headline(str_replace('_', ' ', $alias));
+        }
+
+        return $options;
     }
 
     /**

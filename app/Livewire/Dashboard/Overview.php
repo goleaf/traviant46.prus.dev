@@ -35,6 +35,8 @@ class Overview extends Component
             return;
         }
 
+        $timezone = $user->timezone ?? config('app.timezone');
+
         $activeAssignments = SitterDelegation::query()
             ->forAccount($user)
             ->active(Date::now())
@@ -59,11 +61,31 @@ class Overview extends Component
             ])
             ->all();
 
+        $beginnerProtectionEndsAt = $user->beginner_protection_until;
+        $beginnerProtection = [
+            'active' => false,
+            'remaining' => null,
+            'endsAt' => null,
+            'endsAtLabel' => null,
+        ];
+
+        if ($beginnerProtectionEndsAt instanceof Carbon && $beginnerProtectionEndsAt->isFuture()) {
+            $localizedEndsAt = $beginnerProtectionEndsAt->copy()->setTimezone($timezone);
+
+            $beginnerProtection = [
+                'active' => true,
+                'remaining' => Carbon::now()->diffForHumans($beginnerProtectionEndsAt, Carbon::DIFF_ABSOLUTE, true, 2),
+                'endsAt' => $localizedEndsAt->toIso8601String(),
+                'endsAtLabel' => $localizedEndsAt->isoFormat('MMM D, YYYY • HH:mm'),
+            ];
+        }
+
         $this->metrics = [
             'activeSitters' => $activeAssignments,
             'delegatedAccounts' => $delegatedAccounts,
             'twoFactorEnabled' => (bool) $user->two_factor_secret,
             'recentLogins' => $recentLogins,
+            'beginnerProtection' => $beginnerProtection,
         ];
 
         $this->refreshedAt = Carbon::now()->diffForHumans(null, Carbon::DIFF_ABSOLUTE, true, 2);

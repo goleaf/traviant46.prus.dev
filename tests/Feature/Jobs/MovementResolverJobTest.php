@@ -9,12 +9,69 @@ use App\Events\Game\TroopsArrived;
 use App\Jobs\MovementResolverJob;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 
-uses(RefreshDatabase::class);
+beforeEach(function (): void {
+    Schema::dropIfExists('movement_orders');
+    Schema::dropIfExists('villages');
+    Schema::dropIfExists('users');
+
+    Schema::create('users', function (Blueprint $table): void {
+        $table->id();
+        $table->timestamps();
+    });
+
+    Schema::create('villages', function (Blueprint $table): void {
+        $table->id();
+        $table->unsignedBigInteger('legacy_kid')->nullable()->unique();
+        $table->unsignedBigInteger('user_id')->nullable();
+        $table->unsignedBigInteger('alliance_id')->nullable();
+        $table->unsignedBigInteger('watcher_user_id')->nullable();
+        $table->string('name');
+        $table->integer('population')->default(0);
+        $table->integer('loyalty')->default(100);
+        $table->integer('culture_points')->default(0);
+        $table->integer('x_coordinate');
+        $table->integer('y_coordinate');
+        $table->string('terrain_type')->nullable();
+        $table->string('village_category')->nullable();
+        $table->boolean('is_capital')->default(false);
+        $table->boolean('is_wonder_village')->default(false);
+        $table->json('resource_balances')->nullable();
+        $table->json('storage')->nullable();
+        $table->json('production')->nullable();
+        $table->json('defense_bonus')->nullable();
+        $table->timestamp('founded_at')->nullable();
+        $table->timestamp('abandoned_at')->nullable();
+        $table->timestamp('last_loyalty_change_at')->nullable();
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    Schema::create('movement_orders', function (Blueprint $table): void {
+        $table->id();
+        $table->unsignedBigInteger('legacy_movement_id')->nullable()->unique();
+        $table->unsignedBigInteger('user_id')->nullable();
+        $table->unsignedBigInteger('origin_village_id');
+        $table->unsignedBigInteger('target_village_id');
+        $table->string('movement_type', 32);
+        $table->string('mission', 32)->nullable();
+        $table->string('status', 24)->default('pending');
+        $table->string('checksum', 40)->nullable();
+        $table->timestamp('depart_at')->nullable();
+        $table->timestamp('arrive_at')->nullable();
+        $table->timestamp('return_at')->nullable();
+        $table->timestamp('processed_at')->nullable();
+        $table->json('payload')->nullable();
+        $table->json('metadata')->nullable();
+        $table->timestamps();
+        $table->softDeletes();
+    });
+});
 
 it('resolves due troop movements and dispatches arrival events', function (): void {
     Carbon::setTestNow($now = Carbon::parse('2025-01-01 00:00:00'));

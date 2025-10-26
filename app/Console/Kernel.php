@@ -12,6 +12,7 @@ use App\Jobs\ProcessServerTasks;
 use App\Jobs\ProcessTroopTraining;
 use App\Jobs\PruneExpiredSessions;
 use App\Jobs\RebuildMultiAccountAlerts;
+use App\Jobs\ResourceTickJob;
 use App\Jobs\ScheduleDailyQuestReset;
 use App\Jobs\ScheduleMedalDistribution;
 use App\Jobs\VerifyDatabaseIntegrity;
@@ -28,6 +29,12 @@ class Kernel extends ConsoleKernel
         $shards = app(ShardResolver::class)->shards();
 
         foreach ($shards as $shard) {
+            $schedule->job(new ResourceTickJob(shard: $shard))
+                ->name(sprintf('automation:resources:shard-%d', $shard))
+                ->everyMinute()
+                ->withoutOverlapping()
+                ->runInBackground();
+
             $schedule->job(new ProcessBuildingCompletion(shard: $shard))
                 ->name(sprintf('automation:buildings:shard-%d', $shard))
                 ->everyMinute()

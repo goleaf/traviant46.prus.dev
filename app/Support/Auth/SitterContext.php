@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Session;
 
 final class SitterContext
 {
+    /**
+     * Cache active delegations for the current request.
+     *
+     * @var array<string, SitterDelegation|null>
+     */
+    private static array $delegationCache = [];
+
     public static function isActingAsSitter(): bool
     {
         return (bool) Session::get('auth.acting_as_sitter', false);
@@ -33,20 +40,41 @@ final class SitterContext
 
     public static function hasPermission(User $owner, SitterPermission $permission): bool
     {
+        $delegation = self::activeDelegation($owner);
+
+        if ($delegation === null) {
+            return ! self::isActingAsSitter();
+        }
+
+        return $delegation->allows($permission);
+    }
+
+    public static function activeDelegation(User $owner): ?SitterDelegation
+    {
         if (! self::isActingAsSitter()) {
-            return true;
+            return null;
         }
 
         $sitterId = self::actingSitterId();
 
         if (! $sitterId) {
-            return false;
+            return null;
         }
 
-        return SitterDelegation::query()
+        $cacheKey = sprintf('%d:%d', $owner->getKey(), $sitterId);
+
+        if (array_key_exists($cacheKey, self::$delegationCache)) {
+            return self::$delegationCache[$cacheKey];
+        }
+
+        $delegation = SitterDelegation::query()
             ->forAccount($owner)
             ->forSitter($sitterId)
             ->active()
-            ->first()?->allows($permission) ?? false;
+            ->first();
+
+        self::$delegationCache[$cacheKey] = $delegation;
+
+        return $delegation;
     }
 }

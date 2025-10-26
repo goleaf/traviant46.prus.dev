@@ -9,16 +9,13 @@ use App\Models\Game\QuestProgress;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class QuestLogService
 {
     public function __construct(
         private readonly Quest $questModel,
-        private readonly QuestProgress $progressModel,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{tutorial: list<array<string, mixed>>, daily: list<array<string, mixed>>}

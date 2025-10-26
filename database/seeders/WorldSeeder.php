@@ -209,4 +209,18 @@ class WorldSeeder extends Seeder
             'features' => $features,
         ])->save();
     }
+
+    private function calculateRespawnAt(Carbon $reference, float $worldSpeed, int $oasisTypeId): Carbon
+    {
+        $preset = self::OASIS_PRESETS[$oasisTypeId] ?? null;
+
+        if ($preset === null) {
+            return $reference->copy();
+        }
+
+        $speed = $worldSpeed > 0 ? $worldSpeed : 1.0;
+        $minutes = (int) ceil($preset['respawn_minutes'] / $speed);
+
+        return $reference->copy()->addMinutes($minutes);
+    }
 }

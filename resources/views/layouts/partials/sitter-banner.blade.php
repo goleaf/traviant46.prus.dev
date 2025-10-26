@@ -3,65 +3,63 @@
     $permissions = $delegation['permissions'] ?? [];
     $sitter = $context['sitter'] ?? [];
     $account = $context['account'] ?? [];
+
+    $ownerHandle = $account['username'] ?? null;
+    $sitterHandle = $sitter['username'] ?? null;
+    $ownerLabel = $ownerHandle !== null ? '@' . $ownerHandle : __('unknown account');
+    $sitterLabel = $sitterHandle !== null ? '@' . $sitterHandle : null;
 @endphp
 
-<div class="bg-amber-500/10 border-b border-amber-400/30 backdrop-blur-sm shadow-[0_35px_120px_-60px_rgba(251,191,36,0.65)]">
+<div class="border-b border-amber-400/30 bg-amber-500/15 text-amber-100 shadow-[0_35px_120px_-60px_rgba(251,191,36,0.65)]">
     <flux:container class="py-4">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-start gap-3 text-amber-100">
-                <div class="flex size-10 items-center justify-center rounded-full bg-amber-500/20">
-                    <flux:icon name="arrows-right-left" class="size-5" />
-                </div>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3">
+                    <div class="flex size-10 items-center justify-center rounded-full bg-amber-500/25 text-amber-200">
+                        <flux:icon name="arrows-right-left" class="size-5" />
+                    </div>
 
-                <div class="space-y-1">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                        {{ __('Delegation context') }}
-                    </p>
-
-                    <p class="text-sm leading-relaxed">
-                        {{ __('You are acting as :sitter on behalf of :owner.', [
-                            'sitter' => $sitter['username'] ?? __('unknown sitter'),
-                            'owner' => $account['username'] ?? __('unknown account'),
-                        ]) }}
-                    </p>
-
-                    @if (! ($delegation['present'] ?? false))
-                        <p class="text-xs text-amber-200/80">
-                            {{ __('This delegation has been revoked. Please sign out to avoid losing progress.') }}
+                    <div class="space-y-1">
+                        <p class="text-sm font-semibold">
+                            {{ __('Acting as: :owner', ['owner' => $ownerLabel]) }}
                         </p>
-                    @endif
+
+                        @if ($sitterLabel !== null)
+                            <p class="text-xs text-amber-200/80">
+                                {{ __('Signed in via sitter :sitter', ['sitter' => $sitterLabel]) }}
+                            </p>
+                        @endif
+
+                        @if (! ($delegation['present'] ?? false))
+                            <p class="text-xs text-amber-200/80">
+                                {{ __('This delegation has been revoked. Please sign out to avoid losing progress.') }}
+                            </p>
+                        @elseif (! empty($delegation['expires_human']))
+                            <p class="text-xs text-amber-200/80">
+                                {{ __('Access expires :time', ['time' => $delegation['expires_human']]) }}
+                            </p>
+                        @endif
+                    </div>
                 </div>
-            </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                @if ($delegation['present'] ?? false)
-                    @if (! empty($delegation['preset_label']))
-                        <flux:badge variant="solid" color="amber" class="text-xs uppercase tracking-wide">
-                            {{ $delegation['preset_label'] }}
-                        </flux:badge>
-                    @endif
-
-                    @if (! empty($delegation['expires_human']))
-                        <span class="text-xs text-amber-200/90">
-                            {{ __('Expires :time', ['time' => $delegation['expires_human']]) }}
-                        </span>
-                    @endif
-                @else
-                    <flux:badge variant="solid" color="red" class="text-xs uppercase tracking-wide">
-                        {{ __('Revoked') }}
-                    </flux:badge>
+                @if (! empty($permissions))
+                    <div class="pl-12 flex flex-wrap gap-2">
+                        @foreach ($permissions as $permission)
+                            <flux:badge variant="outline" color="amber" class="border-amber-400/50 bg-amber-500/10 text-amber-100">
+                                {{ $permission['label'] }}
+                            </flux:badge>
+                        @endforeach
+                    </div>
                 @endif
             </div>
-        </div>
 
-        @if (! empty($permissions))
-            <div class="mt-3 flex flex-wrap gap-2">
-                @foreach ($permissions as $permission)
-                    <flux:badge variant="outline" color="amber" class="border-amber-400/50 bg-amber-500/10 text-amber-100">
-                        {{ $permission['label'] }}
-                    </flux:badge>
-                @endforeach
-            </div>
-        @endif
+            <form method="POST" action="{{ route('logout') }}" class="shrink-0">
+                @csrf
+
+                <flux:button type="submit" variant="solid" color="amber" size="sm">
+                    {{ __('Leave') }}
+                </flux:button>
+            </form>
+        </div>
     </flux:container>
 </div>

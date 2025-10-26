@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Actions\Game\ApplyStarvationAction;
 use App\Models\Game\Village;
 use App\Notifications\Game\VillageStarvationNotification;
+use DateTimeInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use LogicException;
+use Throwable;
 
 class CropStarvationJob implements ShouldQueue
 {
@@ -31,7 +33,10 @@ class CropStarvationJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public string $queue = 'automation';
+    public function __construct()
+    {
+        $this->queue = 'automation';
+    }
 
     public function handle(ApplyStarvationAction $applyStarvation): void
     {
@@ -108,7 +113,7 @@ class CropStarvationJob implements ShouldQueue
             return $value;
         }
 
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return Carbon::instance($value);
         }
 
@@ -129,7 +134,7 @@ class CropStarvationJob implements ShouldQueue
 
             try {
                 return Carbon::parse($trimmed);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 return null;
             }
         }

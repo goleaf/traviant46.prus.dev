@@ -24,6 +24,7 @@ class LoginActivity extends Model
         'ip_address',
         'ip_address_hash',
         'user_agent',
+        'world_id',
         'device_hash',
         'geo',
         'logged_at',

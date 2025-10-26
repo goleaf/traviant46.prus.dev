@@ -18,8 +18,14 @@
                 <flux:button wire:click="refreshInfrastructure" wire:loading.attr="disabled" icon="arrow-path" variant="primary" color="violet" class="w-full sm:w-auto">
                     {{ __('Refresh infrastructure') }}
                 </flux:button>
+                <flux:button as="a" href="{{ route('game.villages.buildings', $village) }}" icon="building-office" variant="ghost" class="w-full sm:w-auto text-slate-200 hover:text-white">
+                    {{ __('Manage buildings') }}
+                </flux:button>
                 <flux:button as="a" href="{{ route('game.villages.overview', $village) }}" variant="outline" icon="squares-2x2" class="w-full sm:w-auto">
                     {{ __('Back to resources') }}
+                </flux:button>
+                <flux:button as="a" href="{{ route('game.villages.rally-point', $village) }}" icon="flag" variant="ghost" class="w-full sm:w-auto text-slate-200 hover:text-white">
+                    {{ __('Rally point') }}
                 </flux:button>
             </div>
         </div>

@@ -39,6 +39,11 @@ beforeEach(function (): void {
         {
             // no-op for tests
         }
+
+        public function gauge(string $metric, float $value, array $tags = []): void
+        {
+            // no-op for tests
+        }
     });
 });
 
@@ -54,6 +59,7 @@ it('records an ip-based alert when thresholds are met', function (): void {
         'ip_address_hash' => hash('sha256', $ipAddress),
         'device_hash' => 'device-conflict',
         'logged_at' => $now->copy()->subMinutes(10),
+        'world_id' => 'world-1',
     ]);
 
     $activity = LoginActivity::factory()->for($primary, 'user')->create([
@@ -62,6 +68,7 @@ it('records an ip-based alert when thresholds are met', function (): void {
         'device_hash' => 'device-primary',
         'logged_at' => $now,
         'user_agent' => 'Mozilla/5.0',
+        'world_id' => 'world-1',
     ]);
 
     Notification::fake();
@@ -74,6 +81,8 @@ it('records an ip-based alert when thresholds are met', function (): void {
     expect($alert->source_type)->toBe('ip')
         ->and($alert->severity)->toBe(MultiAccountAlertSeverity::Low)
         ->and($alert->status)->toBe(MultiAccountAlertStatus::Open)
+        ->and($alert->world_id)->toBe('world-1')
+        ->and($alert->metadata['world_id'] ?? null)->toBe('world-1')
         ->and($alert->user_ids)->toEqualCanonicalizing([$primary->id, $conflict->id])
         ->and($alert->occurrences)->toBe(2)
         ->and($alert->metadata['user_counts'][(string) $primary->id] ?? $alert->metadata['user_counts'][$primary->id] ?? null)->toBe(1)
@@ -95,6 +104,7 @@ it('groups alerts by device hash when configured', function (): void {
         'ip_address' => '198.51.100.10',
         'device_hash' => $deviceHash,
         'logged_at' => $now->copy()->subMinutes(20),
+        'world_id' => 'world-1',
     ]);
 
     $activity = LoginActivity::factory()->for($primary, 'user')->create([
@@ -102,6 +112,7 @@ it('groups alerts by device hash when configured', function (): void {
         'device_hash' => $deviceHash,
         'logged_at' => $now,
         'user_agent' => 'Safari/605',
+        'world_id' => 'world-1',
     ]);
 
     app(MultiAccountDetector::class)->record($activity);
@@ -128,6 +139,7 @@ it('marks alerts as suppressed when the source is allowlisted', function (): voi
         'ip_address' => $ipAddress,
         'device_hash' => 'suppressed-device',
         'logged_at' => $timestamp->copy()->subMinutes(15),
+        'world_id' => 'world-1',
     ]);
 
     $activity = LoginActivity::factory()->for($primary, 'user')->create([
@@ -135,6 +147,7 @@ it('marks alerts as suppressed when the source is allowlisted', function (): voi
         'device_hash' => 'suppressed-device',
         'logged_at' => $timestamp,
         'user_agent' => 'Chrome',
+        'world_id' => 'world-1',
     ]);
 
     app(MultiAccountDetector::class)->record($activity);
@@ -171,18 +184,21 @@ it('sends notifications and webhook payloads for high severity alerts', function
         'ip_address' => $ipAddress,
         'device_hash' => 'device-shared',
         'logged_at' => $now->copy()->subMinutes(15),
+        'world_id' => 'world-1',
     ]);
 
     LoginActivity::factory()->for($firstConflict, 'user')->create([
         'ip_address' => $ipAddress,
         'device_hash' => 'device-shared',
         'logged_at' => $now->copy()->subMinutes(10),
+        'world_id' => 'world-1',
     ]);
 
     LoginActivity::factory()->for($secondConflict, 'user')->create([
         'ip_address' => $ipAddress,
         'device_hash' => 'device-shared',
         'logged_at' => $now->copy()->subMinutes(5),
+        'world_id' => 'world-1',
     ]);
 
     $activity = LoginActivity::factory()->for($primary, 'user')->create([
@@ -190,6 +206,7 @@ it('sends notifications and webhook payloads for high severity alerts', function
         'device_hash' => 'device-shared',
         'logged_at' => $now,
         'user_agent' => 'Firefox',
+        'world_id' => 'world-1',
     ]);
 
     app(MultiAccountDetector::class)->record($activity);
@@ -208,6 +225,52 @@ it('sends notifications and webhook payloads for high severity alerts', function
             && ($request['alert_id'] ?? null) === $alert->alert_id
             && ($request['severity'] ?? null) === $alert->severity?->value;
     });
+
+    Carbon::setTestNow();
+});
+
+it('separates correlation windows by world identifier', function (): void {
+    $ipAddress = '198.51.100.200';
+    $now = Carbon::parse('2025-05-05 09:00:00');
+    Carbon::setTestNow($now);
+
+    [$primary, $conflict] = User::factory()->count(2)->create();
+
+    LoginActivity::factory()->for($conflict, 'user')->create([
+        'ip_address' => $ipAddress,
+        'logged_at' => $now->copy()->subMinutes(30),
+        'world_id' => 'world-1',
+    ]);
+
+    $crossWorldActivity = LoginActivity::factory()->for($primary, 'user')->create([
+        'ip_address' => $ipAddress,
+        'logged_at' => $now->copy()->subMinutes(5),
+        'world_id' => 'world-2',
+    ]);
+
+    app(MultiAccountDetector::class)->record($crossWorldActivity);
+
+    expect(MultiAccountAlert::query()->count())->toBe(0);
+
+    LoginActivity::factory()->for($conflict, 'user')->create([
+        'ip_address' => $ipAddress,
+        'logged_at' => $now->copy()->subMinutes(4),
+        'world_id' => 'world-2',
+    ]);
+
+    $worldTwoActivity = LoginActivity::factory()->for($primary, 'user')->create([
+        'ip_address' => $ipAddress,
+        'logged_at' => $now->copy()->subMinutes(1),
+        'world_id' => 'world-2',
+        'user_agent' => 'Opera',
+    ]);
+
+    app(MultiAccountDetector::class)->record($worldTwoActivity);
+
+    $alert = MultiAccountAlert::query()->firstOrFail();
+
+    expect($alert->world_id)->toBe('world-2')
+        ->and($alert->user_ids)->toEqualCanonicalizing([$primary->id, $conflict->id]);
 
     Carbon::setTestNow();
 });

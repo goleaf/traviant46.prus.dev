@@ -50,6 +50,28 @@ class LogStaffAction
             'payload' => $this->sanitizePayload($request->all()),
         ];
 
+        $actedBy = $request->attributes->get('sitter.acted_by');
+        if (is_array($actedBy) && $actedBy !== []) {
+            $metadata['acted_by'] = $actedBy;
+
+            if (! array_key_exists('acting_on', $metadata)) {
+                $ownerContext = $request->attributes->get('sitter.owner');
+                $ownerMetadata = is_array($ownerContext) ? array_filter($ownerContext, static fn ($value) => $value !== null && $value !== '') : [];
+
+                if ($ownerMetadata === []) {
+                    $ownerMetadata = array_filter([
+                        'id' => $user->getKey(),
+                        'username' => $user->username,
+                        'name' => $user->name,
+                    ], static fn ($value) => $value !== null && $value !== '');
+                }
+
+                if ($ownerMetadata !== []) {
+                    $metadata['acting_on'] = $ownerMetadata;
+                }
+            }
+        }
+
         $this->logger->log(
             $user,
             action: sprintf('http.%s', strtolower($request->getMethod())),

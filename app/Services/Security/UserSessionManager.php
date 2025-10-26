@@ -7,8 +7,8 @@ namespace App\Services\Security;
 use App\Models\User;
 use App\Models\UserSession;
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Session\Factory as SessionFactory;
 use Illuminate\Http\Request;
+use Illuminate\Session\SessionManager;
 use Illuminate\Session\Store as SessionStore;
 use Illuminate\Support\Collection;
 
@@ -21,7 +21,7 @@ class UserSessionManager
     public const SESSION_KEY_ABSOLUTE_EXPIRES_AT = 'security.absolute_expires_at';
 
     public function __construct(
-        protected SessionFactory $sessionFactory,
+        protected SessionManager $sessionManager,
     ) {}
 
     public function register(User $user, Request $request, int $absoluteLifetime): UserSession
@@ -109,7 +109,7 @@ class UserSessionManager
 
     protected function sessionStore(): SessionStore
     {
-        return $this->sessionFactory->driver();
+        return $this->sessionManager->driver();
     }
 
     protected function absoluteExpiration(CarbonImmutable $now, int $absoluteLifetime): ?CarbonImmutable

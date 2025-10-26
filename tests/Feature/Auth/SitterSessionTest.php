@@ -109,9 +109,10 @@ class SitterSessionTest extends TestCase
         $response = $this->get('/home');
 
         $response->assertOk()
-            ->assertSee('Delegation context')
+            ->assertSee('Acting as:')
+            ->assertSee('@delegation-owner')
             ->assertSee('delegation-sitter')
-            ->assertSee('delegation-owner')
-            ->assertSee('Guardian');
+            ->assertSee('Guardian')
+            ->assertSee('Leave');
     }
 }

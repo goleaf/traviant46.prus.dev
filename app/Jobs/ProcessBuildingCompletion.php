@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Jobs\Concerns\InteractsWithShardResolver;
-use App\Models\Game\Building;
+use App\Models\Game\Village;
+use App\Models\Game\VillageBuilding;
 use App\Models\Game\VillageBuildingUpgrade;
+use App\Services\Game\BuildQueueTimingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,11 +30,10 @@ class ProcessBuildingCompletion implements ShouldQueue
 
     public int $timeout = 120;
 
-    public string $queue = 'automation';
-
     public function __construct(private readonly int $chunkSize = 50, int $shard = 0)
     {
         $this->initializeShardPartitioning($shard);
+        $this->onQueue('automation');
     }
 
     public function handle(): void
@@ -50,7 +51,10 @@ class ProcessBuildingCompletion implements ShouldQueue
     private function completeUpgrade(VillageBuildingUpgrade $upgrade): void
     {
         try {
-            DB::transaction(function () use ($upgrade): void {
+            $shouldRecalculateQueue = false;
+            $recalculationContext = null;
+
+            DB::transaction(function () use ($upgrade, &$shouldRecalculateQueue, &$recalculationContext): void {
                 $lockedUpgrade = VillageBuildingUpgrade::query()
                     ->whereKey($upgrade->getKey())
                     ->lockForUpdate()
@@ -76,7 +80,7 @@ class ProcessBuildingCompletion implements ShouldQueue
                     ->first();
 
                 if ($building === null) {
-                    $building = new Building([
+                    $building = new VillageBuilding([
                         'village_id' => $lockedUpgrade->village_id,
                         'slot_number' => $lockedUpgrade->slot_number,
                     ]);
@@ -93,7 +97,22 @@ class ProcessBuildingCompletion implements ShouldQueue
 
                 $lockedUpgrade->markCompleted();
                 $lockedUpgrade->save();
+
+                if ((int) $lockedUpgrade->building_type === 15) {
+                    $shouldRecalculateQueue = true;
+                    $recalculationContext = [
+                        'village_id' => (int) $lockedUpgrade->village_id,
+                        'main_level' => (int) $building->level,
+                    ];
+                }
             }, 5);
+
+            if ($shouldRecalculateQueue && is_array($recalculationContext)) {
+                $this->recalculateVillageBuildQueue(
+                    $recalculationContext['village_id'],
+                    $recalculationContext['main_level'],
+                );
+            }
         } catch (Throwable $throwable) {
             $latestUpgrade = $upgrade->fresh();
             if ($latestUpgrade !== null) {
@@ -108,5 +127,17 @@ class ProcessBuildingCompletion implements ShouldQueue
 
             throw $throwable;
         }
+    }
+
+    private function recalculateVillageBuildQueue(int $villageId, int $mainBuildingLevel): void
+    {
+        /** @var Village|null $village */
+        $village = Village::query()->find($villageId);
+
+        if ($village === null) {
+            return;
+        }
+
+        app(BuildQueueTimingService::class)->recalculateForVillage($village, $mainBuildingLevel);
     }
 }

@@ -44,6 +44,14 @@
                 <flux:button as="a" href="{{ route('game.villages.infrastructure', $village) }}" icon="home-modern" variant="outline" class="w-full sm:w-auto">
                     {{ __('Go to infrastructure') }}
                 </flux:button>
+                @can('manageTroops', $village)
+                    <flux:button as="a" href="{{ route('game.villages.troops', $village) }}" icon="shield-check" variant="outline" class="w-full sm:w-auto">
+                        {{ __('Manage troops') }}
+                    </flux:button>
+                @endcan
+                <flux:button as="a" href="{{ route('game.villages.rally-point', $village) }}" icon="flag" variant="ghost" class="w-full sm:w-auto text-slate-200 hover:text-white">
+                    {{ __('Rally point') }}
+                </flux:button>
             </div>
         </div>
 
@@ -199,6 +207,8 @@
             </div>
         </div>
     </section>
+
+    <livewire:game.map-minigrid :village="$village" />
 
     <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_25px_70px_-50px_rgba(251,191,36,0.5)] backdrop-blur dark:bg-slate-950/70">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

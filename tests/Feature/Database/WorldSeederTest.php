@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Game\World;
 use Database\Seeders\WorldSeeder;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -52,6 +53,12 @@ beforeEach(function (): void {
         $table->index('world_id');
         $table->index('type');
     });
+
+    Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
+});
+
+afterEach(function (): void {
+    Carbon::setTestNow();
 });
 
 it('seeds the default world with expected attributes and map data', function (): void {
@@ -115,16 +122,37 @@ it('seeds the default world with expected attributes and map data', function ():
         ->pluck('total', 'type')
         ->all();
 
-    $labelByType = [
-        1 => 'wood',
-        2 => 'clay',
-        3 => 'iron',
-        4 => 'crop',
-    ];
+    $labelByType = [];
+
+    foreach (WorldSeeder::OASIS_PRESETS as $type => $preset) {
+        $labelByType[$type] = $preset['label'];
+    }
 
     foreach ($labelByType as $type => $label) {
         expect((int) ($oasisCountsByType[$type] ?? 0))
             ->toBe($map['oasis_counts']['by_type'][$label]);
+    }
+
+    foreach (WorldSeeder::OASIS_PRESETS as $type => $preset) {
+        $sampleOasis = DB::table('oases')
+            ->where('world_id', $world->getKey())
+            ->where('type', $type)
+            ->first();
+
+        expect($sampleOasis)->not->toBeNull();
+        expect($sampleOasis->nature_garrison)->not->toBeNull();
+        expect($sampleOasis->respawn_at)->not->toBeNull();
+
+        /** @var array<string, int> $decodedGarrison */
+        $decodedGarrison = json_decode($sampleOasis->nature_garrison, true, 512, JSON_THROW_ON_ERROR);
+
+        expect($decodedGarrison)->toMatchArray($preset['garrison']);
+
+        $expectedMinutes = (int) ceil($preset['respawn_minutes'] / max($world->speed, 0.1));
+        $expectedRespawn = Carbon::now()->copy()->addMinutes($expectedMinutes)->toDateTimeString();
+
+        expect(Carbon::parse($sampleOasis->respawn_at)->toDateTimeString())
+            ->toBe($expectedRespawn);
     }
 
     $totalResourceTiles = array_sum($map['tile_counts']);

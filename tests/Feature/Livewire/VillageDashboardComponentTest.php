@@ -8,12 +8,13 @@ use App\Models\Game\BuildingType;
 use App\Models\Game\Village;
 use App\Models\Game\VillageBuildingUpgrade;
 use App\Models\Game\VillageResource;
+use App\Models\SitterDelegation;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use Tests\Support\UsesConfiguredDatabase;
 
-uses(RefreshDatabase::class);
+uses(UsesConfiguredDatabase::class);
 
 function createVillageWithEconomy(User $user): array
 {
@@ -80,9 +81,9 @@ it('renders live resource snapshot and queue summary', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test(VillageDashboard::class, ['village' => $village->getKey()])
+    Livewire::test(VillageDashboard::class, ['village' => $village])
         ->assertSet('balances.wood', 1200.0)
-        ->assertSet('production.crop', 60.0)
+        ->assertSet('production.crop', 120.0)
         ->assertSet('storage.wood', 6400.0)
         ->assertSet('queueSummary.entries.0.target_level', 6)
         ->assertSet('queueSummary.entries.0.building_name', 'Main Building')
@@ -96,7 +97,7 @@ it('updates queue from database when build completion payload is empty', functio
 
     $this->actingAs($user);
 
-    $component = Livewire::test(VillageDashboard::class, ['village' => $village->getKey()]);
+    $component = Livewire::test(VillageDashboard::class, ['village' => $village]);
 
     $upgrade->update([
         'target_level' => 7,
@@ -113,7 +114,7 @@ it('applies broadcast payload when supplied for resources', function (): void {
 
     $this->actingAs($user);
 
-    Livewire::test(VillageDashboard::class, ['village' => $village->getKey()])
+    Livewire::test(VillageDashboard::class, ['village' => $village])
         ->call('handleResourcesProduced', [
             'balances' => ['wood' => 1800, 'clay' => 1600, 'iron' => 1200, 'crop' => 900],
             'production' => ['wood' => 180, 'clay' => 140, 'iron' => 110, 'crop' => 90],
@@ -124,4 +125,44 @@ it('applies broadcast payload when supplied for resources', function (): void {
         ->assertSet('balances.wood', 1800.0)
         ->assertSet('production.clay', 140.0)
         ->assertSet('storage.crop', 6000.0);
+});
+
+it('disables quick actions when sitter lacks permissions', function (): void {
+    $owner = User::factory()->create();
+    $owner->forceFill([
+        'sitter_permission_matrix' => [
+            'build' => [
+                'permission' => 'build',
+                'reason' => 'No constructions for sitters.',
+            ],
+        ],
+    ])->save();
+
+    $sitter = User::factory()->create();
+    [$village] = createVillageWithEconomy($owner);
+
+    SitterDelegation::query()->create([
+        'owner_user_id' => $owner->getKey(),
+        'sitter_user_id' => $sitter->getKey(),
+        'permissions' => ['farm'],
+        'created_by' => $owner->getKey(),
+        'updated_by' => $owner->getKey(),
+    ]);
+
+    $this->actingAs($owner);
+
+    session()->start();
+    session([
+        'auth.acting_as_sitter' => true,
+        'auth.sitter_id' => $sitter->getKey(),
+    ]);
+
+    $component = Livewire::test(VillageDashboard::class, ['village' => $village]);
+
+    $component
+        ->assertSet('actionRestrictions.build.permitted', false)
+        ->assertSet('actionRestrictions.send.permitted', false)
+        ->assertSet('actionRestrictions.build.reason', 'No constructions for sitters.')
+        ->assertSee('Command center')
+        ->assertSee('Restricted');
 });

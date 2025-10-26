@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Events\Game\ResourcesProduced;
+use App\Events\Game\ResourceStorageWarning;
 use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Village;
 use App\Models\Game\VillageResource;
+use App\Services\Game\VillageUpkeepService;
 use App\Services\ResourceService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,17 +32,27 @@ class ResourceTickJob implements ShouldQueue
     use SerializesModels;
 
     /**
-     * Ordered list of Travian resource identifiers.
+     * Supported Travian resource identifiers.
      *
      * @var array<int, string>
      */
     private const RESOURCE_KEYS = ['wood', 'clay', 'iron', 'crop'];
 
+    /**
+     * Production percentage bonuses granted by owned oasis types.
+     *
+     * @var array<int, array<string, float>>
+     */
+    private const OASIS_TYPE_PRODUCTION_BONUSES = [
+        1 => ['wood' => 25.0],
+        2 => ['clay' => 25.0],
+        3 => ['iron' => 25.0],
+        4 => ['crop' => 25.0],
+    ];
+
     public int $tries = 1;
 
     public int $timeout = 120;
-
-    public string $queue = 'automation';
 
     public function __construct(
         private readonly int $chunkSize = 200,
@@ -48,9 +60,10 @@ class ResourceTickJob implements ShouldQueue
         private readonly ?int $tickIntervalSeconds = null,
     ) {
         $this->initializeShardPartitioning($shard);
+        $this->onQueue('automation');
     }
 
-    public function handle(ResourceService $resourceCalculator): void
+    public function handle(ResourceService $resourceCalculator, VillageUpkeepService $upkeepService): void
     {
         $chunkSize = max(1, $this->chunkSize);
         $tickSeconds = max(1, $this->tickIntervalSeconds ?? (int) config('game.tick_interval_seconds', 60));
@@ -60,12 +73,13 @@ class ResourceTickJob implements ShouldQueue
 
         $this->constrainToShard(Village::query()->select(['id']), 'id')
             ->orderBy('id')
-            ->chunkById($chunkSize, function (EloquentCollection $villages) use ($resourceCalculator, $tickSeconds, $now, $currentShard, $totalShards): void {
+            ->chunkById($chunkSize, function (EloquentCollection $villages) use ($resourceCalculator, $upkeepService, $tickSeconds, $now, $currentShard, $totalShards): void {
                 foreach ($villages as $village) {
                     try {
                         $payload = $this->processVillage(
                             (int) $village->getKey(),
                             $resourceCalculator,
+                            $upkeepService,
                             $tickSeconds,
                             $now,
                         );
@@ -76,6 +90,28 @@ class ResourceTickJob implements ShouldQueue
 
                         $channelName = $this->buildChannelName($payload['village_id']);
                         ResourcesProduced::dispatch($channelName, $payload);
+
+                        $warnings = $payload['warnings'] ?? [];
+
+                        if (is_array($warnings) && $warnings !== []) {
+                            foreach ($warnings as $warning) {
+                                if (! is_array($warning)) {
+                                    continue;
+                                }
+
+                                $warningPayload = array_merge(
+                                    $warning,
+                                    [
+                                        'village_id' => $payload['village_id'],
+                                        'processed_at' => $payload['processed_at'],
+                                        'interval_seconds' => $payload['interval_seconds'],
+                                    ],
+                                );
+
+                                ResourceStorageWarning::dispatch($channelName, $warningPayload);
+                            }
+                        }
+
                     } catch (Throwable $exception) {
                         Log::error('resource.tick.failed', [
                             'village_id' => (int) $village->getKey(),
@@ -94,18 +130,19 @@ class ResourceTickJob implements ShouldQueue
     private function processVillage(
         int $villageId,
         ResourceService $resourceCalculator,
+        VillageUpkeepService $upkeepService,
         int $tickSeconds,
         Carbon $now,
     ): ?array {
         $payload = null;
 
-        DB::transaction(function () use (&$payload, $villageId, $resourceCalculator, $tickSeconds, $now): void {
+        DB::transaction(function () use (&$payload, $villageId, $resourceCalculator, $upkeepService, $tickSeconds, $now): void {
             /** @var Village|null $village */
             $village = Village::query()
                 ->whereKey($villageId)
                 ->lockForUpdate()
                 ->with([
-                    'resources' => function ($query): void {
+                    'resources' => static function ($query): void {
                         $query->select([
                             'id',
                             'village_id',
@@ -116,6 +153,7 @@ class ResourceTickJob implements ShouldQueue
                             'last_collected_at',
                         ]);
                     },
+                    'ownedOases:id,type',
                 ])
                 ->first();
 
@@ -123,8 +161,11 @@ class ResourceTickJob implements ShouldQueue
                 return;
             }
 
+            $storageState = is_array($village->storage) ? $village->storage : [];
+            $reservations = $this->extractReservations($storageState);
+
             $balancesBefore = $this->normaliseResourceMap($village->resource_balances ?? []);
-            $productionData = $this->calculateProduction($village);
+            $productionData = $this->calculateProduction($village, $upkeepService);
             $storageCapacities = $this->determineStorageCapacities($village);
 
             $updateResult = $resourceCalculator->updateResources(
@@ -134,13 +175,18 @@ class ResourceTickJob implements ShouldQueue
                 [
                     'precision' => 4,
                     'minimum' => 0,
+                    'allow_negative_crop' => true,
                     'storage' => $storageCapacities,
                 ],
             );
 
             $balancesAfter = $this->normaliseResourceMap($updateResult['resources']);
 
+            $reservations = $this->reconcileReservations($reservations, $balancesAfter);
+            $storageState = $this->updateStorageReservations($storageState, $reservations);
+
             $village->resource_balances = $balancesAfter;
+            $village->storage = $storageState;
             $village->save();
 
             $produced = [];
@@ -155,6 +201,8 @@ class ResourceTickJob implements ShouldQueue
                 $resourceModel->save();
             }
 
+            $warnings = $this->detectStorageWarnings($balancesAfter, $storageCapacities, $reservations);
+
             $payload = [
                 'village_id' => $village->getKey(),
                 'interval_seconds' => $tickSeconds,
@@ -165,9 +213,12 @@ class ResourceTickJob implements ShouldQueue
                 'base' => $productionData['base'],
                 'building' => $productionData['building'],
                 'oasis_bonus' => $productionData['oasis_bonus'],
+                'upkeep' => $productionData['upkeep'],
                 'storage' => $storageCapacities,
                 'overflow' => array_map(static fn (float $value): float => round($value, 4), $updateResult['overflow']),
                 'had_overflow' => (bool) $updateResult['hadOverflow'],
+                'reservations' => $this->normaliseReservationMap($reservations),
+                'warnings' => $warnings,
             ];
         }, 5);
 
@@ -199,11 +250,11 @@ class ResourceTickJob implements ShouldQueue
      *     oasis_bonus: array<string, float>
      * }
      */
-    private function calculateProduction(Village $village): array
+    private function calculateProduction(Village $village, VillageUpkeepService $upkeepService): array
     {
         $base = $this->normaliseResourceMap((array) ($village->production ?? []));
         $building = array_fill_keys(self::RESOURCE_KEYS, 0.0);
-        $oasisPercent = array_fill_keys(self::RESOURCE_KEYS, 0.0);
+        $oasisPercent = $this->calculateOwnedOasisPercent($village);
 
         /** @var EloquentCollection<int, VillageResource> $resources */
         $resources = $village->getRelation('resources');
@@ -242,22 +293,57 @@ class ResourceTickJob implements ShouldQueue
             }
         }
 
-        $perHour = [];
+        $perHourRaw = [];
         $oasisBonusValues = [];
 
         foreach (self::RESOURCE_KEYS as $resource) {
             $baseProduction = $base[$resource] + $building[$resource];
             $oasisProduction = $baseProduction * ($oasisPercent[$resource] / 100);
-            $perHour[$resource] = round($baseProduction + $oasisProduction, 4);
+            $perHourRaw[$resource] = $baseProduction + $oasisProduction;
             $oasisBonusValues[$resource] = round($oasisProduction, 4);
         }
+
+        $upkeep = $upkeepService->calculate($village);
+        $perHourRaw['crop'] -= (float) ($upkeep['per_hour'] ?? 0.0);
+
+        $perHour = array_map(static fn (float $value): float => round($value, 4), $perHourRaw);
 
         return [
             'per_hour' => $perHour,
             'base' => $base,
             'building' => $building,
             'oasis_bonus' => $oasisBonusValues,
+            'upkeep' => $upkeep,
         ];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function calculateOwnedOasisPercent(Village $village): array
+    {
+        $percent = array_fill_keys(self::RESOURCE_KEYS, 0.0);
+
+        $ownedOases = $village->getRelation('ownedOases');
+
+        if (! $ownedOases instanceof EloquentCollection) {
+            $ownedOases = $village->ownedOases()->select(['id', 'type'])->get();
+        }
+
+        foreach ($ownedOases as $oasis) {
+            $type = (int) ($oasis->type ?? 0);
+            $bonuses = self::OASIS_TYPE_PRODUCTION_BONUSES[$type] ?? [];
+
+            foreach ($bonuses as $resource => $value) {
+                if (! in_array($resource, self::RESOURCE_KEYS, true)) {
+                    continue;
+                }
+
+                $percent[$resource] += (float) $value;
+            }
+        }
+
+        return $percent;
     }
 
     /**
@@ -302,6 +388,129 @@ class ResourceTickJob implements ShouldQueue
         }
 
         return array_map(static fn (float $value): float => max(0.0, round($value, 4)), $capacities);
+    }
+
+    /**
+     * @param array<string, mixed> $storage
+     *
+     * @return array<string, float>
+     */
+    private function extractReservations(array $storage): array
+    {
+        $reservations = [];
+        $rawReservations = $storage['reservations'] ?? [];
+
+        foreach (self::RESOURCE_KEYS as $resource) {
+            $value = is_array($rawReservations) ? ($rawReservations[$resource] ?? 0) : 0;
+            $reservations[$resource] = is_numeric($value) ? (float) $value : 0.0;
+        }
+
+        return $reservations;
+    }
+
+    /**
+     * @param array<string, float> $reservations
+     * @param array<string, float> $balances
+     *
+     * @return array<string, float>
+     */
+    private function reconcileReservations(array $reservations, array $balances): array
+    {
+        $clamped = [];
+
+        foreach (self::RESOURCE_KEYS as $resource) {
+            $requested = (float) ($reservations[$resource] ?? 0.0);
+            $available = (float) ($balances[$resource] ?? 0.0);
+
+            $clamped[$resource] = round(max(0.0, min($requested, $available)), 4);
+        }
+
+        return $clamped;
+    }
+
+    /**
+     * @param array<string, mixed> $storage
+     * @param array<string, float> $reservations
+     *
+     * @return array<string, mixed>
+     */
+    private function updateStorageReservations(array $storage, array $reservations): array
+    {
+        $filtered = array_filter(
+            array_map(static fn (float $value): float => round($value, 4), $reservations),
+            static fn (float $value): bool => $value > 0.0,
+        );
+
+        if ($filtered === []) {
+            unset($storage['reservations']);
+
+            return $storage;
+        }
+
+        $storage['reservations'] = $filtered;
+
+        return $storage;
+    }
+
+    /**
+     * @param array<string, float> $balances
+     * @param array<string, float> $capacities
+     * @param array<string, float> $reservations
+     *
+     * @return array<int, array<string, float|int|string>>
+     */
+    private function detectStorageWarnings(
+        array $balances,
+        array $capacities,
+        array $reservations = []
+    ): array {
+        $warnings = [];
+
+        foreach (self::RESOURCE_KEYS as $resource) {
+            $capacity = (float) ($capacities[$resource] ?? 0.0);
+
+            if ($capacity <= 0.0) {
+                continue;
+            }
+
+            $amount = (float) ($balances[$resource] ?? 0.0);
+            $percent = $capacity > 0.0 ? ($amount / $capacity) * 100.0 : 0.0;
+
+            if ($percent < 90.0) {
+                continue;
+            }
+
+            $reserved = (float) ($reservations[$resource] ?? 0.0);
+
+            $warnings[] = [
+                'resource' => $resource,
+                'amount' => round($amount, 4),
+                'capacity' => round($capacity, 4),
+                'percent' => round(min($percent, 100.0), 2),
+                'reserved' => round($reserved, 4),
+                'available' => round(max(0.0, $amount - $reserved), 4),
+                'threshold' => 90.0,
+            ];
+        }
+
+        return array_values($warnings);
+    }
+
+    /**
+     * @param array<string, float> $reservations
+     *
+     * @return array<string, float>
+     */
+    private function normaliseReservationMap(array $reservations): array
+    {
+        $normalised = [];
+
+        foreach (self::RESOURCE_KEYS as $resource) {
+            $value = $reservations[$resource] ?? 0.0;
+            $normalised[$resource] = is_numeric($value) ? round((float) $value, 4) : 0.0;
+        }
+
+        return $normalised;
     }
 
     private function buildChannelName(int $villageId): string

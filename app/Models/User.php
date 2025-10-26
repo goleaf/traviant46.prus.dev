@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\StaffRole;
+use App\Models\Game\Village as GameVillage;
 use App\Notifications\QueuedPasswordResetNotification;
 use App\Notifications\QueuedVerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -50,9 +51,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'race',
+        'tribe',
         'current_alliance_id',
         'sit1_uid',
         'sit2_uid',
+        'sitter_permission_matrix',
         'last_owner_login_at',
         'last_login_at',
         'last_login_ip',
@@ -61,6 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'ban_issued_at',
         'ban_expires_at',
         'is_banned',
+        'beginner_protection_until',
     ];
 
     /**
@@ -90,8 +95,12 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'ban_issued_at' => 'datetime',
             'ban_expires_at' => 'datetime',
+            'beginner_protection_until' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'is_banned' => 'bool',
+            'sitter_permission_matrix' => 'array',
+            'race' => 'integer',
+            'tribe' => 'integer',
         ];
     }
 
@@ -121,7 +130,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function villages(): HasMany
     {
-        return $this->hasMany(Village::class);
+        return $this->hasMany(GameVillage::class);
     }
 
     public function alliance(): BelongsTo

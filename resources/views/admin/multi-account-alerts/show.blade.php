@@ -40,6 +40,12 @@
                             </dd>
                         </div>
                         <div>
+                            <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">World</dt>
+                            <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {{ $alert->world_id ?? 'Global' }}
+                            </dd>
+                        </div>
+                        <div>
                             <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">First seen</dt>
                             <dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ optional($alert->first_seen_at)->toDayDateTimeString() ?? 'Unknown' }}</dd>
                         </div>

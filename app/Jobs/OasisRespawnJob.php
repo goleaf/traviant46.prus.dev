@@ -54,12 +54,12 @@ class OasisRespawnJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public string $queue = 'automation';
-
     public function __construct(
         private readonly int $chunkSize = 50,
         private readonly int $respawnIntervalMinutes = self::DEFAULT_RESPAWN_INTERVAL_MINUTES,
-    ) {}
+    ) {
+        $this->onQueue('automation');
+    }
 
     public function handle(): void
     {

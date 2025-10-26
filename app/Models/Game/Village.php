@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -36,6 +37,7 @@ class Village extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'world_id',
         'legacy_kid',
         'user_id',
         'alliance_id',
@@ -83,6 +85,11 @@ class Village extends Model
         'production_rates',
     ];
 
+    public function world(): BelongsTo
+    {
+        return $this->belongsTo(World::class);
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -95,7 +102,7 @@ class Village extends Model
 
     public function buildings(): HasMany
     {
-        return $this->hasMany(Building::class);
+        return $this->hasMany(VillageBuilding::class);
     }
 
     public function units(): HasMany
@@ -128,6 +135,21 @@ class Village extends Model
         return $this->hasMany(ReinforcementGarrison::class, 'home_village_id');
     }
 
+    public function marketOffers(): HasMany
+    {
+        return $this->hasMany(MarketOffer::class);
+    }
+
+    public function outgoingTrades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'origin');
+    }
+
+    public function incomingTrades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'target');
+    }
+
     public function capturedUnits(): HasMany
     {
         return $this->hasMany(CapturedUnit::class, 'captor_village_id');
@@ -138,9 +160,24 @@ class Village extends Model
         return $this->hasMany(VillageResource::class);
     }
 
+    public function ownedOases(): BelongsToMany
+    {
+        return $this->belongsToMany(WorldOasis::class, 'oasis_ownerships', 'village_id', 'oasis_id');
+    }
+
     public function buildingUpgrades(): HasMany
     {
         return $this->hasMany(VillageBuildingUpgrade::class);
+    }
+
+    public function buildQueues(): HasMany
+    {
+        return $this->hasMany(BuildQueue::class);
+    }
+
+    public function trainingBatches(): HasMany
+    {
+        return $this->hasMany(UnitTrainingBatch::class);
     }
 
     public function getCoordinatesAttribute(): array

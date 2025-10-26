@@ -7,27 +7,16 @@ namespace App\Services\Security;
 use App\Enums\MultiAccountAlertSeverity;
 use App\Enums\MultiAccountAlertStatus;
 use App\Models\LoginActivity;
-use App\Models\MultiAccountAlert;
-use App\Models\User;
-use App\Monitoring\Metrics\MetricRecorder;
-use App\Notifications\MultiAccountAlertRaised;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Notifications\Notification as IlluminateNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
-use Throwable;
 
 class MultiAccountDetector
 {
-    protected bool $suppressNotifications = false;
-
     public function __construct(
         protected MultiAccountRules $rules,
-        protected MetricRecorder $metrics,
+        protected MultiAccountAlertsService $alerts,
     ) {}
 
     public function record(LoginActivity $activity): void
@@ -85,6 +74,8 @@ class MultiAccountDetector
             ->unique()
             ->values();
 
+        $worldId = is_string($activity->world_id) ? trim($activity->world_id) : null;
+
         $activities = LoginActivity::query()
             ->when($sourceType === 'ip', function (Builder $query) use ($normalizedMatches): Builder {
                 if ($normalizedMatches->isEmpty()) {
@@ -107,6 +98,7 @@ class MultiAccountDetector
                 });
             })
             ->when($sourceType === 'device', fn ($query) => $query->where('device_hash', $identifier))
+            ->when($worldId !== null && $worldId !== '', fn (Builder $query) => $query->where('world_id', $worldId))
             ->whereBetween('logged_at', [$windowStart, $activity->logged_at ?? $activity->created_at ?? now()])
             ->orderBy('logged_at')
             ->get();
@@ -127,58 +119,50 @@ class MultiAccountDetector
             return;
         }
 
-        $groupKey = $this->buildGroupKey($sourceType, $identifier, $userIds);
-
-        $alert = MultiAccountAlert::query()->firstOrNew(['group_key' => $groupKey]);
-        $wasExisting = $alert->exists;
-
-        if (! $alert->exists) {
-            $alert->alert_id = (string) Str::uuid();
-            $alert->first_seen_at = $activities->first()->logged_at ?? $activities->first()->created_at;
-        }
-
+        $groupKey = $this->buildGroupKey($sourceType, $identifier, $userIds, $worldId);
         $status = $suppressionReason !== null
             ? MultiAccountAlertStatus::Suppressed
             : MultiAccountAlertStatus::Open;
 
-        $alert->fill([
-            'source_type' => $sourceType,
-            'ip_address' => $activity->ip_address,
-            'ip_address_hash' => $activity->ip_address_hash,
-            'device_hash' => $sourceType === 'device' ? $identifier : $activity->device_hash,
-            'user_ids' => $userIds->all(),
-            'occurrences' => $occurrences,
-            'window_started_at' => $activities->first()->logged_at ?? $activities->first()->created_at,
-            'last_seen_at' => $activities->last()->logged_at ?? $activities->last()->created_at,
-            'severity' => $severity ?? MultiAccountAlertSeverity::Low,
-            'status' => $status,
-            'suppression_reason' => $suppressionReason,
-            'metadata' => $this->buildMetadata($sourceType, $identifier, $activities, $vpnSuspected, $normalizedMatches->all()),
-        ])->save();
+        $firstActivity = $activities->first();
+        $lastActivity = $activities->last();
 
-        $this->metrics->increment('security.multi_account_alert', 1.0, [
-            'state' => $wasExisting ? 'updated' : 'created',
-            'source' => $sourceType,
-            'severity' => $alert->severity?->value ?? 'unknown',
-            'status' => $status->value,
-            'suppressed' => $status === MultiAccountAlertStatus::Suppressed ? 'yes' : 'no',
-        ]);
+        $windowStartedAt = $firstActivity?->logged_at ?? $firstActivity?->created_at;
+        $lastSeenAt = $lastActivity?->logged_at ?? $lastActivity?->created_at;
+        $firstSeenAt = $firstActivity?->logged_at ?? $firstActivity?->created_at;
 
-        if ($status === MultiAccountAlertStatus::Open) {
-            $this->maybeNotify($alert);
-        }
+        $this->alerts->upsert(
+            groupKey: $groupKey,
+            sourceType: $sourceType,
+            worldId: $worldId,
+            ipAddress: $activity->ip_address,
+            ipAddressHash: $activity->ip_address_hash,
+            deviceHash: $sourceType === 'device' ? $identifier : $activity->device_hash,
+            userIds: $userIds->all(),
+            occurrences: $occurrences,
+            windowStartedAt: $windowStartedAt,
+            firstSeenAt: $firstSeenAt,
+            lastSeenAt: $lastSeenAt,
+            severity: $severity,
+            status: $status,
+            suppressionReason: $suppressionReason,
+            metadata: $this->buildMetadata(
+                $sourceType,
+                $identifier,
+                $activities,
+                $vpnSuspected,
+                $normalizedMatches->all(),
+                $worldId,
+            ),
+            shouldNotify: $status === MultiAccountAlertStatus::Open,
+        );
     }
 
     public function withoutNotifications(callable $callback): void
     {
-        $previous = $this->suppressNotifications;
-        $this->suppressNotifications = true;
-
-        try {
+        $this->alerts->withoutNotifications(function () use ($callback): void {
             $callback($this);
-        } finally {
-            $this->suppressNotifications = $previous;
-        }
+        });
     }
 
     protected function determineSeverity(int $uniqueUsers, int $occurrences, bool $vpnSuspected): ?MultiAccountAlertSeverity
@@ -228,16 +212,18 @@ class MultiAccountDetector
         };
     }
 
-    protected function buildGroupKey(string $sourceType, string $identifier, Collection $userIds): string
+    protected function buildGroupKey(string $sourceType, string $identifier, Collection $userIds, ?string $worldId): string
     {
-        return sha1($sourceType.'|'.$identifier.'|'.implode('-', $userIds->all()));
+        $context = $worldId !== null && $worldId !== '' ? $worldId : 'global';
+
+        return sha1($context.'|'.$sourceType.'|'.$identifier.'|'.implode('-', $userIds->all()));
     }
 
     /**
      * @param EloquentCollection<int, LoginActivity> $activities
      * @return array<string, mixed>
      */
-    protected function buildMetadata(string $sourceType, string $identifier, EloquentCollection $activities, bool $vpnSuspected, array $matchIdentifiers): array
+    protected function buildMetadata(string $sourceType, string $identifier, EloquentCollection $activities, bool $vpnSuspected, array $matchIdentifiers, ?string $worldId): array
     {
         $timeline = $activities
             ->sortByDesc(static fn (LoginActivity $activity): ?Carbon => $activity->logged_at ?? $activity->created_at)
@@ -249,6 +235,7 @@ class MultiAccountDetector
                     'via_sitter' => $activity->via_sitter,
                     'ip_address' => $activity->ip_address,
                     'ip_address_hash' => $activity->ip_address_hash,
+                    'world_id' => $activity->world_id,
                     'logged_at' => optional($activity->logged_at ?? $activity->created_at)->toAtomString(),
                 ];
             })
@@ -268,118 +255,9 @@ class MultiAccountDetector
                 'identifiers' => array_values(array_unique(array_filter($matchIdentifiers))),
             ],
             'vpn_suspected' => $vpnSuspected,
+            'world_id' => $worldId,
             'user_counts' => $countsByUser,
             'recent_timeline' => $timeline,
         ];
-    }
-
-    protected function maybeNotify(MultiAccountAlert $alert): void
-    {
-        if ($this->suppressNotifications) {
-            return;
-        }
-
-        $severity = $alert->severity;
-        if (! $severity instanceof MultiAccountAlertSeverity) {
-            return;
-        }
-
-        if (! in_array($severity, [MultiAccountAlertSeverity::High, MultiAccountAlertSeverity::Critical], true)) {
-            return;
-        }
-
-        $cooldown = (int) config('multiaccount.notifications.cooldown_minutes', 60);
-        if ($alert->last_notified_at !== null && $alert->last_notified_at->diffInMinutes(now()) < $cooldown) {
-            return;
-        }
-
-        $notification = $this->buildNotification($alert);
-        if ($notification === null) {
-            return;
-        }
-
-        $recipients = $this->resolveRecipients();
-        if ($recipients->isNotEmpty()) {
-            Notification::send($recipients, $notification);
-
-            $this->metrics->increment('security.multi_account_notification', 1.0, [
-                'channel' => 'broadcast',
-                'severity' => $severity->value,
-            ]);
-        }
-
-        if ($this->sendWebhook($alert)) {
-            $this->metrics->increment('security.multi_account_notification', 1.0, [
-                'channel' => 'webhook',
-                'severity' => $severity->value,
-            ]);
-        }
-
-        $alert->forceFill([
-            'last_notified_at' => now(),
-        ])->save();
-    }
-
-    protected function buildNotification(MultiAccountAlert $alert): ?IlluminateNotification
-    {
-        return new MultiAccountAlertRaised($alert);
-    }
-
-    /**
-     * @return EloquentCollection<int, User>
-     */
-    protected function resolveRecipients(): EloquentCollection
-    {
-        return User::query()
-            ->whereIn('legacy_uid', [0, 2])
-            ->get();
-    }
-
-    protected function sendWebhook(MultiAccountAlert $alert): bool
-    {
-        $webhookUrl = config('multiaccount.notifications.webhook_url');
-        if ($webhookUrl === null || $webhookUrl === '') {
-            return false;
-        }
-
-        try {
-            $response = Http::timeout(5)->post($webhookUrl, [
-                'alert_id' => $alert->alert_id,
-                'severity' => $alert->severity?->value,
-                'status' => $alert->status?->value,
-                'source_type' => $alert->source_type,
-                'device_hash' => $alert->device_hash,
-                'ip_address' => $alert->ip_address,
-                'ip_address_hash' => $alert->ip_address_hash,
-                'user_ids' => $alert->user_ids,
-                'occurrences' => $alert->occurrences,
-                'last_seen_at' => optional($alert->last_seen_at)->toAtomString(),
-                'metadata' => $alert->metadata,
-            ]);
-
-            return $response->successful();
-        } catch (Throwable) {
-            return false;
-        }
-    }
-
-    public function dismissAlert(MultiAccountAlert $alert, User $actor, ?string $notes = null): void
-    {
-        $alert->forceFill([
-            'status' => MultiAccountAlertStatus::Dismissed,
-            'dismissed_at' => now(),
-            'dismissed_by_user_id' => $actor->getKey(),
-            'notes' => $notes,
-        ])->save();
-    }
-
-    public function resolveAlert(MultiAccountAlert $alert, User $actor, ?string $notes = null): void
-    {
-        $alert->forceFill([
-            'status' => MultiAccountAlertStatus::Resolved,
-            'resolved_at' => now(),
-            'resolved_by_user_id' => $actor->getKey(),
-            'notes' => $notes,
-        ])->save();
     }
 }

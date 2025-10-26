@@ -39,4 +39,7 @@ return [
             'global_unread_threshold' => 10,
         ],
     ],
+    'movements' => [
+        'cancel_window_seconds' => (int) env('GAME_MOVEMENT_CANCEL_WINDOW_SECONDS', 60),
+    ],
 ];

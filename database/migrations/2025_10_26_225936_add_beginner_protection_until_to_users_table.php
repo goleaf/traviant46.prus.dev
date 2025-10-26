@@ -14,7 +14,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            if (! Schema::hasColumn('users', 'beginner_protection_until')) {
+                $table->timestamp('beginner_protection_until')->nullable()->after('ban_expires_at');
+            }
         });
     }
 
@@ -24,7 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('users', 'beginner_protection_until')) {
+                $table->dropColumn('beginner_protection_until');
+            }
         });
     }
 };

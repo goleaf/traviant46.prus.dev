@@ -49,7 +49,7 @@ class VillageBuildingUpgrade extends Model
 
     public function building(): BelongsTo
     {
-        return $this->belongsTo(Building::class, 'village_building_id');
+        return $this->belongsTo(VillageBuilding::class, 'village_building_id');
     }
 
     public function buildingType(): BelongsTo
