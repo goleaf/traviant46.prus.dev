@@ -90,7 +90,7 @@
                         wire:key="address-book-{{ $contact['id'] }}"
                         size="sm"
                         variant="outline"
-                        wire:click="$set('recipient', '{{ $contact['username'] }}')"
+                        wire:click="fillRecipient('{{ addslashes($contact['username']) }}')"
                     >
                         {{ $contact['username'] }}
                         @if (! empty($contact['name']))

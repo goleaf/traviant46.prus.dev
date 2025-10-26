@@ -10,7 +10,6 @@ use App\Models\Game\VillageBuildingUpgrade;
 use App\Models\Game\VillageResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -75,8 +74,6 @@ function createVillageWithEconomy(User $user): array
 }
 
 it('renders live resource snapshot and queue summary', function (): void {
-    Carbon::setTestNow(now());
-
     $user = User::factory()->create();
     [$village] = createVillageWithEconomy($user);
 
@@ -88,13 +85,11 @@ it('renders live resource snapshot and queue summary', function (): void {
         ->assertSet('storage.wood', 6400.0)
         ->assertSet('queueSummary.entries.0.target_level', 6)
         ->assertSet('queueSummary.entries.0.building_name', 'Main Building')
-        ->assertNotNull('lastTickAt')
-        ->assertNotNull('snapshotGeneratedAt');
+        ->assertSet('lastTickAt', static fn ($value) => is_string($value) && $value !== '')
+        ->assertSet('snapshotGeneratedAt', static fn ($value) => is_string($value) && $value !== '');
 });
 
 it('updates queue from database when build completion payload is empty', function (): void {
-    Carbon::setTestNow(now());
-
     $user = User::factory()->create();
     [$village, $upgrade] = createVillageWithEconomy($user);
 

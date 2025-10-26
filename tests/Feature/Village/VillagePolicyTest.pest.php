@@ -74,7 +74,7 @@ it('requires build permission for a sitter to view village infrastructure', func
         'user_id' => $owner->getKey(),
     ]);
 
-    SitterDelegation::query()->create([
+    $delegation = SitterDelegation::query()->create([
         'owner_user_id' => $owner->getKey(),
         'sitter_user_id' => $sitter->getKey(),
         'permissions' => SitterPermission::Farm->value,

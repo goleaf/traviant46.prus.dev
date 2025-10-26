@@ -134,7 +134,12 @@ class Compose extends Component
 
         $this->reset(['subject', 'body', 'replyingTo']);
 
-        $this->dispatch('message-sent');
+        $this->dispatch('message-sent', status: $this->statusMessage);
+    }
+
+    public function fillRecipient(string $username): void
+    {
+        $this->recipient = trim($username);
     }
 
     public function render(): View

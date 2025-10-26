@@ -7,6 +7,9 @@ use App\Models\Game\Adventure;
 use App\Models\Game\Village;
 use App\Models\User;
 use App\Support\ShardResolver;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 it('defaults to a single shard when configuration is zero', function (): void {
     config()->set('game.shards', 0);
@@ -63,4 +66,3 @@ it('applies shard constraints to queries', function (): void {
     expect($ids)->toContain($adventureOne->id)
         ->and($ids)->not->toContain($adventureTwo->id);
 });
-
