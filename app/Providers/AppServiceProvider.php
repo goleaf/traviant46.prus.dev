@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Provisioning\InfrastructureApiClient;
+use App\Support\Storefront\StorefrontRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +18,12 @@ class AppServiceProvider extends ServiceProvider
                 $app['config']->get('provisioning.infrastructure', [])
             );
         });
+
+        $this->app->singleton(StorefrontRepository::class, function ($app): StorefrontRepository {
+            return new StorefrontRepository(
+                $app['config']->get('storefront', [])
+            );
+        });
     }
 
     /**
@@ -24,6 +31,5 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
     }
 }
