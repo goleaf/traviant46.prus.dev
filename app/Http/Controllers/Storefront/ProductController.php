@@ -9,6 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
+    /**
+     * 1200x630 PNG optimized for social sharing stored under public/images/storefront.
+     */
+    private const DEFAULT_PRODUCT_SOCIAL_PREVIEW = 'images/storefront/product-og.png';
+
     public function __invoke(Request $request, StorefrontRepository $repository, string $product): Response
     {
         $productData = $repository->findProduct($product);
@@ -27,7 +32,7 @@ class ProductController extends Controller
             'meta' => [
                 'title' => $meta['title'],
                 'description' => $meta['description'],
-                'image' => asset($productData['image'] ?? 'images/storefront/product-og.jpg'),
+                'image' => asset($productData['image'] ?? self::DEFAULT_PRODUCT_SOCIAL_PREVIEW),
             ],
         ]);
     }

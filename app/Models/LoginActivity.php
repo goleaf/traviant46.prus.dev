@@ -15,8 +15,6 @@ class LoginActivity extends Model
     use HasFactory;
     use Prunable;
 
-    private const PRUNING_WINDOW_DAYS = 90;
-
     protected $fillable = [
         'user_id',
         'acting_sitter_id',
@@ -83,7 +81,13 @@ class LoginActivity extends Model
 
     public function prunable(): Builder
     {
+        $retentionDays = (int) config('security.ip_retention.login_days', 90);
+
+        if ($retentionDays <= 0) {
+            return static::query()->whereRaw('0 = 1');
+        }
+
         return static::query()
-            ->where('logged_at', '<', Carbon::now()->subDays(self::PRUNING_WINDOW_DAYS));
+            ->where('logged_at', '<', Carbon::now()->subDays($retentionDays));
     }
 }

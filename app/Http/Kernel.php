@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureAccountNotBanned;
 use App\Http\Middleware\EnsureAccountVerified;
 use App\Http\Middleware\EnsureGameIsAccessible;
 use App\Http\Middleware\EnforceSessionTtl;
+use App\Http\Middleware\InjectRequestContext;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Configuration\Middleware as MiddlewareConfig;
 
@@ -16,6 +17,8 @@ class Kernel
 {
     public static function register(MiddlewareConfig $middleware): void
     {
+        $middleware->prepend(InjectRequestContext::class);
+
         $middleware->alias([
             'game.maintenance' => EnsureGameIsAccessible::class,
             'game.banned' => EnsureAccountNotBanned::class,

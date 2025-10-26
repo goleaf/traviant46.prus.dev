@@ -897,7 +897,7 @@ For EACH table:
 - **AllianceForum**, **ForumTopic**, **ForumPost**
 - **MapTile** (from wdata), **Oasis** (from odata)
 - **LoginActivity** (keep from backend), **MultiAccountAlert** (keep)
-- **SitterAssignment** (keep from backend)
+- **SitterDelegation** (keep from backend)
 
 ## Phase 4: Service Layer (30+ Services)
 

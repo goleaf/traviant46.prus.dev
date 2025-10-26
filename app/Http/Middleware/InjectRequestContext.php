@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
 use Sentry\State\Scope;
@@ -53,14 +52,6 @@ class InjectRequestContext
                         'ip' => $request->ip(),
                     ],
                 ]);
-
-                if ($user !== null) {
-                    Bugsnag::setUser([
-                        'id' => $user->getAuthIdentifier(),
-                        'email' => $user->email ?? null,
-                        'name' => $user->name ?? null,
-                    ]);
-                }
             }
 
             /** @var Response $response */
@@ -72,4 +63,3 @@ class InjectRequestContext
         });
     }
 }
-

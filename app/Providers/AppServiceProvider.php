@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Console\Commands\SecuredKeyGenerateCommand;
 use App\Services\Provisioning\InfrastructureApiClient;
 use App\Services\Security\IpAnonymizer;
+use App\Services\Security\MultiAccountRules;
 use Illuminate\Foundation\Console\KeyGenerateCommand;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +35,17 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(IpAnonymizer::class, function ($app): IpAnonymizer {
             return new IpAnonymizer(
                 $app['config']->get('privacy.ip', []),
+            );
+        });
+
+        $this->app->singleton(MultiAccountRules::class, function ($app): MultiAccountRules {
+            return new MultiAccountRules(
+                $app['config']->get('multiaccount.allowlist', [
+                    'ip_addresses' => [],
+                    'cidr_ranges' => [],
+                    'device_hashes' => [],
+                ]),
+                $app['config']->get('multiaccount.vpn_indicators', []),
             );
         });
     }

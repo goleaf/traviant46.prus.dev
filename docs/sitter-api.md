@@ -94,13 +94,15 @@ Returns all sitter delegations, eager loading sitter metadata and revealing sitt
 ```json
 {
   "sitter_username": "faction_mate",
-  "permissions": ["marketplace.manage", "village.view_only"],
+  "permissions": ["marketplace.manage", "army.send"],
+  "preset": "custom",
   "expires_at": "2025-03-01T09:00:00Z"
 }
 ```
 
-- The combination of `owner_user_id` (account owner) and `sitter_user_id` (delegated sitter) is unique. Reposting updates permissions and expiry.
-- Assignments are idempotent; updating returns `201 Created` with the refreshed resource.
+- The combination of account owner and sitter user is unique; resubmitting updates the existing delegation.
+- If `preset` is `"full"` or the explicit permissions cover every available permission, the API stores `permissions` as `null`.
+- A newly created delegation returns `201 Created`; updates return `200 OK`.
 
 #### Success Response
 
@@ -110,19 +112,17 @@ HTTP `201 Created`
 {
   "data": {
     "id": 7,
-    "owner_user_id": 18,
-    "sitter_user_id": 37,
-    "permissions": ["marketplace.manage", "village.view_only"],
-    "expires_at": "2025-03-01T09:00:00Z",
-    "created_by": 18,
-    "updated_by": 18,
-    "created_at": "2025-02-18T16:12:58Z",
-    "updated_at": "2025-02-18T16:15:09Z",
     "sitter": {
       "id": 37,
       "username": "faction_mate",
       "name": "Faction Mate"
-    }
+    },
+    "permissions": ["marketplace.manage", "army.send"],
+    "effective_permissions": ["marketplace.manage", "army.send"],
+    "preset": "custom",
+    "expires_at": "2025-03-01T09:00:00Z",
+    "created_at": "2025-02-18T16:12:58Z",
+    "updated_at": "2025-02-18T16:15:09Z"
   }
 }
 ```
@@ -132,7 +132,7 @@ HTTP `201 Created`
 `DELETE /sitters/{sitter}`
 
 - The `{sitter}` parameter uses the sitter's numeric user ID (resolved via route model binding).
-- Detaches both the pivot (`user_sitters`) and row in `sitter_delegations`.
+- Deletes the matching row from `sitter_delegations`; legacy synchronisation jobs update auxiliary pivots.
 
 #### Success Response
 
@@ -147,10 +147,11 @@ HTTP `204 No Content`
 | Username does not exist | `422 Unprocessable Entity` | `{"errors":{"sitter_username":["The selected sitter username is invalid."]}}` |
 | Assigning self | `422 Unprocessable Entity` | `{"message":"You cannot assign yourself as a sitter."}` |
 | Invalid permissions payload | `422 Unprocessable Entity` | Validation errors for `permissions` or `permissions.*` |
+| Invalid preset | `422 Unprocessable Entity` | `{"errors":{"preset":["The selected preset is invalid."]}}` |
 | Expiry parse failure | `422 Unprocessable Entity` | `expires_at` must be a valid date string |
 
 ## Operational Notes
 
 - Use `SitterDelegation::active()` to filter out expired rows when building dashboards.
-- API responses include `acting_as_sitter` and `acting_sitter_id` to surface when the current session is operating under delegated access, enabling clients to display context warnings.
-- Rate limiting leverages core Laravel middleware; heavy automation should back off on 429 responses.
+- API responses include `acting_as_sitter`, `acting_sitter_id`, `available_permissions`, and `presets` so clients can render UI controls without hardcoding options.
+- Rate limiting leverages core Laravel middleware; heavy automation should back off on HTTP `429 Too Many Requests`.

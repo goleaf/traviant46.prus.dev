@@ -1,36 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Models\SitterDelegation;
+use App\Models\User;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class DelegationUpdated
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
-     * Create a new event instance.
+     * @param list<string> $changedAttributes
      */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    public function broadcastOn(): array
-    {
-        return [
-            new PrivateChannel('channel-name'),
-        ];
+    public function __construct(
+        public readonly SitterDelegation $delegation,
+        public readonly User $actor,
+        public readonly array $changedAttributes,
+    ) {
+        $this->delegation->loadMissing('owner', 'sitter');
     }
 }

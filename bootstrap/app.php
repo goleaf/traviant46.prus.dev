@@ -56,17 +56,23 @@ return Application::configure(basePath: dirname(__DIR__))
             $headerPreference = 'aws';
         }
 
+        $forwardedAll = SymfonyRequest::HEADER_X_FORWARDED_FOR
+            | SymfonyRequest::HEADER_X_FORWARDED_HOST
+            | SymfonyRequest::HEADER_X_FORWARDED_PROTO
+            | SymfonyRequest::HEADER_X_FORWARDED_PORT
+            | SymfonyRequest::HEADER_X_FORWARDED_PREFIX;
+
         $headerMap = [
-            'forwarded' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
-            'x-forwarded' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
+            'forwarded' => $forwardedAll,
+            'x-forwarded' => $forwardedAll,
             'aws' => SymfonyRequest::HEADER_X_FORWARDED_AWS_ELB,
-            'cloudflare' => SymfonyRequest::HEADER_X_FORWARDED_ALL,
-            'none' => SymfonyRequest::HEADER_X_FORWARDED_NONE,
+            'cloudflare' => $forwardedAll,
+            'none' => 0,
         ];
 
         $middleware->trustProxies(
             at: $trustedProxies === [] ? null : $trustedProxies,
-            headers: $headerMap[$headerPreference] ?? SymfonyRequest::HEADER_X_FORWARDED_ALL,
+            headers: $headerMap[$headerPreference] ?? $forwardedAll,
         );
 
         $middleware->use([

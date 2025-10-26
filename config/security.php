@@ -139,6 +139,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Authentication Cache
+    |--------------------------------------------------------------------------
+    |
+    | Tune the caching strategy for authentication related lookups. These
+    | values control how aggressively user and activation queries are cached,
+    | along with sitter permission sets that power delegation experiences.
+    |
+    */
+
+    'cache' => [
+        'store' => env('SECURITY_CACHE_STORE'),
+        'auth_lookup_ttl' => (int) env('SECURITY_CACHE_AUTH_LOOKUP_TTL', 300),
+        'activation_lookup_ttl' => (int) env('SECURITY_CACHE_ACTIVATION_LOOKUP_TTL', 300),
+        'permission_set_ttl' => (int) env('SECURITY_CACHE_PERMISSION_SET_TTL', 180),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Mail Queue Defaults
     |--------------------------------------------------------------------------
     |
@@ -157,4 +175,3 @@ return [
     ],
 
 ];
-
