@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\CampaignCustomerSegmentController;
 use App\Http\Controllers\SitterController;
+use App\Http\Controllers\Storefront\CheckoutController;
+use App\Http\Controllers\Storefront\ProductController;
 use App\Livewire\Account\BannedNotice;
 use App\Livewire\Account\VerificationPrompt;
 use App\Livewire\System\MaintenanceNotice;
@@ -10,6 +12,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('login');
 })->name('landing');
+
+/**
+ * Public storefront pages expose the catalogue, cart, checkout, and product detail experiences.
+ */
+Route::prefix('storefront')->name('storefront.')->group(function () {
+    Route::view('/catalogue', 'storefront.catalogue')->name('catalogue');
+    Route::view('/cart', 'storefront.cart')->name('cart');
+    Route::get('/checkout', CheckoutController::class)->name('checkout');
+    Route::get('/products/{product}', ProductController::class)->name('products.show');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/maintenance', MaintenanceNotice::class)->name('game.maintenance');
