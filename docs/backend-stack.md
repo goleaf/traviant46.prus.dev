@@ -7,7 +7,7 @@ selected components should be configured and used together.
 
 ## Application Core
 
-- **Laravel 11 + PHP 8.2/8.3** – the base framework for HTTP routing, console
+- **Laravel 12 with PHP 8.2/8.3** – the base framework for HTTP routing, console
   tooling, configuration, and dependency injection.  Keep the framework updated
   via Composer to receive security fixes.
 - **Eloquent ORM** – provides typed models for each table in the redesigned
