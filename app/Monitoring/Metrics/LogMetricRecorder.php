@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Monitoring\Metrics;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class LogMetricRecorder implements MetricRecorder
@@ -65,10 +64,6 @@ class LogMetricRecorder implements MetricRecorder
             }
 
             $filtered[$this->normalizeTagKey($key)] = (string) $value;
-        }
-
-        if (is_callable([Arr::class, 'sortKeys'])) {
-            return Arr::sortKeys($filtered);
         }
 
         ksort($filtered);

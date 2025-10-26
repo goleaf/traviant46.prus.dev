@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 use App\Listeners\LogSuccessfulLogin;
 use App\Models\User;
+use App\Services\Security\DeviceVerificationService;
 use Illuminate\Auth\Events\Login as LoginEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+
+use function Pest\Laravel\mock;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -32,10 +35,9 @@ it('stores a trusted device when the login form requests it', function (): void 
     $request->setUserResolver(fn () => $user);
     app()->instance('request', $request);
 
-    app()->instance(\App\Services\Security\DeviceVerificationService::class, new class
-    {
-        public function notifyIfNewDevice(): void {}
-    });
+    mock(DeviceVerificationService::class)
+        ->shouldReceive('notifyIfNewDevice')
+        ->andReturnNull();
 
     /** @var LogSuccessfulLogin $listener */
     $listener = app(LogSuccessfulLogin::class);

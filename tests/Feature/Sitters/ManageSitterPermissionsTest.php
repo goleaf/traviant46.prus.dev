@@ -27,7 +27,7 @@ it('assigns a sitter and dispatches the assigned event', function (): void {
     $payload = [
         'sitter_username' => $sitter->username,
         'permissions' => ['farm', 'send_troops'],
-        'expires_at' => Carbon::now()->addHours(3)->toIso8601String(),
+        'expires_at' => Carbon::now()->addHours(3)->format('c'),
     ];
 
     $response = actingAs($owner)->postJson('/api/v1/sitters', $payload);
