@@ -1,0 +1,27 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "declare_strict_types": true,
+        "global_namespace_import": {
+            "import_classes": true,
+            "import_constants": true,
+            "import_functions": true
+        },
+        "strict_comparison": true,
+        "strict_param": true,
+        "nullable_type_declaration_for_default_null_value": true,
+        "phpdoc_align": {
+            "align": "left"
+        },
+        "phpdoc_order": true,
+        "phpdoc_separation": false,
+        "phpdoc_summary": false,
+        "phpdoc_var_without_name": false,
+        "trailing_comma_in_multiline": {
+            "elements": [
+                "arrays",
+                "arguments"
+            ]
+        }
+    }
+}

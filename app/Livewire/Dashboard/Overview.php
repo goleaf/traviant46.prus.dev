@@ -3,7 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\LoginActivity;
-use App\Models\SitterAssignment;
+use App\Models\SitterDelegation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -33,26 +33,26 @@ class Overview extends Component
             return;
         }
 
-        $activeAssignments = SitterAssignment::query()
+        $activeAssignments = SitterDelegation::query()
             ->forAccount($user)
             ->active(Date::now())
             ->count();
 
-        $delegatedAccounts = SitterAssignment::query()
+        $delegatedAccounts = SitterDelegation::query()
             ->forSitter($user)
             ->active(Date::now())
             ->count();
 
         $recentLogins = LoginActivity::query()
             ->forUser($user)
-            ->latest('created_at')
+            ->latest('logged_at')
             ->limit(5)
             ->get()
             ->map(fn (LoginActivity $activity) => [
                 'id' => $activity->id,
                 'ip' => $activity->ip_address,
                 'via_sitter' => $activity->via_sitter,
-                'timestamp' => optional($activity->created_at)?->timezone($user->timezone ?? config('app.timezone'))
+                'timestamp' => optional($activity->logged_at ?? $activity->created_at)?->timezone($user->timezone ?? config('app.timezone'))
                     ->isoFormat('MMM D, YYYY • HH:mm'),
             ])
             ->all();

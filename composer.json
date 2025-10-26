@@ -26,6 +26,7 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "nunomaduro/larastan": "^3.0",
         "pestphp/pest": "^3.8",
         "pestphp/pest-plugin-laravel": "^3.2",
         "phpunit/phpunit": "^11.5.3"
@@ -56,6 +57,9 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
         ],
+        "lint": "vendor/bin/pint --dirty",
+        "lint:all": "vendor/bin/pint",
+        "stan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G",
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"

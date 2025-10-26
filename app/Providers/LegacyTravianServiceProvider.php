@@ -106,9 +106,14 @@ final class LegacyTravianServiceProvider extends ServiceProvider
         $repository = $this->app->make(LegacyConfigRepository::class);
         $config = $repository->get();
 
-        $configRepository->set('travian.dynamic', $config->dynamic?->toArray() ?? []);
+        $dynamic = $config->dynamic ?? [];
+        if (is_object($dynamic) && method_exists($dynamic, 'toArray')) {
+            $dynamic = $dynamic->toArray();
+        }
 
-        $dbConfig = $config->db ?? null;
+        $configRepository->set('travian.dynamic', $dynamic ?? []);
+
+        $dbConfig = $config->db ?? [];
         if (is_object($dbConfig) && method_exists($dbConfig, 'toArray')) {
             $dbConfig = $dbConfig->toArray();
         }

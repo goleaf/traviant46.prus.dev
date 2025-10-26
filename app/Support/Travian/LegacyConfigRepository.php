@@ -4,7 +4,7 @@ namespace App\Support\Travian;
 
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\DatabaseManager;
-use RuntimeException;
+use Illuminate\Database\QueryException;
 
 final class LegacyConfigRepository
 {
@@ -17,8 +17,7 @@ final class LegacyConfigRepository
         private readonly array $staticConfig,
         private readonly array $settingsConfig,
         private readonly array $runtimeConfig,
-    ) {
-    }
+    ) {}
 
     public function warm(): void
     {
@@ -41,6 +40,7 @@ final class LegacyConfigRepository
         foreach ($this->settingsConfig as $key => $value) {
             if ($key === 'timers') {
                 $data['timers'] = $value;
+
                 continue;
             }
 
@@ -83,7 +83,7 @@ final class LegacyConfigRepository
         $data['timers']['auto_reinstall'] = $this->settingsConfig['timers']['auto_reinstall']
             ?? $this->connectionConfig['auto_reinstall'] ?? false;
 
-        if (!isset($data['game'])) {
+        if (! isset($data['game'])) {
             $data['game'] = [];
         }
 
@@ -118,15 +118,28 @@ final class LegacyConfigRepository
             : $this->cacheFactory->store();
 
         return $cache->remember($cacheKey, $ttl, function (): array {
-            $row = $this->databaseManager->connection()->table('config')->first();
+            $connection = $this->databaseManager->connection();
+            $schema = $connection->getSchemaBuilder();
 
-            if ($row === null) {
-                throw new RuntimeException('No config row found.');
+            if ($schema === null || ! $schema->hasTable('config')) {
+                return [];
             }
 
-            $data = (array) $row;
+            try {
+                $row = $connection->table('config')->first();
+            } catch (QueryException $exception) {
+                if (str_contains(strtolower($exception->getMessage()), 'no such table')) {
+                    return [];
+                }
 
-            return $data;
+                throw $exception;
+            }
+
+            if ($row === null) {
+                return [];
+            }
+
+            return (array) $row;
         });
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -70,19 +72,19 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', User::class),
         ],
 
         'admins' => [
             'driver' => 'legacy_role',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
-            'legacy_uid' => 0,
+            'model' => env('AUTH_MODEL', User::class),
+            'legacy_uid' => User::LEGACY_ADMIN_UID,
         ],
 
         'multihunters' => [
             'driver' => 'legacy_role',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
-            'legacy_uid' => 2,
+            'model' => env('AUTH_MODEL', User::class),
+            'legacy_uid' => User::LEGACY_MULTIHUNTER_UID,
         ],
 
         // 'users' => [

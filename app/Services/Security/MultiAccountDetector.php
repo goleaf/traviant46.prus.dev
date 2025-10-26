@@ -6,6 +6,8 @@ use App\Models\LoginActivity;
 use App\Models\MultiAccountAlert;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class MultiAccountDetector
 {
@@ -15,28 +17,60 @@ class MultiAccountDetector
             return;
         }
 
-        $conflictingUserIds = LoginActivity::query()
+        $involvedUserIds = LoginActivity::query()
             ->fromIp($ipAddress)
-            ->exceptUser($user)
-            ->distinct()
-            ->pluck('user_id');
+            ->pluck('user_id')
+            ->push($user->getKey())
+            ->unique()
+            ->sort()
+            ->values();
 
-        foreach ($conflictingUserIds as $conflictId) {
-            $this->touchAlert($user->getKey(), (int) $conflictId, $ipAddress, $timestamp);
-            $this->touchAlert((int) $conflictId, $user->getKey(), $ipAddress, $timestamp);
+        if ($involvedUserIds->count() < 2) {
+            return;
         }
+
+        $this->touchAlert($ipAddress, $involvedUserIds, $timestamp);
     }
 
-    protected function touchAlert(int $primaryId, int $conflictId, string $ipAddress, Carbon $timestamp): void
+    protected function touchAlert(string $ipAddress, Collection $userIds, Carbon $timestamp): void
     {
+        $groupKey = $this->buildGroupKey($ipAddress, $userIds);
+
         $alert = MultiAccountAlert::query()->firstOrNew([
-            'ip_address' => $ipAddress,
-            'primary_user_id' => $primaryId,
-            'conflict_user_id' => $conflictId,
+            'group_key' => $groupKey,
         ]);
 
-        $alert->occurrences = $alert->exists ? $alert->occurrences + 1 : 1;
+        if (! $alert->exists) {
+            $alert->alert_id = (string) Str::uuid();
+            $alert->ip_address = $ipAddress;
+            $alert->user_ids = $userIds->all();
+            $alert->first_seen_at = $timestamp;
+        }
+
         $alert->last_seen_at = $timestamp;
+        $alert->severity = $this->determineSeverity($userIds->count(), $timestamp, $alert->first_seen_at);
         $alert->save();
+    }
+
+    protected function buildGroupKey(string $ipAddress, Collection $userIds): string
+    {
+        return sha1($ipAddress.'|'.implode('-', $userIds->all()));
+    }
+
+    protected function determineSeverity(int $userCount, Carbon $lastSeen, ?Carbon $firstSeen): string
+    {
+        if ($userCount >= 4) {
+            return 'high';
+        }
+
+        if ($userCount === 3) {
+            return 'medium';
+        }
+
+        if ($firstSeen !== null && $firstSeen->diffInMinutes($lastSeen) <= 60) {
+            return 'medium';
+        }
+
+        return 'low';
     }
 }

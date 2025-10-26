@@ -24,6 +24,10 @@ class User extends Authenticatable implements MustVerifyEmail
         7 => 'Huns',
     ];
 
+    public const LEGACY_ADMIN_UID = 0;
+    public const LEGACY_MULTIHUNTER_UID = 2;
+    public const FIRST_PLAYER_LEGACY_UID = 3;
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -81,25 +85,25 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sitterAssignments(): HasMany
     {
-        return $this->hasMany(SitterAssignment::class, 'account_id');
+        return $this->hasMany(SitterDelegation::class, 'owner_user_id');
     }
 
     public function sitterRoles(): HasMany
     {
-        return $this->hasMany(SitterAssignment::class, 'sitter_id');
+        return $this->hasMany(SitterDelegation::class, 'sitter_user_id');
     }
 
     public function sitters(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'sitter_assignments', 'account_id', 'sitter_id')
-            ->withPivot(['permissions', 'expires_at'])
+        return $this->belongsToMany(User::class, 'sitter_delegations', 'owner_user_id', 'sitter_user_id')
+            ->withPivot(['permissions', 'expires_at', 'created_by', 'updated_by'])
             ->withTimestamps();
     }
 
     public function accountsDelegatedToMe(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'sitter_assignments', 'sitter_id', 'account_id')
-            ->withPivot(['permissions', 'expires_at'])
+        return $this->belongsToMany(User::class, 'sitter_delegations', 'sitter_user_id', 'owner_user_id')
+            ->withPivot(['permissions', 'expires_at', 'created_by', 'updated_by'])
             ->withTimestamps();
     }
 
@@ -180,9 +184,25 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->where('race', $tribeId);
     }
 
+    /**
+     * @return list<int>
+     */
+    public static function reservedLegacyUids(): array
+    {
+        return [
+            self::LEGACY_ADMIN_UID,
+            self::LEGACY_MULTIHUNTER_UID,
+        ];
+    }
+
+    public static function isReservedLegacyUid(int $legacyUid): bool
+    {
+        return in_array($legacyUid, self::reservedLegacyUids(), true);
+    }
+
     public function isAdmin(): bool
     {
-        if ((int) $this->legacy_uid === 0) {
+        if ((int) $this->legacy_uid === self::LEGACY_ADMIN_UID) {
             return true;
         }
 
@@ -191,7 +211,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isMultihunter(): bool
     {
-        return (int) $this->legacy_uid === 2;
+        return (int) $this->legacy_uid === self::LEGACY_MULTIHUNTER_UID;
     }
 
     public function staffRole(): StaffRole

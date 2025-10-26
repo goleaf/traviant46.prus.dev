@@ -1,13 +1,12 @@
 <?php
 
+use App\Models\User;
+
 return [
     'start_time' => env('GAME_START_TIME'),
 
     'maintenance' => [
         'enabled' => (bool) env('GAME_MAINTENANCE_ENABLED', false),
-        'allowed_legacy_uids' => [
-            0,
-            2,
-        ],
+        'allowed_legacy_uids' => User::reservedLegacyUids(),
     ],
 ];

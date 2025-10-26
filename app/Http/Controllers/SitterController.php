@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SitterAssignment;
+use App\Models\SitterDelegation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,17 +16,17 @@ class SitterController extends Controller
             ->sitterAssignments()
             ->with('sitter')
             ->get()
-            ->map(function (SitterAssignment $assignment) {
+            ->map(function (SitterDelegation $delegation) {
                 return [
-                    'id' => $assignment->getKey(),
+                    'id' => $delegation->getKey(),
                     'sitter' => [
-                        'id' => $assignment->sitter->getKey(),
-                        'username' => $assignment->sitter->username,
-                        'name' => $assignment->sitter->name,
+                        'id' => $delegation->sitter->getKey(),
+                        'username' => $delegation->sitter->username,
+                        'name' => $delegation->sitter->name,
                     ],
-                    'permissions' => $assignment->permissions,
-                    'expires_at' => optional($assignment->expires_at)->toIso8601String(),
-                    'created_at' => optional($assignment->created_at)->toIso8601String(),
+                    'permissions' => $delegation->permissions,
+                    'expires_at' => optional($delegation->expires_at)->toIso8601String(),
+                    'created_at' => optional($delegation->created_at)->toIso8601String(),
                 ];
             });
 
@@ -46,32 +46,36 @@ class SitterController extends Controller
             'expires_at' => ['nullable', 'date'],
         ]);
 
-        $user = $request->user();
+        $owner = $request->user();
         $sitter = User::where('username', $data['sitter_username'])->firstOrFail();
 
-        abort_if($sitter->is($user), 422, __('You cannot assign yourself as a sitter.'));
+        abort_if($sitter->is($owner), 422, __('You cannot assign yourself as a sitter.'));
 
-        $assignment = SitterAssignment::updateOrCreate(
-            [
-                'account_id' => $user->getKey(),
-                'sitter_id' => $sitter->getKey(),
-            ],
-            [
-                'permissions' => $data['permissions'] ?? null,
-                'expires_at' => isset($data['expires_at']) ? Carbon::parse($data['expires_at']) : null,
-            ]
-        );
+        $delegation = SitterDelegation::query()->firstOrNew([
+            'owner_user_id' => $owner->getKey(),
+            'sitter_user_id' => $sitter->getKey(),
+        ]);
+
+        $delegation->permissions = $data['permissions'] ?? null;
+        $delegation->expires_at = isset($data['expires_at']) ? Carbon::parse($data['expires_at']) : null;
+
+        if (! $delegation->exists) {
+            $delegation->created_by = $owner->getKey();
+        }
+
+        $delegation->updated_by = $owner->getKey();
+        $delegation->save();
 
         return response()->json([
-            'data' => $assignment->load('sitter'),
-        ], 201);
+            'data' => $delegation->load('sitter'),
+        ], $delegation->wasRecentlyCreated ? 201 : 200);
     }
 
     public function destroy(Request $request, User $sitter): JsonResponse
     {
         $request->user()->sitters()->detach($sitter->getKey());
 
-        SitterAssignment::query()
+        SitterDelegation::query()
             ->forAccount($request->user())
             ->forSitter($sitter)
             ->delete();

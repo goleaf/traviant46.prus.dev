@@ -34,9 +34,14 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         $legacyUid = (int) User::query()->max('legacy_uid');
+        $nextLegacyUid = $legacyUid + 1;
+
+        while (User::isReservedLegacyUid($nextLegacyUid)) {
+            $nextLegacyUid++;
+        }
 
         return User::create([
-            'legacy_uid' => $legacyUid + 1,
+            'legacy_uid' => $nextLegacyUid,
             'username' => Str::lower($input['username']),
             'name' => $input['name'],
             'email' => $input['email'],

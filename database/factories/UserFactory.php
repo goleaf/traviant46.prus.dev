@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\StaffRole;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'legacy_uid' => fake()->unique()->numberBetween(3, 50000),
+            'legacy_uid' => fake()->unique()->numberBetween(User::FIRST_PLAYER_LEGACY_UID, 50000),
             'username' => Str::lower(Str::replace(' ', '', fake()->unique()->userName())) . fake()->unique()->numberBetween(1, 99),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),

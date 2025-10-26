@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAccountNotBanned;
 use App\Http\Middleware\EnsureAccountVerified;
 use App\Http\Middleware\EnsureGameIsAccessible;
@@ -18,6 +19,7 @@ class Kernel
         ]);
 
         $middleware->appendToGroup('web', [
+            ContentSecurityPolicy::class,
             EnsureGameIsAccessible::class,
             EnsureAccountNotBanned::class,
             EnsureAccountVerified::class,

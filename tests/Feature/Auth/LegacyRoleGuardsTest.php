@@ -17,7 +17,7 @@ class LegacyRoleGuardsTest extends TestCase
         $password = 'Admin#1234';
 
         $admin = User::factory()->create([
-            'legacy_uid' => 0,
+            'legacy_uid' => User::LEGACY_ADMIN_UID,
             'email' => 'admin-guard@example.com',
             'password' => Hash::make($password),
         ]);
@@ -43,7 +43,7 @@ class LegacyRoleGuardsTest extends TestCase
         $password = 'Multi#1234';
 
         $multihunter = User::factory()->create([
-            'legacy_uid' => 2,
+            'legacy_uid' => User::LEGACY_MULTIHUNTER_UID,
             'email' => 'multihunter-guard@example.com',
             'password' => Hash::make($password),
         ]);

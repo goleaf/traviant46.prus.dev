@@ -15,9 +15,14 @@ return new class extends Migration
             $table->foreignIdFor(User::class, 'acting_sitter_id')->nullable()->constrained('users')->nullOnDelete();
             $table->ipAddress('ip_address');
             $table->string('user_agent', 1024)->nullable();
+            $table->string('device_hash', 64)->nullable();
+            $table->json('geo')->nullable();
+            $table->timestamp('logged_at')->useCurrent();
             $table->boolean('via_sitter')->default(false);
             $table->timestamps();
-            $table->index(['ip_address', 'via_sitter']);
+            $table->index(['user_id', 'logged_at']);
+            $table->index('ip_address');
+            $table->index('device_hash');
         });
     }
 

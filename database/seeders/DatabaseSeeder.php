@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $admin = User::factory()->create([
-            'legacy_uid' => 0,
+            'legacy_uid' => User::LEGACY_ADMIN_UID,
             'username' => 'admin',
             'name' => 'Administrator',
             'email' => 'admin@example.com',
@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $multihunter = User::factory()->create([
-            'legacy_uid' => 2,
+            'legacy_uid' => User::LEGACY_MULTIHUNTER_UID,
             'username' => 'multihunter',
             'name' => 'Multihunter',
             'email' => 'multihunter@example.com',
@@ -31,8 +31,14 @@ class DatabaseSeeder extends Seeder
 
         User::factory(8)->create();
 
+        $nextLegacyUid = ((int) User::query()->max('legacy_uid')) + 1;
+
+        while (User::isReservedLegacyUid($nextLegacyUid)) {
+            $nextLegacyUid++;
+        }
+
         $player = User::factory()->create([
-            'legacy_uid' => (int) User::query()->max('legacy_uid') + 1,
+            'legacy_uid' => $nextLegacyUid,
             'username' => 'playerone',
             'name' => 'Player One',
             'email' => 'player@example.com',

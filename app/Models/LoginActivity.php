@@ -6,23 +6,32 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 class LoginActivity extends Model
 {
     use HasFactory;
+    use Prunable;
+
+    private const PRUNING_WINDOW_DAYS = 90;
 
     protected $fillable = [
         'user_id',
         'acting_sitter_id',
         'ip_address',
         'user_agent',
+        'device_hash',
+        'geo',
+        'logged_at',
         'via_sitter',
     ];
 
     protected $casts = [
         'via_sitter' => 'boolean',
+        'geo' => 'array',
+        'logged_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -63,12 +72,18 @@ class LoginActivity extends Model
     {
         $startAt = Carbon::parse($start);
 
-        $query->where('created_at', '>=', $startAt);
+        $query->where('logged_at', '>=', $startAt);
 
         if ($end !== null) {
-            $query->where('created_at', '<=', Carbon::parse($end));
+            $query->where('logged_at', '<=', Carbon::parse($end));
         }
 
         return $query;
+    }
+
+    public function prunable(): Builder
+    {
+        return static::query()
+            ->where('logged_at', '<', Carbon::now()->subDays(self::PRUNING_WINDOW_DAYS));
     }
 }
