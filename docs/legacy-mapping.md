@@ -1,27 +1,30 @@
-# Legacy Path Mapping
+# Legacy Travian Directory → Laravel Destination Map
 
-This reference bridges every archived `/_travian` directory or root-level script to its Laravel 12 successor so that engineers can locate the modern implementation while decommissioning legacy code.
+This table documents how each legacy `/_travian` path is being decomposed into the modern Laravel
+application layers.  Columns correspond to the Laravel domains where the functionality now lives.
 
-## Mapping Table
+| Legacy path | Domain destinations | Actions destinations | Livewire destinations | Console/Jobs destinations | Database destinations | Rationale |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/_travian/angularIndex/` | — | — | `resources/views/layouts/app.blade.php`<br>`resources/views/livewire/*` | — | — | The Angular bootstrap shell is replaced by Blade layouts and Livewire views rendered server-side for faster initial loads and unified theming. |
+| `/_travian/config/` | `config/game.php`<br>`config/travian/*.php`<br>`app/Support/Travian/LegacyConfigRepository.php` | — | — | — | — | Environment configuration is now expressed through Laravel config files resolved by the container instead of runtime includes. |
+| `/_travian/controllers/` | `app/Services/Game/*` | `app/Actions/*` | `app/Livewire/*`<br>`routes/web.php` | — | — | Controllers become thin Livewire components backed by explicit actions and services so routing, validation, and middleware leverage Laravel facilities. |
+| `/_travian/core/` | `app/Services/Game/*`<br>`app/Support/*` | — | — | `app/Jobs/*`<br>`app/Console/Kernel.php` | — | Engine helpers and bootstrap scripts are moved into testable services and queued jobs orchestrated by the scheduler. |
+| `/_travian/dbbackup.php` | — | — | — | `app/Jobs/BackupDatabase.php`<br>`app/Console/Kernel.php` | `database/seeders/BackupLogSeeder.php` (audit trail) | Database backups run as queued jobs scheduled in Artisan, with seeding scripts maintaining audit metadata instead of ad-hoc PHP. |
+| `/_travian/filtering/` | `app/Support/Security/*` | `app/Actions/Security/*` | — | — | `database/migrations/*_create_moderation_tables.php`<br>`database/seeders/ModerationSeeders.php` | Legacy profanity and URL filters become structured moderation tables with actions and services managing updates and lookups. |
+| `/_travian/legacy/` | `app/Support/Travian/*`<br>`docs/runbooks/*` | — | — | — | — | One-off utilities and operational notes are distilled into support helpers and documented runbooks rather than scattered includes. |
+| `/_travian/mailNotify/` | — | `app/Actions/Notifications/*` | — | `app/Jobs/SendAuthEventNotification.php` | — | Notification flows migrate to Laravel notification actions backed by queued jobs to standardise delivery and retries. |
+| `/_travian/main.sql` | — | — | — | — | `database/migrations/*`<br>`database/seeders/GameWorldSeeder.php` | The monolithic SQL dump is decomposed into incremental migrations plus seeders that recreate canonical worlds. |
+| `/_travian/main_script/` | `app/Models/*`<br>`app/Services/Game/*` | `app/Actions/Game/*` | `app/Livewire/Game/*` | `app/Jobs/Game/*` | `database/factories/*`<br>`database/migrations/*` | The primary game engine splits into cohesive Laravel layers—models, services, actions, jobs, and data factories—to support testing and maintenance. |
+| `/_travian/main_script_dev/` | `app/Support/Travian/LegacyExamples.php` | — | — | — | — | Development-only variants survive as documented examples within support helpers for reference without polluting production code. |
+| `/_travian/Manager/` | — | — | — | `app/Console/Commands/GameEngineCommand.php`<br>`app/Console/Commands/ProcessServerTasksCommand.php` | — | Shell-based orchestrators convert to first-class Artisan commands that operations can schedule and monitor. |
+| `/_travian/models/` | `app/Models/*`<br>`app/ValueObjects/*`<br>`app/Enums/*` | — | — | — | — | Domain entities become strongly typed Eloquent models augmented with value objects and enums for clarity and type safety. |
+| `/_travian/public/` | — | — | `public/`<br>`resources/css/app.css`<br>`resources/js/app.js` | — | — | Static assets are processed through Vite and Tailwind while game art is published in Laravel's `public/` directory for cacheable delivery. |
+| `/_travian/schema/` | `app/Support/Schema/*` | — | — | — | `database/migrations/*`<br>`docs/database/*` | Schema references inform migration classes and documentation instead of being interpreted dynamically. |
+| `/_travian/sections/` | `app/Services/Api/*` | `app/Actions/Api/*` | — | — | — | Section-specific endpoints consolidate into service-backed API actions exposed via Laravel routing and policies. |
+| `/_travian/services/` | `app/Services/Game/*`<br>`app/Support/*` | `app/Actions/Game/*` | — | — | — | Service singletons decompose into injectable services and discrete action classes to clarify responsibilities. |
+| `/_travian/TaskWorker/` | — | — | — | `app/Jobs/*`<br>`routes/console.php` | — | Task worker scripts become queue jobs registered in the console kernel, eliminating bespoke daemons. |
+| `/_travian/views/` | — | — | `resources/views/livewire/*`<br>`resources/views/layouts/*` | — | — | PHP templates translate to Blade partials rendered by Livewire components for consistent rendering and state management. |
+| `/_travian/README.md` | `docs/README.md` | — | — | — | — | High-level project notes integrate into the Laravel documentation set to keep a single canonical knowledge base. |
+| `/_travian/CONTRIBUTING.md` | `docs/CONTRIBUTING.md` | — | — | — | — | Contribution guidance is merged with the main docs so contributors follow one process. |
+| `/_travian/LICENSE` | `LICENSE` | — | — | — | — | Licensing remains at the repository root to apply uniformly to the migrated codebase. |
 
-| Legacy path | Layer | Laravel destination | Rationale |
-| --- | --- | --- | --- |
-| `/_travian/angularIndex/` | Livewire | `resources/views/layouts/app.blade.php`<br>`resources/views/livewire/*` | The Angular bootstrap shell is replaced by Livewire-driven layouts and Flux components so the client renders server-side Blade views instead of a static SPA shell. |
-| `/_travian/config/` | Domain | `config/game.php`<br>`config/travian/*.php`<br>`app/Support/Travian/LegacyConfigRepository.php` | Environment-specific configuration is now versioned through Laravel config files and resolved via the container instead of being read from PHP arrays at runtime. |
-| `/_travian/controllers/` | Livewire | `app/Livewire/*`<br>`app/Http/Controllers`<br>`routes/web.php` | Legacy MVC controllers are rebuilt as Livewire components or Fortify-backed HTTP controllers, letting routing, validation, and middleware live in the Laravel stack. |
-| `/_travian/core/` | Console/Jobs | `app/Jobs/*`<br>`app/Services/Game/*`<br>`app/Support/*`<br>`app/Console/Kernel.php` | Cron automation, helper singletons, and engine bootstrapping are reimplemented as queueable jobs and focused services that the scheduler orchestrates. |
-| `/_travian/dbbackup.php` | Console/Jobs | `app/Jobs/BackupDatabase.php`<br>`app/Console/Kernel.php` | Database backups run as a queued job on the scheduler rather than a bespoke PHP script. |
-| `/_travian/filtering/` | Database **(planned)** | `database/migrations/` (moderation tables) **(planned)**<br>`app/Services/Security/*` | Static bad-word, URL, and username filters will materialise as seeded moderation tables consumed by security services so moderation data can be audited and updated centrally. |
-| `/_travian/legacy/` | Domain | `docs/runbooks/*`<br>`app/Support/Travian/*` | One-off utilities and reference snippets live on as operational runbooks or focused support classes, replacing ad-hoc includes. |
-| `/_travian/mailNotify/` | Actions | `app/Notifications/*`<br>`app/Jobs/SendAuthEventNotification.php` | Notification flows migrated to Laravel notifications and queued broadcasters instead of inline mail scripts. |
-| `/_travian/main_script/` | Domain | `app/Models/*`<br>`app/Services/Game/*`<br>`app/Livewire/*` | The primary game engine, models, and UI flows are being decomposed into Eloquent models, service classes, and Livewire interfaces. |
-| `/_travian/main_script_dev/` | Domain | `app/Models/*`<br>`app/Services/Game/*`<br>`app/Livewire/*` | Development variants of the engine follow the same migration path and now serve purely as historical reference material. |
-| `/_travian/main.sql` | Database | `database/migrations/*`<br>`database/seeders/GameWorldSeeder.php` | The monolithic SQL dump is expressed as incremental migrations plus seeders that construct canonical demo data. |
-| `/_travian/Manager/` | Console/Jobs | `app/Console/Commands/GameEngineCommand.php`<br>`app/Console/Commands/ProcessServerTasksCommand.php` | Shell-based orchestration is replaced by Artisan commands that the scheduler or ops teams can run declaratively. |
-| `/_travian/models/` | Domain | `app/Models/*`<br>`app/ValueObjects/*`<br>`app/Enums/*` | Domain entities now live as typed Eloquent models with supporting value objects and enums. |
-| `/_travian/public/` | Livewire | `public/`<br>`resources/css/app.css`<br>`resources/js/app.js` | Static assets are rebuilt through Vite and Tailwind, with game art copied into Laravel's public asset pipeline. |
-| `/_travian/schema/` | Database | `database/migrations/*`<br>`docs/database/*` | Schema definitions inform the Laravel migrations and accompanying documentation instead of being parsed at runtime. |
-| `/_travian/sections/` | Actions | `routes/api.php`<br>`app/Http/Controllers/Api/*`<br>`app/Http/Controllers/Storefront/*` | Section-specific endpoints are consolidated into versioned API controllers and storefront HTTP controllers, aligning with Laravel routing. |
-| `/_travian/services/` | Domain & Actions | `app/Services/Game/*`<br>`app/Actions/*`<br>`app/Support/*` | Game mechanics previously hidden in service singletons are split into injectable services and thin action classes. |
-| `/_travian/TaskWorker/` | Console/Jobs | `app/Jobs/*`<br>`routes/console.php` | Task worker scripts become queue jobs and scheduled Artisan tasks, removing the need for bespoke daemon runners. |
-| `/_travian/views/` | Livewire | `resources/views/livewire/*`<br>`resources/views/layouts/*` | PHP templates translate to Blade view partials that Livewire renders, leveraging Flux UI components. |
