@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Adventure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,6 +19,7 @@ class ProcessAdventures implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -27,11 +29,14 @@ class ProcessAdventures implements ShouldQueue
 
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 100) {}
+    public function __construct(private readonly int $chunkSize = 100, int $shard = 0)
+    {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(): void
     {
-        Adventure::query()
+        $this->constrainToShard(Adventure::query())
             ->due()
             ->orderBy('completes_at')
             ->limit($this->chunkSize)

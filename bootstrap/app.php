@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Console\Commands\GameTick;
 use App\Http\Kernel as HttpKernel;
 use App\Models\LoginActivity;
 use App\Models\MultiAccountAlert;
@@ -92,6 +93,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $schedule->command('model:prune', ['--model' => MultiAccountAlert::class])
             ->dailyAt('02:30');
+
+        $schedule->command(GameTick::class)
+            ->everyMinute();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(static function (Request $request, Throwable $throwable): bool {

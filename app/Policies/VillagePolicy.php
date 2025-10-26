@@ -11,6 +11,11 @@ use App\Support\Auth\SitterContext;
 
 class VillagePolicy
 {
+    public function view(User $actor, Village $village): bool
+    {
+        return $this->canAccessVillage($actor, $village, SitterPermission::Farm);
+    }
+
     public function viewResources(User $actor, Village $village): bool
     {
         return $this->canAccessVillage($actor, $village, SitterPermission::Farm);
@@ -23,15 +28,21 @@ class VillagePolicy
 
     protected function canAccessVillage(User $actor, Village $village, SitterPermission $permission): bool
     {
-        if ($this->ownsVillage($actor, $village) === false) {
-            return false;
-        }
-
-        if (! SitterContext::isActingAsSitter()) {
+        if ($this->ownsVillage($actor, $village)) {
             return true;
         }
 
-        return SitterContext::hasPermission($actor, $permission);
+        if (! SitterContext::isActingAsSitter()) {
+            return false;
+        }
+
+        $owner = $village->owner;
+
+        if (! $owner instanceof User) {
+            return false;
+        }
+
+        return SitterContext::hasPermission($owner, $permission);
     }
 
     protected function ownsVillage(User $actor, Village $village): bool

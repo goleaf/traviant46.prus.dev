@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Fortify;
 
+use App\Models\Game\Village;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -42,12 +44,28 @@ class CreateNewUser implements CreatesNewUsers
             $nextLegacyUid++;
         }
 
-        return User::create([
-            'legacy_uid' => $nextLegacyUid,
-            'username' => Str::lower($input['username']),
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => Hash::make($input['password']),
-        ]);
+        return DB::transaction(function () use ($input, $nextLegacyUid): User {
+            $user = User::create([
+                'legacy_uid' => $nextLegacyUid,
+                'username' => Str::lower($input['username']),
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'password' => Hash::make($input['password']),
+            ]);
+
+            $villageNameBase = Str::headline($input['username']);
+            $villageName = Str::endsWith(Str::lower($villageNameBase), 's')
+                ? "{$villageNameBase}' Village"
+                : "{$villageNameBase}'s Village";
+
+            Village::factory()
+                ->starter()
+                ->create([
+                    'user_id' => $user->getKey(),
+                    'name' => $villageName,
+                ]);
+
+            return $user;
+        });
     }
 }

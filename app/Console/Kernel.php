@@ -17,6 +17,7 @@ use App\Jobs\ScheduleMedalDistribution;
 use App\Jobs\VerifyDatabaseIntegrity;
 use App\Models\LoginActivity;
 use App\Models\SitterDelegation;
+use App\Support\ShardResolver;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -24,23 +25,27 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(new ProcessBuildingCompletion)
-            ->name('automation:buildings')
-            ->everyMinute()
-            ->withoutOverlapping()
-            ->runInBackground();
+        $shards = app(ShardResolver::class)->shards();
 
-        $schedule->job(new ProcessTroopTraining)
-            ->name('automation:training')
-            ->everyMinute()
-            ->withoutOverlapping()
-            ->runInBackground();
+        foreach ($shards as $shard) {
+            $schedule->job(new ProcessBuildingCompletion(shard: $shard))
+                ->name(sprintf('automation:buildings:shard-%d', $shard))
+                ->everyMinute()
+                ->withoutOverlapping()
+                ->runInBackground();
 
-        $schedule->job(new ProcessAdventures)
-            ->name('automation:adventures')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->runInBackground();
+            $schedule->job(new ProcessTroopTraining(shard: $shard))
+                ->name(sprintf('automation:training:shard-%d', $shard))
+                ->everyMinute()
+                ->withoutOverlapping()
+                ->runInBackground();
+
+            $schedule->job(new ProcessAdventures(shard: $shard))
+                ->name(sprintf('automation:adventures:shard-%d', $shard))
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->runInBackground();
+        }
 
         $schedule->job(new ProcessServerTasks)
             ->name('automation:server-tasks')

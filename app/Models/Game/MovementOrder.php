@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Game;
 
+use App\Enums\Game\MovementOrderStatus;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,6 +64,7 @@ class MovementOrder extends Model
             'processed_at' => 'datetime',
             'payload' => 'array',
             'metadata' => 'array',
+            'status' => MovementOrderStatus::class,
         ];
     }
 
@@ -96,5 +98,71 @@ class MovementOrder extends Model
         $userId = $user instanceof User ? $user->getKey() : $user;
 
         return $query->where('user_id', $userId);
+    }
+
+    public function scopeDue(Builder $query): Builder
+    {
+        return $query
+            ->whereIn('status', [
+                MovementOrderStatus::Pending,
+                MovementOrderStatus::InTransit,
+                MovementOrderStatus::Processing,
+            ])
+            ->whereNull('processed_at')
+            ->whereNotNull('arrive_at')
+            ->where('arrive_at', '<=', now());
+    }
+
+    public function markProcessing(): void
+    {
+        $this->status = MovementOrderStatus::Processing;
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function markCompleted(array $context = []): void
+    {
+        $this->status = MovementOrderStatus::Completed;
+        $this->processed_at = now();
+        $metadata = (array) ($this->metadata ?? []);
+        $existingResolution = (array) ($metadata['movement_resolution'] ?? []);
+        $this->metadata = $this->mergeMetadata([
+            'movement_resolution' => array_merge($existingResolution, $context),
+        ]);
+    }
+
+    public function markFailed(string $reason): void
+    {
+        $this->status = MovementOrderStatus::Failed;
+        $this->processed_at = now();
+        $metadata = (array) ($this->metadata ?? []);
+        $existingResolution = (array) ($metadata['movement_resolution'] ?? []);
+        $this->metadata = $this->mergeMetadata([
+            'movement_resolution' => array_merge($existingResolution, ['failure_reason' => $reason]),
+        ]);
+    }
+
+    public function isDueForResolution(): bool
+    {
+        return in_array($this->status, [
+            MovementOrderStatus::Pending,
+            MovementOrderStatus::InTransit,
+            MovementOrderStatus::Processing,
+        ], true)
+            && $this->processed_at === null
+            && $this->arrive_at !== null
+            && $this->arrive_at->isPast();
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mergeMetadata(array $values): array
+    {
+        $metadata = (array) ($this->metadata ?? []);
+
+        return array_replace_recursive($metadata, $values);
     }
 }

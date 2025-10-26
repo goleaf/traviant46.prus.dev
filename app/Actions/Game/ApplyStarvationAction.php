@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Game;
 
+use App\Models\Game\Village;
 use App\Repositories\Game\TroopRepository;
 use App\Repositories\Game\VillageRepository;
 use LogicException;
@@ -15,7 +16,7 @@ class ApplyStarvationAction
         private readonly TroopRepository $troops,
     ) {}
 
-    public function execute(): void
+    public function execute(Village $village): void
     {
         throw new LogicException('ApplyStarvationAction::execute() not implemented.');
     }

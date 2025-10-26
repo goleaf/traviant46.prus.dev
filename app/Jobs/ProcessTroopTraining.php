@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\Game\UnitTrainingBatchStatus;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\UnitTrainingBatch;
 use App\Models\Game\VillageUnit;
 use Illuminate\Bus\Queueable;
@@ -20,6 +21,7 @@ class ProcessTroopTraining implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -29,11 +31,14 @@ class ProcessTroopTraining implements ShouldQueue
 
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 50) {}
+    public function __construct(private readonly int $chunkSize = 50, int $shard = 0)
+    {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(): void
     {
-        UnitTrainingBatch::query()
+        $this->constrainToShard(UnitTrainingBatch::query())
             ->due()
             ->orderBy('completes_at')
             ->limit($this->chunkSize)

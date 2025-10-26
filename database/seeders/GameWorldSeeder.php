@@ -111,6 +111,10 @@ class GameWorldSeeder extends Seeder
         $definitions = [
             ['gid' => 1, 'slug' => 'main-building', 'name' => 'Main Building', 'category' => 'infrastructure', 'max_level' => 20],
             ['gid' => 4, 'slug' => 'barracks', 'name' => 'Barracks', 'category' => 'military', 'max_level' => 20],
+            ['gid' => 5, 'slug' => 'sawmill', 'name' => 'Sawmill', 'category' => 'economy', 'max_level' => 5],
+            ['gid' => 7, 'slug' => 'iron-foundry', 'name' => 'Iron Foundry', 'category' => 'economy', 'max_level' => 5],
+            ['gid' => 8, 'slug' => 'grain-mill', 'name' => 'Grain Mill', 'category' => 'economy', 'max_level' => 5],
+            ['gid' => 9, 'slug' => 'bakery', 'name' => 'Bakery', 'category' => 'economy', 'max_level' => 5],
             ['gid' => 10, 'slug' => 'warehouse', 'name' => 'Warehouse', 'category' => 'economy', 'max_level' => 20],
             ['gid' => 11, 'slug' => 'granary', 'name' => 'Granary', 'category' => 'economy', 'max_level' => 20],
             ['gid' => 16, 'slug' => 'rally-point', 'name' => 'Rally Point', 'category' => 'military', 'max_level' => 20],

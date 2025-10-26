@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Building;
 use App\Models\Game\VillageBuildingUpgrade;
 use Illuminate\Bus\Queueable;
@@ -19,6 +20,7 @@ class ProcessBuildingCompletion implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -28,11 +30,14 @@ class ProcessBuildingCompletion implements ShouldQueue
 
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 50) {}
+    public function __construct(private readonly int $chunkSize = 50, int $shard = 0)
+    {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(): void
     {
-        VillageBuildingUpgrade::query()
+        $this->constrainToShard(VillageBuildingUpgrade::query())
             ->due()
             ->orderBy('completes_at')
             ->limit($this->chunkSize)

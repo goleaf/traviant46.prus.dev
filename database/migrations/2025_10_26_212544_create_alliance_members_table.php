@@ -15,11 +15,21 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('alliance_roles', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Alliance::class, 'alliance_id')->constrained('alliances')->cascadeOnDelete();
+            $table->string('name');
+            $table->json('permissions')->nullable();
+            $table->timestamps();
+
+            $table->unique(['alliance_id', 'name']);
+        });
+
         Schema::create('alliance_members', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Alliance::class, 'alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('role')->default('member');
+            $table->foreignId('alliance_role_id')->nullable()->constrained('alliance_roles')->nullOnDelete();
             $table->timestamp('joined_at')->nullable();
             $table->timestamps();
 
@@ -33,5 +43,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('alliance_members');
+        Schema::dropIfExists('alliance_roles');
     }
 };
