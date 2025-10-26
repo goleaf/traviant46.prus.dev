@@ -46,14 +46,22 @@ class MonitoringServiceProvider extends ServiceProvider
     {
         $requestIdHeader = config('monitoring.request_id_header', 'X-Request-Id');
 
-        Http::globalRequestMiddleware(function ($request, $next) use ($requestIdHeader) {
+        Http::globalRequestMiddleware(function ($request) use ($requestIdHeader) {
             if (Context::has('request_id')) {
-                $request = $request->withHeaders([
-                    $requestIdHeader => (string) Context::get('request_id'),
-                ]);
+                $requestId = (string) Context::get('request_id');
+
+                if (method_exists($request, 'withHeaders')) {
+                    return $request->withHeaders([
+                        $requestIdHeader => $requestId,
+                    ]);
+                }
+
+                if (method_exists($request, 'withHeader')) {
+                    return $request->withHeader($requestIdHeader, $requestId);
+                }
             }
 
-            return $next($request);
+            return $request;
         });
 
         Queue::createPayloadUsing(function () {

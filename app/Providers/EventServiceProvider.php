@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\Auth\LoginFailed as AuthLoginFailed;
+use App\Events\Auth\LoginSucceeded as AuthLoginSucceeded;
+use App\Events\Auth\UserLoggedOut as AuthUserLoggedOut;
 use App\Listeners\ClearSitterContext;
+use App\Listeners\DispatchAuthEventNotification;
 use App\Listeners\LogEmailVerified;
 use App\Listeners\LogFailedLoginAttempt;
 use App\Listeners\LogPasswordReset;
@@ -37,6 +41,15 @@ class EventServiceProvider extends ServiceProvider
             ClearSitterContext::class,
             RemoveUserSession::class,
             SyncLegacyRoleGuardsOnLogout::class,
+        ],
+        AuthLoginFailed::class => [
+            DispatchAuthEventNotification::class,
+        ],
+        AuthLoginSucceeded::class => [
+            DispatchAuthEventNotification::class,
+        ],
+        AuthUserLoggedOut::class => [
+            DispatchAuthEventNotification::class,
         ],
         PasswordReset::class => [
             LogPasswordReset::class,

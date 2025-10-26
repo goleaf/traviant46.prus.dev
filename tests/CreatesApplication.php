@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Schema\Blueprint;
 
 trait CreatesApplication
 {
@@ -22,6 +23,13 @@ trait CreatesApplication
         $app = require __DIR__.'/../bootstrap/app.php';
 
         $app->make(Kernel::class)->bootstrap();
+
+        if (! Blueprint::hasMacro('unsignedDecimal')) {
+            Blueprint::macro('unsignedDecimal', function (string $column, int $total, int $places) {
+                /** @var Blueprint $this */
+                return $this->decimal($column, $total, $places)->unsigned();
+            });
+        }
 
         if (empty(config('app.key'))) {
             config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);

@@ -5,6 +5,20 @@ declare(strict_types=1);
 use App\Models\User;
 
 return [
+    'world_id_default' => env('GAME_WORLD_ID_DEFAULT'),
+
+    'speed' => [1, 3, 5, 10],
+
+    'features' => [
+        'hospital',
+        'artifacts',
+        'hero',
+    ],
+
+    'tick_interval_seconds' => 60,
+
+    'shards' => (int) env('GAME_SHARD_COUNT', 0),
+
     'start_time' => env('GAME_START_TIME'),
 
     'maintenance' => [
