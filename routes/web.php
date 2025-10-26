@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CampaignCustomerSegmentController;
 use App\Http\Controllers\SitterController;
 use App\Livewire\Account\BannedNotice;
 use App\Livewire\Account\VerificationPrompt;
@@ -22,4 +23,12 @@ Route::middleware(['auth', 'verified', 'game.verified', 'game.banned', 'game.mai
     Route::get('/sitters', [SitterController::class, 'index'])->name('sitters.index');
     Route::post('/sitters', [SitterController::class, 'store'])->name('sitters.store');
     Route::delete('/sitters/{sitter}', [SitterController::class, 'destroy'])->name('sitters.destroy');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('campaign-customer-segments', CampaignCustomerSegmentController::class)->except(['show']);
+        Route::post(
+            'campaign-customer-segments/{campaignCustomerSegment}/recalculate',
+            [CampaignCustomerSegmentController::class, 'recalculate']
+        )->name('campaign-customer-segments.recalculate');
+    });
 });
