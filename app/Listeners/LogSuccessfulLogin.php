@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Events\Auth\LoginSucceeded;
 use App\Models\LoginActivity;
+use App\Models\LoginIpLog;
 use App\Models\User;
 use App\Monitoring\Metrics\MetricRecorder;
 use App\Services\Security\DeviceFingerprintService;
@@ -14,6 +15,8 @@ use App\Services\Security\IpAnonymizer;
 use App\Services\Security\MultiAccountDetector;
 use App\Services\Security\SessionSecurity;
 use App\Services\Security\TrustedDeviceManager;
+use App\Services\Security\IpReputationService;
+use App\ValueObjects\Security\IpReputationReport;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +30,7 @@ class LogSuccessfulLogin
         protected SessionSecurity $sessionSecurity,
         protected DeviceVerificationService $deviceVerification,
         protected IpAnonymizer $ipAnonymizer,
+        protected IpReputationService $ipReputation,
         protected TrustedDeviceManager $trustedDevices,
     ) {}
 
@@ -50,6 +54,12 @@ class LogSuccessfulLogin
         $ipHash = $this->ipAnonymizer->anonymize($ipAddress);
         $userAgent = (string) $request->userAgent();
 
+        $reputation = $request->attributes->get('security.ip_reputation');
+
+        if (! $reputation instanceof IpReputationReport) {
+            $reputation = $this->ipReputation->evaluate($ipAddress);
+        }
+
         $user->forceFill(array_filter([
             'last_login_at' => $now,
             'last_login_ip' => $ipAddress,
@@ -69,6 +79,15 @@ class LogSuccessfulLogin
             'device_hash' => $deviceHash,
             'logged_at' => $now,
             'via_sitter' => $actingAsSitter,
+        ]);
+
+        LoginIpLog::query()->create([
+            'user_id' => $user->getKey(),
+            'ip_address' => $ipAddress,
+            'ip_address_numeric' => $this->toNumericIp($ipAddress),
+            'reputation_score' => $reputation->score,
+            'reputation_details' => $reputation->toArray(),
+            'recorded_at' => $now,
         ]);
 
         $this->detector->record($activity);
@@ -114,5 +133,16 @@ class LogSuccessfulLogin
             $actingAsSitter,
             $actingSitterId,
         ));
+    }
+
+    protected function toNumericIp(string $ip): ?int
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $numeric = ip2long($ip);
+
+            return $numeric !== false ? $numeric : null;
+        }
+
+        return null;
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'blocked_ip' => 'This network is flagged as suspicious. Try again later or contact support.',
     'alerts' => [
         'error_summary_label' => 'Form submission issues',
         'error_summary_heading' => 'Please review the highlighted fields below.',

@@ -190,6 +190,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Authentication Event Broadcasting
+    |--------------------------------------------------------------------------
+    |
+    | Configure how authentication lifecycle events are streamed to external
+    | systems. Drivers include HTTPS webhooks and AWS EventBridge. Payloads
+    | are dispatched asynchronously via the configured queue.
+    |
+    */
+
+    'auth_events' => [
+        'enabled' => (bool) env('SECURITY_AUTH_EVENTS_ENABLED', true),
+        'driver' => env('SECURITY_AUTH_EVENTS_DRIVER', 'webhook'),
+        'queue' => env('SECURITY_AUTH_EVENTS_QUEUE', 'notifications'),
+        'webhook' => [
+            'url' => env('SECURITY_AUTH_EVENTS_WEBHOOK_URL'),
+            'secret' => env('SECURITY_AUTH_EVENTS_WEBHOOK_SECRET'),
+            'timeout' => (int) env('SECURITY_AUTH_EVENTS_WEBHOOK_TIMEOUT', 3),
+            'verify_ssl' => (bool) env('SECURITY_AUTH_EVENTS_WEBHOOK_VERIFY', true),
+        ],
+        'eventbridge' => [
+            'bus_name' => env('SECURITY_AUTH_EVENTS_EVENTBRIDGE_BUS'),
+            'region' => env('SECURITY_AUTH_EVENTS_EVENTBRIDGE_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'source' => env('SECURITY_AUTH_EVENTS_EVENTBRIDGE_SOURCE', 'traviant.auth'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Device Verification
     |--------------------------------------------------------------------------
     |
