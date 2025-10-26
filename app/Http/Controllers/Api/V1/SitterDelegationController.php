@@ -25,9 +25,19 @@ class SitterDelegationController extends Controller
 
         Gate::authorize('viewAny', [SitterDelegation::class, $owner]);
 
+        $search = trim((string) $request->query('search', ''));
+
         $delegations = SitterDelegation::query()
             ->with('sitter')
             ->forAccount($owner)
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->whereHas('sitter', function ($builder) use ($search): void {
+                    $builder->where('username', 'like', $search.'%')
+                        ->orWhere('name', 'like', '%'.$search.'%');
+                });
+            })
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
             ->get()
             ->map(fn (SitterDelegation $delegation): array => $this->transformDelegation($delegation));
 
@@ -114,10 +124,8 @@ class SitterDelegationController extends Controller
                 'username' => $delegation->sitter->username,
                 'name' => $delegation->sitter->name,
             ],
-            'permissions' => $delegation->permissionKeys(),
+            'permissions' => $delegation->permissions->toArray(),
             'bitmask' => $delegation->permissionBitmask(),
-            'preset' => $delegation->preset()?->value,
-            'preset_label' => $delegation->preset()?->label(),
             'expires_at' => optional($delegation->expires_at)->toIso8601String(),
             'created_at' => optional($delegation->created_at)->toIso8601String(),
             'updated_at' => optional($delegation->updated_at)->toIso8601String(),

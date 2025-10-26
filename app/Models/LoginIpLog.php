@@ -21,12 +21,16 @@ class LoginIpLog extends Model
         'ip_address',
         'ip_address_hash',
         'ip_address_numeric',
+        'reputation_score',
+        'reputation_details',
         'recorded_at',
     ];
 
     protected $casts = [
         'user_id' => 'int',
         'ip_address_numeric' => 'int',
+        'reputation_score' => 'int',
+        'reputation_details' => 'array',
         'recorded_at' => 'datetime',
     ];
 

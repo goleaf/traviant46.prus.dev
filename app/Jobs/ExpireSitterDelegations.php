@@ -22,8 +22,13 @@ class ExpireSitterDelegations implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 120;
-    public string $queue = 'automation';
+
+    public function __construct()
+    {
+        $this->queue = 'automation';
+    }
 
     public function handle(): void
     {

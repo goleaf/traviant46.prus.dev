@@ -15,8 +15,10 @@ use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
 use App\Services\Auth\LoginRateLimiter as AppLoginRateLimiter;
 use App\Services\Security\DeviceFingerprintService;
+use App\Services\Security\IpReputationService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -42,7 +44,7 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(LegacyLoginService $legacyLoginService): void
+    public function boot(LegacyLoginService $legacyLoginService, IpReputationService $ipReputation): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
@@ -60,9 +62,26 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirects('register', '/home');
         Fortify::redirects('logout', '/login');
 
-        Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService) {
+        Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService, $ipReputation) {
             /** @var MetricRecorder $metrics */
             $metrics = app(MetricRecorder::class);
+
+            $ipAddress = (string) $request->ip();
+
+            if ($ipAddress !== '') {
+                $reputation = $ipReputation->evaluate($ipAddress);
+                $request->attributes->set('security.ip_reputation', $reputation);
+
+                if ($ipReputation->shouldBlock($reputation)) {
+                    Log::warning('auth.login.blocked_ip', array_merge($reputation->toArray(), [
+                        'identifier' => $request->input('login') ?? $request->input('email'),
+                    ]));
+
+                    throw ValidationException::withMessages([
+                        Fortify::username() => [__('auth.blocked_ip')],
+                    ]);
+                }
+            }
 
             $identifier = collect([
                 Fortify::username(),

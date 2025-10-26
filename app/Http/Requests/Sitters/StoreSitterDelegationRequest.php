@@ -67,7 +67,7 @@ class StoreSitterDelegationRequest extends FormRequest
             ],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', Rule::in(SitterPermission::keys())],
-            'expires_at' => ['nullable', 'date_format:c', 'after:now'],
+            'expires_at' => ['nullable', 'date_format:Y-m-d\TH:i:sP', 'after:now'],
         ];
     }
 

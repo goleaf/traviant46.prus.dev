@@ -157,6 +157,39 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | IP Reputation Service
+    |--------------------------------------------------------------------------
+    |
+    | Configure the IP reputation checks that run during authentication.
+    | Scores greater than or equal to the configured threshold are considered
+    | hostile and the login attempt is blocked before credentials are checked.
+    |
+    */
+
+    'ip_reputation' => [
+        'enabled' => (bool) env('SECURITY_IP_REPUTATION_ENABLED', true),
+        'block_score' => (int) env('SECURITY_IP_REPUTATION_BLOCK_SCORE', 70),
+        'cache_ttl_seconds' => (int) env('SECURITY_IP_REPUTATION_CACHE_TTL', 900),
+        'allow' => [
+            'ips' => array_filter(array_map('trim', explode(',', (string) env('SECURITY_IP_REPUTATION_ALLOW_IPS', '')))),
+            'cidrs' => array_filter(array_map('trim', explode(',', (string) env('SECURITY_IP_REPUTATION_ALLOW_CIDRS', '')))),
+        ],
+        'block' => [
+            'ips' => array_filter(array_map('trim', explode(',', (string) env('SECURITY_IP_REPUTATION_BLOCK_IPS', '')))),
+            'cidrs' => array_filter(array_map('trim', explode(',', (string) env('SECURITY_IP_REPUTATION_BLOCK_CIDRS', '')))),
+        ],
+        'mock_scores' => [],
+        'providers' => [
+            'http' => [
+                'endpoint' => env('SECURITY_IP_REPUTATION_HTTP_ENDPOINT'),
+                'token' => env('SECURITY_IP_REPUTATION_HTTP_TOKEN'),
+                'timeout' => (int) env('SECURITY_IP_REPUTATION_HTTP_TIMEOUT', 3),
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Device Verification
     |--------------------------------------------------------------------------
     |
