@@ -17,11 +17,12 @@ place for legacy Travian deployments.
 
 Systemd unit files are no longer used for Laravel's queue workers.  Replace the
 legacy `TravianTaskWorker.service` units with Supervisor programs so that queue
-processes can be scaled horizontally and restarted automatically.  The example
-configuration checked into the repository at
-`services/main/laravel-queue.conf` can be dropped into
-`/etc/supervisor/conf.d/`.  A baseline Supervisor configuration looks like
-this:
+processes can be scaled horizontally and restarted automatically.  The
+repository ships an example at
+`services/supervisor/provisioning-worker.conf`, which provisions the
+`provisioning` queue specifically (see the `--queue=provisioning` flag) and can
+be dropped into `/etc/supervisor/conf.d/`.  A baseline Supervisor configuration
+looks like this:
 
 ```ini
 [program:laravel-queue]
@@ -36,10 +37,13 @@ stderr_logfile=/var/log/supervisor/laravel-queue.err.log
 stdout_logfile=/var/log/supervisor/laravel-queue.out.log
 ```
 
-Add additional programs for the scheduler (`php artisan schedule:work`) or any
-high-priority queues as required.  Deploy the config to
-`/etc/supervisor/conf.d/` and reload Supervisor with `supervisorctl reread` and
-`supervisorctl update` during releases.
+When you need a general-purpose worker, adjust the command's queue argument to
+match your workload—for example, omit `--queue` to consume the default queue or
+set `--queue=high,default` to prioritise urgent jobs before standard work.  Add
+additional programs for the scheduler (`php artisan schedule:work`) or other
+dedicated queues as required.  Deploy the config to `/etc/supervisor/conf.d/`
+and reload Supervisor with `supervisorctl reread` and `supervisorctl update`
+during releases.
 
 ## Laravel Octane (optional)
 
