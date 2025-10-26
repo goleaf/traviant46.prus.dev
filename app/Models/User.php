@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StaffRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -37,6 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'role',
         'sit1_uid',
         'sit2_uid',
         'last_owner_login_at',
@@ -68,6 +70,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => StaffRole::class,
             'last_owner_login_at' => 'datetime',
             'last_login_at' => 'datetime',
             'ban_issued_at' => 'datetime',
@@ -179,12 +182,38 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isAdmin(): bool
     {
-        return (int) $this->legacy_uid === 0;
+        if ((int) $this->legacy_uid === 0) {
+            return true;
+        }
+
+        return $this->hasStaffRole(StaffRole::Admin);
     }
 
     public function isMultihunter(): bool
     {
         return (int) $this->legacy_uid === 2;
+    }
+
+    public function staffRole(): StaffRole
+    {
+        $role = $this->role;
+
+        if ($role instanceof StaffRole) {
+            return $role;
+        }
+
+        $raw = is_string($role) ? $role : (string) ($this->attributes['role'] ?? StaffRole::Player->value);
+
+        return StaffRole::tryFrom($raw) ?? StaffRole::Player;
+    }
+
+    public function hasStaffRole(StaffRole ...$roles): bool
+    {
+        if ($roles === []) {
+            return false;
+        }
+
+        return in_array($this->staffRole(), $roles, true);
     }
 
     public function isBanned(): bool

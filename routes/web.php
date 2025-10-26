@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CampaignCustomerSegmentController;
+use App\Http\Controllers\Frontend\OrderController as FrontendOrderController;
 use App\Http\Controllers\SitterController;
 use App\Livewire\Account\BannedNotice;
 use App\Livewire\Account\VerificationPrompt;
@@ -15,6 +16,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/maintenance', MaintenanceNotice::class)->name('game.maintenance');
     Route::get('/banned', BannedNotice::class)->name('game.banned');
     Route::get('/verify-account', VerificationPrompt::class)->name('game.verify');
+    Route::get('/orders', [FrontendOrderController::class, 'index'])->name('frontend.orders.index');
+    Route::get('/orders/create', [FrontendOrderController::class, 'create'])->name('frontend.orders.create');
 });
 
 Route::middleware(['auth', 'verified', 'game.verified', 'game.banned', 'game.maintenance'])->group(function () {
