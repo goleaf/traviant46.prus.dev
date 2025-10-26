@@ -8,6 +8,7 @@ use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\EnsureAccountNotBanned;
 use App\Http\Middleware\EnsureAccountVerified;
 use App\Http\Middleware\EnsureGameIsAccessible;
+use App\Http\Middleware\EnforceSessionTtl;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Configuration\Middleware as MiddlewareConfig;
 
@@ -21,6 +22,7 @@ class Kernel
             'game.verified' => EnsureAccountVerified::class,
             'auth.admin' => Authenticate::using('admin'),
             'auth.multihunter' => Authenticate::using('multihunter'),
+            'session.ttl' => EnforceSessionTtl::class,
         ]);
 
         $middleware->appendToGroup('web', [
@@ -28,6 +30,7 @@ class Kernel
             EnsureGameIsAccessible::class,
             EnsureAccountNotBanned::class,
             EnsureAccountVerified::class,
+            EnforceSessionTtl::class,
         ]);
     }
 }

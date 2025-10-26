@@ -44,7 +44,7 @@ graph TD
 - **Fortify** handles credential authentication, password resets, and email verification.
 - **Livewire** components render the secure dashboard, sitter tooling, and moderation views.
 - **Redis** stores sessions, rate limits, and sitter invitation handshakes.
-- **MySQL** persists canonical data: users, sitter assignments, login activities, and multi-account alerts.
+- **MySQL** persists canonical data: users, sitter delegations, login activities, and multi-account alerts.
 - **Domain services** such as `MultiAccountDetector` and the `SitterDelegation` model enforce business rules shared with legacy infrastructure.
 
 ## Core Flows
@@ -84,12 +84,12 @@ sequenceDiagram
     participant Redis
 
     Owner->>API: POST /sitters { sitter_username, permissions[], expires_at? }
-    API->>MySQL: upsert sitter_assignments
+    API->>MySQL: upsert sitter_delegations
     API-->>Owner: 201 Created + assignment payload
     Note over API,Redis: Sessions include sitter context when acting_sitter_id is present
     Owner->>API: GET /sitters
     API->>Redis: Read acting sitter context
-    API->>MySQL: Fetch active assignments
+    API->>MySQL: Fetch active delegations
     API-->>Owner: List with permissions & expiry
     Owner->>API: DELETE /sitters/{sitter}
     API->>MySQL: detach relationship, delete assignment
@@ -98,7 +98,7 @@ sequenceDiagram
 
 - Owners cannot self-assign and must reference an existing user by username.
 - Permissions are stored as JSON for compatibility with legacy sitter rules.
-- Expired assignments are filtered with the `active()` scope on `SitterAssignment`.
+- Expired delegations are filtered with the `active()` scope on `SitterDelegation`.
 
 ### Alert Lifecycle
 

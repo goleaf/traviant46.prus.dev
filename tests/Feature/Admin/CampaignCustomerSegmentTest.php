@@ -16,6 +16,7 @@ function asAdmin(): User
         'email' => 'admin@travian.dev',
     ]);
 
+    actingAs($user);
     actingAs($user, 'admin');
 
     return $user;

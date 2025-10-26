@@ -19,14 +19,17 @@ Base URL: `https://<host>/sitters`
     "name": "Ally Lead"
   },
   "permissions": ["marketplace.manage", "army.send"],
+  "effective_permissions": ["marketplace.manage", "army.send"],
+  "preset": "custom",
   "expires_at": "2025-03-01T09:00:00Z",
-  "created_at": "2025-02-18T16:12:58Z"
+  "created_at": "2025-02-18T16:12:58Z",
+  "updated_at": "2025-02-18T16:15:09Z"
 }
 ```
 
-- `permissions` is nullable; when omitted it defaults to the legacy implicit permission set.
-- `expires_at` uses ISO-8601 format. Null means the delegation does not expire.
-- `id` is the internal `sitter_delegations` primary key.
+- `permissions` is nullable; when `null` it denotes full access and `effective_permissions` lists every capability.
+- `preset` reveals the matched `SitterPermissionPreset` (`full`, `farming`, `minimal`, or `custom`).
+- Delegations are stored in the `sitter_delegations` table.
 
 ## Endpoints
 
@@ -34,7 +37,7 @@ Base URL: `https://<host>/sitters`
 
 `GET /sitters`
 
-Returns all sitter assignments, eager loading sitter metadata and revealing sitter context for the current session.
+Returns all sitter delegations, eager loading sitter metadata and revealing sitter context for the current session.
 
 #### Response
 
@@ -54,7 +57,33 @@ Returns all sitter assignments, eager loading sitter metadata and revealing sitt
     }
   ],
   "acting_as_sitter": false,
-  "acting_sitter_id": null
+  "acting_sitter_id": null,
+  "available_permissions": [
+    {
+      "value": "army.send",
+      "label": "Send troops"
+    },
+    {
+      "value": "marketplace.manage",
+      "label": "Manage marketplace"
+    }
+  ],
+  "presets": [
+    {
+      "value": "farming",
+      "label": "Farming support",
+      "description": "Can raid, cannot spend gold",
+      "permissions": [
+        "army.send"
+      ]
+    },
+    {
+      "value": "full",
+      "label": "Full access",
+      "description": "All permissions enabled",
+      "permissions": []
+    }
+  ]
 }
 ```
 
