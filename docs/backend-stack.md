@@ -81,4 +81,4 @@ selected components should be configured and used together.
 4. Build seed data for development environments to validate the new stack.
 
 Refer to `docs/queue-system.md` for background job architecture details and to
-`docs/migration/auth-migration-plan.md` for the Fortify migration playbook.
+[`migration/auth-migration-plan.md`](migration/auth-migration-plan.md) for the Fortify migration playbook.
