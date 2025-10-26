@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Game;
 
 use App\Services\ResourceService;
@@ -11,7 +13,7 @@ class ResourceServiceTest extends TestCase
 {
     public function test_calculate_production_handles_mixed_modifiers(): void
     {
-        $service = new ResourceService();
+        $service = new ResourceService;
 
         $production = $service->calculateProduction(
             ['wood' => 100, 'clay' => 90, 'iron' => 80, 'crop' => 120],
@@ -34,7 +36,7 @@ class ResourceServiceTest extends TestCase
                     'allow_negative_crop' => true,
                     'global_multiplier' => 1.1,
                 ],
-            ]
+            ],
         );
 
         $this->assertEqualsWithDelta(184.8, $production['wood'], 0.0001);
@@ -45,7 +47,7 @@ class ResourceServiceTest extends TestCase
 
     public function test_update_resources_applies_elapsed_time_and_storage_clamps(): void
     {
-        $service = new ResourceService();
+        $service = new ResourceService;
 
         $result = $service->updateResources(
             ['wood' => 950, 'clay' => 950, 'iron' => 950, 'crop' => 900],
@@ -59,7 +61,7 @@ class ResourceServiceTest extends TestCase
                     'iron' => 1000,
                     'crop' => 950,
                 ],
-            ]
+            ],
         );
 
         $this->assertSame([

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\ServerTasks;
 
 use App\Models\Game\ServerTask;
@@ -9,9 +11,7 @@ use RuntimeException;
 
 class ServerTaskProcessor
 {
-    public function __construct(private readonly Container $container)
-    {
-    }
+    public function __construct(private readonly Container $container) {}
 
     public function handle(ServerTask $task): void
     {
@@ -23,11 +23,11 @@ class ServerTaskProcessor
 
         $handler = $this->container->make($handlerClass);
 
-        if (!$handler instanceof ServerTaskHandler) {
+        if (! $handler instanceof ServerTaskHandler) {
             throw new RuntimeException(sprintf(
                 'Server task handler for [%s] must implement %s.',
                 $task->type,
-                ServerTaskHandler::class
+                ServerTaskHandler::class,
             ));
         }
 

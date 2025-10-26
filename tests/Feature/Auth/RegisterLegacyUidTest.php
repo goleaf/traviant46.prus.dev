@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Actions\Fortify\CreateNewUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-
-use function Pest\Laravel\post;
 
 uses(RefreshDatabase::class);
 
@@ -13,13 +14,13 @@ it('skips reserved legacy uids when registering new players', function (): void 
 
     $existingMax = (int) User::query()->max('legacy_uid');
 
-    post('/register', [
+    app(CreateNewUser::class)->create([
         'username' => 'newplayer',
         'name' => 'New Player',
         'email' => 'player@example.com',
-        'password' => 'Password1!',
-        'password_confirmation' => 'Password1!',
-    ])->assertRedirect('/home');
+        'password' => 'Password1!YZ',
+        'password_confirmation' => 'Password1!YZ',
+    ]);
 
     $user = User::query()->where('email', 'player@example.com')->firstOrFail();
 

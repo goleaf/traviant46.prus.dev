@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs\Provisioning;
 
+use App\Enums\Game\ServerTaskStatus;
 use App\Models\Game\ServerTask;
 use App\Services\Provisioning\ServerProvisioningService;
 use Illuminate\Bus\Queueable;
@@ -21,7 +24,9 @@ class FlushLoginTokensJob implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 300;
+
     public string $queue;
 
     public function __construct(public readonly ?int $taskId = null, public readonly array $payload = [])
@@ -49,7 +54,7 @@ class FlushLoginTokensJob implements ShouldQueue
                 return;
             }
 
-            if ($task->status === ServerTask::STATUS_COMPLETED) {
+            if ($task->status === ServerTaskStatus::Completed) {
                 return;
             }
         }

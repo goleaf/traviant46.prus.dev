@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Services\ServerTasks\ServerTaskScheduler;
@@ -17,7 +19,9 @@ class ScheduleMedalDistribution implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 30;
+
     public string $queue = 'automation';
 
     public function handle(ServerTaskScheduler $scheduler): void

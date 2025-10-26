@@ -12,6 +12,7 @@ We welcome contributions that make the authentication, sitter, and alerting expe
 
 - **Discuss significant changes first.** Open an issue or a draft proposal for features that touch core flows, database schema, or deployment processes.
 - **Follow Laravel conventions.** Use Form Requests for validation, queue long-running work, and keep business logic in dedicated services.
+- **Match the coding standard.** Adhere to PSR-12 and run `vendor/bin/pint --dirty` before committing; prefer explicit types and helpful PHPDoc array shapes where needed.
 - **Keep PRs focused.** Provide a clear problem statement, solution summary, and testing notes.
 - **Document as you go.** Update `/docs` when behaviour, APIs, or operational procedures change.
 - **Test everything.** Add or adjust Pest tests, run `php artisan test --filter=<related>` locally, and `vendor/bin/pint --dirty` before pushing.

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\ValueObjects\SitterPermissionSet;
+
 use function collect;
 
 /**
  * Represents curated combinations of sitter permissions aligned with TravianT roles.
- *
- * @method array<int, SitterPermission> permissions()
  */
 enum SitterPermissionPreset: string
 {
@@ -30,16 +30,18 @@ enum SitterPermissionPreset: string
             self::Observer => [],
             self::Guardian => [
                 SitterPermission::Reinforce,
+                SitterPermission::SendTroops,
                 SitterPermission::SendResources,
                 SitterPermission::ManageMessages,
             ],
             self::Raider => [
                 SitterPermission::Raid,
-                SitterPermission::Reinforce,
+                SitterPermission::SendTroops,
                 SitterPermission::SendResources,
             ],
             self::Quartermaster => [
                 SitterPermission::SendResources,
+                SitterPermission::Trade,
                 SitterPermission::ManageArchives,
             ],
             self::Diplomat => [
@@ -50,6 +52,7 @@ enum SitterPermissionPreset: string
                 SitterPermission::ManageMessages,
                 SitterPermission::ManageArchives,
                 SitterPermission::AllianceContribute,
+                SitterPermission::SpendGold,
             ],
             self::FullAccess => SitterPermission::cases(),
         };
@@ -84,32 +87,40 @@ enum SitterPermissionPreset: string
     /**
      * @return array<int, string>
      */
-    public function permissionValues(): array
+    public function permissionKeys(): array
     {
         return array_map(
-            static fn (SitterPermission $permission): string => $permission->value,
+            static fn (SitterPermission $permission): string => $permission->key(),
             $this->permissions(),
         );
     }
 
-    public static function detectFromPermissions(?array $permissions): ?self
+    public static function detectFromPermissions(SitterPermissionSet|array|null $permissions): ?self
     {
-        $normalized = collect($permissions ?? SitterPermission::cases())
-            ->map(static fn ($permission) => $permission instanceof SitterPermission ? $permission->value : (string) $permission)
-            ->sort()
-            ->values()
-            ->all();
+        $normalized = match (true) {
+            $permissions instanceof SitterPermissionSet => self::normalize($permissions),
+            is_array($permissions) => self::normalize(SitterPermissionSet::fromArray($permissions)),
+            default => self::normalize(SitterPermissionSet::full()),
+        };
 
         foreach (self::cases() as $preset) {
-            $presetValues = $preset === self::FullAccess
-                ? collect(SitterPermission::cases())->map->value->sort()->values()->all()
-                : collect($preset->permissionValues())->sort()->values()->all();
+            $presetSet = $preset === self::FullAccess
+                ? SitterPermissionSet::full()
+                : SitterPermissionSet::fromArray($preset->permissions());
 
-            if ($normalized === $presetValues) {
+            if ($normalized === self::normalize($presetSet)) {
                 return $preset;
             }
         }
 
         return null;
+    }
+
+    private static function normalize(SitterPermissionSet $set): array
+    {
+        return collect($set->toArray())
+            ->sort()
+            ->values()
+            ->all();
     }
 }

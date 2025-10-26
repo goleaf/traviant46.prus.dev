@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Game;
 
+use App\Enums\Game\UnitTrainingBatchStatus;
 use App\Models\Game\UnitTrainingBatch;
 use App\Models\Game\Village;
 use Illuminate\Support\Carbon;
@@ -90,7 +93,7 @@ class TroopTrainingService
             'quantity' => $quantity,
             'queue_position' => $nextQueuePosition,
             'training_building' => $normalisedBuilding,
-            'status' => UnitTrainingBatch::STATUS_PENDING,
+            'status' => UnitTrainingBatchStatus::Pending,
             'metadata' => array_merge($metadata, ['calculation' => $calculation]),
             'queued_at' => $now,
             'starts_at' => $startsAt,
@@ -197,8 +200,8 @@ class TroopTrainingService
     protected function resolveQueueState(Village $village, ?string $trainingBuilding): array
     {
         $activeStatuses = [
-            UnitTrainingBatch::STATUS_PENDING,
-            UnitTrainingBatch::STATUS_PROCESSING,
+            UnitTrainingBatchStatus::Pending,
+            UnitTrainingBatchStatus::Processing,
         ];
 
         $activeQuery = UnitTrainingBatch::query()

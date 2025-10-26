@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
@@ -16,7 +18,9 @@ class CheckGameFinish implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 120;
+
     public string $queue = 'automation';
 
     public function handle(): void

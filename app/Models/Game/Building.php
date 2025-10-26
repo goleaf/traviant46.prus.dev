@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Game;
 
 use DomainException;
@@ -56,7 +58,7 @@ class Building extends Model
             throw new InvalidArgumentException('Upgrade levels must be at least 1.');
         }
 
-        if (!$this->canBuild($levels)) {
+        if (! $this->canBuild($levels)) {
             throw new DomainException('Building requirements are not satisfied for the requested upgrade.');
         }
 

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -35,7 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public const FIRST_PLAYER_LEGACY_UID = 1;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -49,11 +50,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'current_alliance_id',
         'sit1_uid',
         'sit2_uid',
         'last_owner_login_at',
         'last_login_at',
         'last_login_ip',
+        'last_login_ip_hash',
         'ban_reason',
         'ban_issued_at',
         'ban_expires_at',
@@ -68,6 +71,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -85,6 +90,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_login_at' => 'datetime',
             'ban_issued_at' => 'datetime',
             'ban_expires_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'is_banned' => 'bool',
         ];
     }
@@ -123,9 +129,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Alliance::class, 'current_alliance_id');
     }
 
+    public function allianceMembership(): HasOne
+    {
+        return $this->hasOne(AllianceMember::class);
+    }
+
     public function hero(): HasOne
     {
         return $this->hasOne(Hero::class);
+    }
+
+    public function loginActivities(): HasMany
+    {
+        return $this->hasMany(LoginActivity::class);
+    }
+
+    public function loginIpLogs(): HasMany
+    {
+        return $this->hasMany(LoginIpLog::class);
     }
 
     public function dataExports(): HasMany
@@ -285,7 +306,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @param string $token
+     * @param mixed $token
      */
     public function sendPasswordResetNotification($token): void
     {

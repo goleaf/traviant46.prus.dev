@@ -31,10 +31,13 @@
                     class="legacy-callout legacy-callout--danger"
                     role="alert"
                     aria-live="assertive"
+                    aria-labelledby="legacy-form-error-heading"
                     aria-label="{{ __('auth.alerts.error_summary_label') }}"
                 >
-                    <p class="legacy-callout__message">{{ __('auth.alerts.error_summary_heading') }}</p>
-                    <ul>
+                    <p id="legacy-form-error-heading" class="legacy-callout__message">
+                        {{ __('auth.alerts.error_summary_heading') }}
+                    </p>
+                    <ul class="legacy-callout__list">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach

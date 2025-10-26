@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $includePath = base_path('_travian/main_script/include/');
 
 return [
@@ -9,12 +11,12 @@ return [
     'world_config_ttl' => (int) env('TRAVIAN_WORLD_CONFIG_TTL', 300),
     'disable_bootstrap' => env('TRAVIAN_DISABLE_BOOTSTRAP', false),
     'paths' => [
-        'root' => dirname($includePath) . DIRECTORY_SEPARATOR,
+        'root' => dirname($includePath).DIRECTORY_SEPARATOR,
         'include' => $includePath,
         'public_internal' => base_path('_travian/main_script/copyable/public/'),
-        'resources' => $includePath . 'resources' . DIRECTORY_SEPARATOR,
-        'locale' => $includePath . 'resources' . DIRECTORY_SEPARATOR . 'Translation' . DIRECTORY_SEPARATOR,
-        'templates' => $includePath . 'resources' . DIRECTORY_SEPARATOR . 'Templates' . DIRECTORY_SEPARATOR,
+        'resources' => $includePath.'resources'.DIRECTORY_SEPARATOR,
+        'locale' => $includePath.'resources'.DIRECTORY_SEPARATOR.'Translation'.DIRECTORY_SEPARATOR,
+        'templates' => $includePath.'resources'.DIRECTORY_SEPARATOR.'Templates'.DIRECTORY_SEPARATOR,
     ],
     'task_worker' => [
         'root' => base_path('_travian/TaskWorker/'),

@@ -132,17 +132,68 @@ sequenceDiagram
 
 ## Local Development
 
+### Prerequisites
+
+- PHP 8.3 and Composer 2
+- Node.js 20.11 (`nvm use` consumes the version embedded in `.nvmrc`)
+- npm 10+
+- Redis 6+ and an SQLite or MySQL database (or Docker Desktop for Sail)
+
+### Native quick start
+
 ```bash
 cp .env.example .env
+nvm use
 composer install
 npm install
 php artisan key:generate
 php artisan migrate --seed
-npm run dev
+npm run build
 php artisan serve
 ```
 
-Run targeted tests with `php artisan test --filter=Sitter` and lint PHP with `vendor/bin/pint --dirty`.
+### Sail (Docker) quick start
+
+```bash
+cp .env.example .env
+composer install
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate --seed
+npm install
+./vendor/bin/sail npm run build
+```
+
+Daily workflow shortcuts live in the Makefile:
+
+- `make up` / `make down` – start or stop the Sail stack
+- `make dev` – run the Vite dev server with Sail-aware host and port
+- `make seed` – apply migrations and seed demo data
+- `make cs`, `make stan`, `make test` – Pint, Larastan, and Pest respectively
+- `make hooks` – install the git pre-commit hook (Pint → Larastan → targeted Pest)
+
+Seeded accounts after `php artisan migrate --seed`:
+
+| Username     | Email                     | Password    | Notes                   |
+|--------------|---------------------------|-------------|-------------------------|
+| `admin`      | `admin@example.com`       | `Admin!234` | Administrator guard     |
+| `multihunter`| `multihunter@example.com` | `Multi!234` | Multihunter guard       |
+| `playerone`  | `player@example.com`      | `Player!234`| Delegated to both sitters |
+
+Helpful console tooling:
+
+```bash
+php artisan travian:health-check      # Bootstrap/storage/database diagnostics
+php artisan travian:create-test-user  # Provision additional demo accounts
+```
+
+## Testing & Quality Gates
+
+- `make test` (or `php artisan test --filter=<name>`) to execute targeted Pest suites.
+- `make cs` to format touched files with Laravel Pint (`vendor/bin/pint --dirty`).
+- `make stan` to analyse the codebase with Larastan (PHPStan 2.x).
+- `make lint` runs Pint followed by Larastan.
+- Install the repository hook via `make hooks` to run Pint → Larastan → targeted Pest automatically on staged changes.
 
 ---
 

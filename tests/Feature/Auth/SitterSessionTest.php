@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Auth;
 
+use App\Enums\SitterPermissionPreset;
+use App\Models\SitterDelegation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -13,8 +17,8 @@ class SitterSessionTest extends TestCase
 
     public function test_sitter_login_tracks_context_and_activity(): void
     {
-        $ownerPassword = 'Owner#5678';
-        $sitterPassword = 'Sitter#5678';
+        $ownerPassword = 'Owner#5678PQ';
+        $sitterPassword = 'Sitter#5678RS';
 
         $owner = User::factory()->create([
             'username' => 'primary-owner',
@@ -50,7 +54,7 @@ class SitterSessionTest extends TestCase
 
     public function test_owner_login_resets_sitter_context(): void
     {
-        $password = 'Reset#1234';
+        $password = 'Reset#1234TU';
         $owner = User::factory()->create([
             'username' => 'reset-owner',
             'email' => 'reset@example.com',
@@ -70,5 +74,44 @@ class SitterSessionTest extends TestCase
         $this->assertAuthenticatedAs($owner);
         $this->assertFalse(session()->get('auth.acting_as_sitter', false));
         $this->assertNull(session()->get('auth.sitter_id'));
+    }
+
+    public function test_sitter_delegation_banner_is_visible_on_dashboard(): void
+    {
+        $ownerPassword = 'Owner#9999';
+        $sitterPassword = 'Sitter#9999';
+
+        $owner = User::factory()->create([
+            'username' => 'delegation-owner',
+            'email' => 'delegation-owner@example.com',
+            'password' => Hash::make($ownerPassword),
+        ]);
+
+        $sitter = User::factory()->create([
+            'username' => 'delegation-sitter',
+            'email' => 'delegation-sitter@example.com',
+            'password' => Hash::make($sitterPassword),
+        ]);
+
+        SitterDelegation::query()->create([
+            'owner_user_id' => $owner->getKey(),
+            'sitter_user_id' => $sitter->getKey(),
+            'permissions' => SitterPermissionPreset::Guardian->permissionKeys(),
+            'created_by' => $owner->getKey(),
+            'updated_by' => $owner->getKey(),
+        ]);
+
+        $this->post('/login', [
+            'login' => $owner->username,
+            'password' => $sitterPassword,
+        ])->assertRedirect(route('home'));
+
+        $response = $this->get('/home');
+
+        $response->assertOk()
+            ->assertSee('Delegation context')
+            ->assertSee('delegation-sitter')
+            ->assertSee('delegation-owner')
+            ->assertSee('Guardian');
     }
 }

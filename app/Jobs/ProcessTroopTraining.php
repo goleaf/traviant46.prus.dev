@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
+use App\Enums\Game\UnitTrainingBatchStatus;
 use App\Models\Game\UnitTrainingBatch;
 use App\Models\Game\VillageUnit;
 use Illuminate\Bus\Queueable;
@@ -21,12 +24,12 @@ class ProcessTroopTraining implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 120;
+
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 50)
-    {
-    }
+    public function __construct(private readonly int $chunkSize = 50) {}
 
     public function handle(): void
     {
@@ -53,7 +56,7 @@ class ProcessTroopTraining implements ShouldQueue
                     return;
                 }
 
-                if ($lockedBatch->status !== UnitTrainingBatch::STATUS_PENDING) {
+                if ($lockedBatch->status !== UnitTrainingBatchStatus::Pending) {
                     return;
                 }
 

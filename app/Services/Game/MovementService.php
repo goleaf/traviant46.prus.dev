@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Game;
 
 use App\Models\Game\Enforcement;
@@ -11,14 +13,21 @@ use Illuminate\Support\Facades\Log;
 class MovementService
 {
     public const SORTTYPE_GOING = 0;
+
     public const SORTTYPE_RETURN = 1;
 
     public const ATTACKTYPE_SPY = 1;
+
     public const ATTACKTYPE_REINFORCEMENT = 2;
+
     public const ATTACKTYPE_NORMAL = 3;
+
     public const ATTACKTYPE_RAID = 4;
+
     public const ATTACKTYPE_SETTLERS = 5;
+
     public const ATTACKTYPE_EVASION = 6;
+
     public const ATTACKTYPE_ADVENTURE = 7;
 
     /**
@@ -39,7 +48,7 @@ class MovementService
         int|DateTimeInterface $endTime,
         ?string $data = null,
     ): int {
-        $movement = new Movement();
+        $movement = new Movement;
 
         $movement->fill(array_merge(
             [

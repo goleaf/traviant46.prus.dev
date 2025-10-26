@@ -1,8 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Support\Storefront\StorefrontRepository;
+use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
 
 use function Pest\Laravel\mock;
+
+beforeEach(function (): void {
+    $this->withoutMiddleware();
+
+    if (class_exists(Bugsnag::class)) {
+        Bugsnag::swap(new class
+        {
+            public function setMetaData(array $meta): void {}
+        });
+    }
+});
 
 it('renders the storefront cart page', function () {
     $this->get(route('storefront.cart'))

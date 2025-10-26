@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\StaffRole;
@@ -27,11 +29,11 @@ class UserFactory extends Factory
     {
         return [
             'legacy_uid' => $this->generateLegacyUid(),
-            'username' => Str::lower(Str::replace(' ', '', fake()->unique()->userName())) . fake()->unique()->numberBetween(1, 99),
+            'username' => Str::lower(Str::replace(' ', '', fake()->unique()->userName())).fake()->unique()->numberBetween(1, 99),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => static::$password ??= Hash::make('Str0ng!Pass1234'),
             'role' => StaffRole::Player,
             'remember_token' => Str::random(10),
             'is_banned' => false,

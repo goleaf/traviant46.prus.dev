@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Game;
 
+use App\Enums\Game\AdventureStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,11 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Adventure extends Model
 {
     use HasFactory;
-
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_ACTIVE = 'active';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
         'user_id',
@@ -38,6 +36,7 @@ class Adventure extends Model
         'completes_at' => 'datetime',
         'completed_at' => 'datetime',
         'failed_at' => 'datetime',
+        'status' => AdventureStatus::class,
     ];
 
     public function user(): BelongsTo
@@ -53,20 +52,20 @@ class Adventure extends Model
     public function scopeDue(Builder $query): Builder
     {
         return $query
-            ->whereIn('status', [self::STATUS_PENDING, self::STATUS_ACTIVE])
+            ->whereIn('status', [AdventureStatus::Pending, AdventureStatus::Active])
             ->where('completes_at', '<=', now())
             ->whereNull('completed_at');
     }
 
     public function markCompleted(): void
     {
-        $this->status = self::STATUS_COMPLETED;
+        $this->status = AdventureStatus::Completed;
         $this->completed_at = now();
     }
 
     public function markFailed(string $reason): void
     {
-        $this->status = self::STATUS_FAILED;
+        $this->status = AdventureStatus::Failed;
         $this->failed_at = now();
         $this->failure_reason = $reason;
     }

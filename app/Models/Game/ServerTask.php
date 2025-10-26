@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Game;
 
+use App\Enums\Game\ServerTaskStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,11 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 class ServerTask extends Model
 {
     use HasFactory;
-
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
         'type',
@@ -31,12 +29,13 @@ class ServerTask extends Model
         'available_at' => 'datetime',
         'started_at' => 'datetime',
         'finished_at' => 'datetime',
+        'status' => ServerTaskStatus::class,
     ];
 
     public function scopeDue(Builder $query): Builder
     {
         return $query
-            ->where('status', self::STATUS_PENDING)
+            ->where('status', ServerTaskStatus::Pending)
             ->where(function (Builder $builder) {
                 $builder
                     ->whereNull('available_at')
@@ -46,21 +45,21 @@ class ServerTask extends Model
 
     public function markProcessing(): void
     {
-        $this->status = self::STATUS_PROCESSING;
+        $this->status = ServerTaskStatus::Processing;
         $this->started_at = now();
         $this->attempts++;
     }
 
     public function markCompleted(): void
     {
-        $this->status = self::STATUS_COMPLETED;
+        $this->status = ServerTaskStatus::Completed;
         $this->finished_at = now();
         $this->last_error = null;
     }
 
     public function markFailed(string $message): void
     {
-        $this->status = self::STATUS_FAILED;
+        $this->status = ServerTaskStatus::Failed;
         $this->finished_at = now();
         $this->last_error = $message;
     }

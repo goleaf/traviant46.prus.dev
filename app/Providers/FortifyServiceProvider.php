@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
@@ -8,8 +10,11 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController as AppEmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController as AppPasswordResetLinkController;
+use App\Monitoring\Metrics\MetricRecorder;
 use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
+use App\Services\Auth\LoginRateLimiter as AppLoginRateLimiter;
+use App\Services\Security\DeviceFingerprintService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -20,6 +25,7 @@ use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\LoginRateLimiter;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -30,6 +36,7 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->bind(PasswordResetLinkController::class, AppPasswordResetLinkController::class);
         $this->app->bind(EmailVerificationNotificationController::class, AppEmailVerificationNotificationController::class);
+        $this->app->singleton(LoginRateLimiter::class, AppLoginRateLimiter::class);
     }
 
     /**
@@ -54,9 +61,27 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirects('logout', '/login');
 
         Fortify::authenticateUsing(function (Request $request) use ($legacyLoginService) {
+            /** @var MetricRecorder $metrics */
+            $metrics = app(MetricRecorder::class);
+
+            $identifier = collect([
+                Fortify::username(),
+                'login',
+                'email',
+                'username',
+            ])->map(fn (string $field) => $request->input($field))
+                ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+                ->first();
+
+            $identifier = is_string($identifier) ? trim($identifier) : '';
+
+            if ($identifier !== '') {
+                $request->merge([Fortify::username() => $identifier]);
+            }
+
             $result = $legacyLoginService->attempt(
-                (string) $request->input('login', $request->input('email')), // backwards compatibility
-                (string) $request->input('password')
+                $identifier,
+                (string) $request->input('password'),
             );
 
             if (! $result instanceof LegacyLoginResult) {
@@ -64,6 +89,12 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             if (! $result->successful()) {
+                $metrics->increment('auth.logins', 1.0, [
+                    'status' => 'failed',
+                    'guard' => 'web',
+                    'failure' => $result->mode,
+                ]);
+
                 if ($result->mode === LegacyLoginResult::MODE_ACTIVATION) {
                     throw ValidationException::withMessages([
                         Fortify::username() => __('Your account is pending activation. Please verify your email before logging in.'),
@@ -81,19 +112,111 @@ class FortifyServiceProvider extends ServiceProvider
                 $request->session()->forget('auth.sitter_id');
             }
 
+            if ($request->boolean('remember_device')) {
+                $request->session()->put('auth.remember_device', true);
+            } else {
+                $request->session()->forget('auth.remember_device');
+            }
+
             return $result->user;
         });
 
         $loginRateLimit = config('security.rate_limits.login', []);
         $twoFactorRateLimit = config('security.rate_limits.two_factor', []);
+        $passwordResetRateLimit = config('fortify.rate_limits.password_reset', []);
+        $verificationRateLimit = config('fortify.rate_limits.verification', []);
 
         RateLimiter::for('login', function (Request $request) use ($loginRateLimit) {
             $maxAttempts = max(1, (int) ($loginRateLimit['max_attempts'] ?? 5));
             $decayMinutes = max(1, (int) ($loginRateLimit['decay_minutes'] ?? 1));
 
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $identifierField = Fortify::username();
+            $identifier = (string) $request->input($identifierField, '');
 
-            return Limit::perMinutes($decayMinutes, $maxAttempts)->by($throttleKey);
+            if ($identifier === '' && $request->filled('email')) {
+                $identifier = (string) $request->input('email');
+            }
+
+            $normalizedIdentifier = Str::transliterate(Str::lower($identifier) ?: 'guest');
+            $ipAddress = (string) $request->ip();
+
+            $limits = [
+                Limit::perMinutes($decayMinutes, $maxAttempts)
+                    ->by($normalizedIdentifier.'|'.$ipAddress)
+                    ->response(function () use ($normalizedIdentifier, $ipAddress, $decayMinutes) {
+                        $lockoutKey = md5('login'.$normalizedIdentifier.'|'.$ipAddress);
+                        $seconds = (int) RateLimiter::availableIn($lockoutKey);
+
+                        if ($seconds <= 0) {
+                            $seconds = $decayMinutes * 60;
+                        }
+
+                        throw ValidationException::withMessages([
+                            Fortify::username() => __('auth.throttle', [
+                                'seconds' => $seconds,
+                                'minutes' => (int) ceil($seconds / 60),
+                            ]),
+                        ])->status(429);
+                    }),
+            ];
+
+            $ipConfig = $loginRateLimit['per_ip'] ?? null;
+
+            if (is_array($ipConfig)) {
+                $ipMaxAttempts = (int) ($ipConfig['max_attempts'] ?? 0);
+
+                if ($ipMaxAttempts > 0) {
+                    $ipDecayMinutes = max(1, (int) ($ipConfig['decay_minutes'] ?? $decayMinutes));
+                    $limits[] = Limit::perMinutes($ipDecayMinutes, $ipMaxAttempts)
+                        ->by('ip:'.$ipAddress)
+                        ->response(function () use ($ipAddress, $ipDecayMinutes) {
+                            $lockoutKey = md5('login'.'ip:'.$ipAddress);
+                            $seconds = (int) RateLimiter::availableIn($lockoutKey);
+
+                            if ($seconds <= 0) {
+                                $seconds = $ipDecayMinutes * 60;
+                            }
+
+                            throw ValidationException::withMessages([
+                                Fortify::username() => __('auth.throttle', [
+                                    'seconds' => $seconds,
+                                    'minutes' => (int) ceil($seconds / 60),
+                                ]),
+                            ])->status(429);
+                        });
+                }
+            }
+
+            $deviceConfig = $loginRateLimit['per_device'] ?? null;
+
+            if (is_array($deviceConfig)) {
+                $deviceMaxAttempts = (int) ($deviceConfig['max_attempts'] ?? 0);
+
+                if ($deviceMaxAttempts > 0) {
+                    $deviceDecayMinutes = max(1, (int) ($deviceConfig['decay_minutes'] ?? $decayMinutes));
+                    $fingerprint = app(DeviceFingerprintService::class)->hash($request);
+
+                    $limits[] = Limit::perMinutes($deviceDecayMinutes, $deviceMaxAttempts)
+                        ->by('device:'.$fingerprint)
+                        ->response(function () use ($fingerprint, $deviceDecayMinutes, $decayMinutes) {
+                            $lockoutKey = md5('login'.'device:'.$fingerprint);
+                            $seconds = (int) RateLimiter::availableIn($lockoutKey);
+
+                            if ($seconds <= 0) {
+                                $seconds = max($deviceDecayMinutes, $decayMinutes) * 60;
+                            }
+
+                            throw ValidationException::withMessages([
+                                Fortify::username() => __('auth.throttle', [
+                                    'seconds' => $seconds,
+                                    'minutes' => (int) ceil($seconds / 60),
+                                ]),
+                            ])->status(429);
+                        });
+                }
+            }
+
+            return $limits;
         });
 
         RateLimiter::for('two-factor', function (Request $request) use ($twoFactorRateLimit) {
@@ -101,6 +224,26 @@ class FortifyServiceProvider extends ServiceProvider
             $decayMinutes = max(1, (int) ($twoFactorRateLimit['decay_minutes'] ?? 1));
 
             return Limit::perMinutes($decayMinutes, $maxAttempts)->by($request->session()->get('login.id'));
+        });
+
+        RateLimiter::for('password-reset', function (Request $request) use ($passwordResetRateLimit) {
+            $maxAttempts = max(1, (int) ($passwordResetRateLimit['max_attempts'] ?? 5));
+            $decaySeconds = max(60, (int) ($passwordResetRateLimit['decay_seconds'] ?? 900));
+            $decayMinutes = max(1, (int) ceil($decaySeconds / 60));
+
+            $email = Str::lower((string) $request->input(Fortify::email(), 'anonymous'));
+            $ipAddress = (string) $request->ip();
+
+            return Limit::perMinutes($decayMinutes, $maxAttempts)->by($email.'|'.$ipAddress);
+        });
+
+        RateLimiter::for('verify-email', function (Request $request) use ($verificationRateLimit) {
+            $maxAttempts = max(1, (int) ($verificationRateLimit['max_attempts'] ?? 6));
+            $decayMinutes = max(1, (int) ($verificationRateLimit['decay_minutes'] ?? 10));
+
+            $userId = optional($request->user())->getKey();
+
+            return Limit::perMinutes($decayMinutes, $maxAttempts)->by($userId !== null ? 'user:'.$userId : 'ip:'.$request->ip());
         });
     }
 }

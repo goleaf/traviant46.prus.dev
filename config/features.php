@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'hero' => [
         'source' => env('FEATURE_HERO_SOURCE', 'legacy'),

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Observers;
 
 use App\Models\Activation;
@@ -7,9 +9,7 @@ use App\Services\Auth\AuthLookupCache;
 
 class ActivationObserver
 {
-    public function __construct(private readonly AuthLookupCache $cache)
-    {
-    }
+    public function __construct(private readonly AuthLookupCache $cache) {}
 
     public function saved(Activation $activation): void
     {

@@ -1,36 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Auth;
 
 use App\Models\Activation;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class LegacyLoginService
 {
-    public function __construct(private readonly AuthLookupCache $cache)
-    {
-    }
+    public function __construct(private readonly AuthLookupCache $cache) {}
 
     public function attempt(string $identifier, string $password): ?LegacyLoginResult
     {
-        $identifier = trim($identifier);
+        $normalizedIdentifier = $this->normalizeIdentifier($identifier);
         $password = (string) $password;
 
-        if ($identifier === '' || $password === '') {
+        if ($normalizedIdentifier === '' || $password === '') {
             return null;
         }
 
-        $user = $this->findActiveUser($identifier);
+        $user = $this->findActiveUser($normalizedIdentifier);
 
         if ($user instanceof User) {
             if (Hash::check($password, $user->password)) {
+                $this->rehashPasswordIfRequired($user, $password);
+
                 return LegacyLoginResult::owner($user);
             }
 
             foreach ($this->resolveSitterCandidates($user) as $sitter) {
                 if ($sitter instanceof User && Hash::check($password, $sitter->password)) {
+                    $this->rehashPasswordIfRequired($sitter, $password);
+
                     return LegacyLoginResult::sitter($user, $sitter);
                 }
             }
@@ -38,7 +43,7 @@ class LegacyLoginService
             return null;
         }
 
-        $activation = $this->findActivation($identifier);
+        $activation = $this->findActivation($normalizedIdentifier);
         if ($activation instanceof Activation && Hash::check($password, $activation->password)) {
             return LegacyLoginResult::activation($activation);
         }
@@ -48,7 +53,7 @@ class LegacyLoginService
 
     protected function findActiveUser(string $identifier): ?User
     {
-        $normalized = trim($identifier);
+        $normalized = $this->normalizeIdentifier($identifier);
 
         if ($normalized === '') {
             return null;
@@ -57,8 +62,8 @@ class LegacyLoginService
         return $this->cache->rememberUser($normalized, function () use ($normalized) {
             return User::query()
                 ->where(function ($query) use ($normalized) {
-                    $query->where('username', $normalized)
-                        ->orWhere('email', $normalized);
+                    $query->whereRaw('LOWER(username) = ?', [$normalized])
+                        ->orWhereRaw('LOWER(email) = ?', [$normalized]);
                 })
                 ->first();
         });
@@ -66,7 +71,7 @@ class LegacyLoginService
 
     protected function findActivation(string $identifier): ?Activation
     {
-        $normalized = trim($identifier);
+        $normalized = $this->normalizeIdentifier($identifier);
 
         if ($normalized === '') {
             return null;
@@ -76,8 +81,8 @@ class LegacyLoginService
             return Activation::query()
                 ->unused()
                 ->where(function ($query) use ($normalized) {
-                    $query->where('name', $normalized)
-                        ->orWhere('email', $normalized);
+                    $query->whereRaw('LOWER(name) = ?', [$normalized])
+                        ->orWhereRaw('LOWER(email) = ?', [$normalized]);
                 })
                 ->first();
         });
@@ -101,5 +106,21 @@ class LegacyLoginService
 
             return $legacySitters->merge($delegatedSitters)->unique('id')->values();
         });
+    }
+
+    private function rehashPasswordIfRequired(User $user, string $plainPassword): void
+    {
+        if (! Hash::needsRehash($user->password)) {
+            return;
+        }
+
+        $user->forceFill([
+            'password' => $plainPassword,
+        ])->save();
+    }
+
+    private function normalizeIdentifier(string $identifier): string
+    {
+        return Str::lower(trim($identifier));
     }
 }

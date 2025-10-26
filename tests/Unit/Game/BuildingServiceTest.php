@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Game;
 
+use App\Enums\Game\VillageBuildingUpgradeStatus;
 use App\Models\Game\Village;
 use App\Models\Game\VillageBuilding;
 use App\Models\Game\VillageBuildingUpgrade;
@@ -20,7 +23,7 @@ class BuildingServiceTest extends TestCase
     {
         parent::setUp();
 
-        if (!class_exists(VillageBuilding::class)) {
+        if (! class_exists(VillageBuilding::class)) {
             eval(<<<'PHP'
                 namespace App\Models\Game;
 
@@ -63,7 +66,7 @@ class BuildingServiceTest extends TestCase
             'level' => 5,
         ]);
 
-        $service = new BuildingService();
+        $service = new BuildingService;
 
         $this->assertTrue($service->canUpgrade($village->fresh(), $building->fresh(), 3));
         $this->assertFalse($service->canUpgrade($village->fresh(), $building->fresh(), 6));
@@ -76,7 +79,7 @@ class BuildingServiceTest extends TestCase
             'current_level' => $building->level,
             'target_level' => 8,
             'queue_position' => 0,
-            'status' => VillageBuildingUpgrade::STATUS_PENDING,
+            'status' => VillageBuildingUpgradeStatus::Pending,
             'metadata' => [],
             'queued_at' => Carbon::now(),
             'starts_at' => Carbon::now(),
@@ -113,7 +116,7 @@ class BuildingServiceTest extends TestCase
 
         $this->assertSame(0, $upgrade->queue_position);
         $this->assertSame(3, $upgrade->target_level);
-        $this->assertSame(VillageBuildingUpgrade::STATUS_PENDING, $upgrade->status);
+        $this->assertSame(VillageBuildingUpgradeStatus::Pending, $upgrade->status);
         $this->assertCount(2, $upgrade->metadata['segments']);
         $this->assertSame(2, $upgrade->metadata['segments'][0]['level']);
         $this->assertSame(3, $upgrade->metadata['segments'][1]['level']);

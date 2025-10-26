@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\MultiAccountAlertSeverity;
+use App\Enums\MultiAccountAlertStatus;
 use App\Enums\SitterPermission;
 use App\Models\Activation;
 use App\Models\LoginActivity;
@@ -11,6 +13,7 @@ use App\Models\SitterDelegation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
@@ -20,7 +23,7 @@ it('filters activations by world and usage state', function (): void {
         'name' => 'Alice',
         'email' => 'alice@example.com',
         'token' => Str::random(32),
-        'password' => bcrypt('secret'),
+        'password' => Hash::make('Secret#1234AB'),
         'world_id' => 's1',
         'used' => false,
     ]);
@@ -29,7 +32,7 @@ it('filters activations by world and usage state', function (): void {
         'name' => 'Bob',
         'email' => 'bob@example.com',
         'token' => Str::random(32),
-        'password' => bcrypt('secret'),
+        'password' => Hash::make('Secret#1234AB'),
         'world_id' => 's2',
         'used' => true,
     ]);
@@ -38,7 +41,7 @@ it('filters activations by world and usage state', function (): void {
         'name' => 'Cara',
         'email' => 'cara@example.com',
         'token' => Str::random(32),
-        'password' => bcrypt('secret'),
+        'password' => Hash::make('Secret#1234AB'),
         'world_id' => null,
         'used' => false,
     ]);
@@ -62,7 +65,9 @@ it('filters login activities using the defined scopes', function (): void {
     $first = LoginActivity::query()->create([
         'user_id' => $primary->id,
         'ip_address' => '10.0.0.1',
+        'ip_address_hash' => hash('sha256', '10.0.0.1'),
         'user_agent' => 'Test',
+        'device_hash' => 'device-first',
         'via_sitter' => false,
         'logged_at' => $firstLoggedAt,
         'created_at' => $firstLoggedAt,
@@ -73,7 +78,9 @@ it('filters login activities using the defined scopes', function (): void {
         'user_id' => $primary->id,
         'acting_sitter_id' => $secondary->id,
         'ip_address' => '10.0.0.2',
+        'ip_address_hash' => hash('sha256', '10.0.0.2'),
         'user_agent' => 'Browser',
+        'device_hash' => 'device-second',
         'via_sitter' => true,
         'logged_at' => $secondLoggedAt,
         'created_at' => $secondLoggedAt,
@@ -83,7 +90,9 @@ it('filters login activities using the defined scopes', function (): void {
     $third = LoginActivity::query()->create([
         'user_id' => $secondary->id,
         'ip_address' => '10.0.0.1',
+        'ip_address_hash' => hash('sha256', '10.0.0.1'),
         'user_agent' => 'Other',
+        'device_hash' => 'device-third',
         'via_sitter' => false,
         'logged_at' => $thirdLoggedAt,
         'created_at' => $thirdLoggedAt,
@@ -137,31 +146,38 @@ it('filters multi account alerts with helper scopes', function (): void {
     $first = MultiAccountAlert::query()->create([
         'alert_id' => Str::uuid()->toString(),
         'group_key' => sha1('203.0.113.5|'.$primary->id.'-'.$conflict->id),
+        'source_type' => 'ip',
         'ip_address' => '203.0.113.5',
         'user_ids' => [$primary->id, $conflict->id],
+        'occurrences' => 3,
         'first_seen_at' => $now->copy()->subMinutes(45),
         'last_seen_at' => $now->copy()->subMinutes(5),
-        'severity' => 'medium',
+        'severity' => MultiAccountAlertSeverity::Medium,
+        'status' => MultiAccountAlertStatus::Open,
     ]);
 
     MultiAccountAlert::query()->create([
         'alert_id' => Str::uuid()->toString(),
         'group_key' => sha1('203.0.113.5|'.$primary->id.'-'.$other->id),
+        'source_type' => 'ip',
         'ip_address' => '203.0.113.5',
         'user_ids' => [$primary->id, $other->id],
         'first_seen_at' => $now->copy()->subHours(4),
         'last_seen_at' => $now->copy()->subHours(3),
-        'severity' => 'low',
+        'severity' => MultiAccountAlertSeverity::Low,
+        'status' => MultiAccountAlertStatus::Open,
     ]);
 
     MultiAccountAlert::query()->create([
         'alert_id' => Str::uuid()->toString(),
         'group_key' => sha1('198.51.100.99|'.$other->id.'-'.$conflict->id),
+        'source_type' => 'ip',
         'ip_address' => '198.51.100.99',
         'user_ids' => [$other->id, $conflict->id],
         'first_seen_at' => $now->copy()->subDays(2),
         'last_seen_at' => $now->copy()->subDay(),
-        'severity' => 'high',
+        'severity' => MultiAccountAlertSeverity::High,
+        'status' => MultiAccountAlertStatus::Open,
     ]);
 
     expect(MultiAccountAlert::forIp('203.0.113.5')->count())->toBe(2);
@@ -176,7 +192,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $active = SitterDelegation::query()->create([
         'owner_user_id' => $account->id,
         'sitter_user_id' => $sitter->id,
-        'permissions' => [SitterPermission::Raid->value],
+        'permissions' => [SitterPermission::SendTroops->key()],
         'expires_at' => $now->copy()->addDay(),
         'created_by' => $account->id,
         'updated_by' => $account->id,
@@ -185,7 +201,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $expired = SitterDelegation::query()->create([
         'owner_user_id' => $account->id,
         'sitter_user_id' => $other->id,
-        'permissions' => [SitterPermission::ManageMessages->value],
+        'permissions' => [SitterPermission::Farm->key()],
         'expires_at' => $now->copy()->subHours(2),
         'created_by' => $account->id,
         'updated_by' => $account->id,
@@ -194,7 +210,7 @@ it('filters sitter assignments for account, sitter and activity', function (): v
     $permanent = SitterDelegation::query()->create([
         'owner_user_id' => $other->id,
         'sitter_user_id' => $sitter->id,
-        'permissions' => [SitterPermission::SendResources->value],
+        'permissions' => [SitterPermission::Trade->key()],
         'expires_at' => null,
         'created_by' => $other->id,
         'updated_by' => $other->id,

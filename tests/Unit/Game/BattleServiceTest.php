@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Game;
 
 use App\Services\BattleService;
@@ -13,12 +15,12 @@ class BattleServiceTest extends TestCase
     {
         parent::setUp();
 
-        require_once dirname(__DIR__, 4) . '/App/Services/BattleService.php';
+        require_once dirname(__DIR__, 4).'/App/Services/BattleService.php';
     }
 
     public function test_simulate_battle_calculates_losses_and_loot(): void
     {
-        $service = new BattleService();
+        $service = new BattleService;
 
         $attacker = [
             'units' => [
@@ -80,11 +82,11 @@ class BattleServiceTest extends TestCase
 
     public function test_calculate_casualties_handles_draw_when_no_power(): void
     {
-        $service = new BattleService();
+        $service = new BattleService;
 
         $result = $service->calculateCasualties(
             ['soldier' => ['count' => 0]],
-            ['guard' => ['count' => 0]]
+            ['guard' => ['count' => 0]],
         );
 
         $this->assertSame('draw', $result['winner']);

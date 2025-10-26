@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Auth;
 
 use App\Services\Auth\LegacyLoginResult;
@@ -18,7 +20,7 @@ class LegacyLoginParityTest extends TestCase
     {
         $scenario = $scenarioFactory();
         $service = $this->app->make(LegacyLoginService::class);
-        $harness = new LegacyLoginHarness();
+        $harness = new LegacyLoginHarness;
 
         $legacy = $harness->attempt($scenario['identifier'], $scenario['password']);
         $modern = $service->attempt($scenario['identifier'], $scenario['password']);

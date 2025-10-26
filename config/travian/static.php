@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'default_language' => env('TRAVIAN_DEFAULT_LANGUAGE', 'us'),
     'default_timezone' => env('TRAVIAN_DEFAULT_TIMEZONE', 'Australia/Sydney'),

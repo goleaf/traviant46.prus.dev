@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support\Storefront;
 
 class StorefrontRepository
@@ -100,7 +102,7 @@ class StorefrontRepository
         $summary = $product['summary'] ?? 'Explore exclusive Travian upgrades.';
 
         return [
-            'title' => $name . ' | Travian Storefront',
+            'title' => $name.' | Travian Storefront',
             'description' => $summary,
         ];
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Models\Game\Movement;
@@ -31,9 +33,9 @@ class MovementServiceTest extends TestCase
         }
     }
 
-    public function testAddMovementPersistsPayload(): void
+    public function test_add_movement_persists_payload(): void
     {
-        $service = new MovementService();
+        $service = new MovementService;
 
         $id = $service->addMovement(
             kid: 101,
@@ -48,7 +50,7 @@ class MovementServiceTest extends TestCase
             attackType: MovementService::ATTACKTYPE_NORMAL,
             startTime: 1_700_000_000,
             endTime: 1_700_000_900,
-            data: 'payload'
+            data: 'payload',
         );
 
         $this->assertGreaterThan(0, $id);
@@ -66,7 +68,7 @@ class MovementServiceTest extends TestCase
         $this->assertSame('payload', $movement->data);
     }
 
-    public function testModifyMovementAcceptsLegacyAssignmentSyntax(): void
+    public function test_modify_movement_accepts_legacy_assignment_syntax(): void
     {
         $movement = Movement::query()->create([
             'kid' => 300,
@@ -85,7 +87,7 @@ class MovementServiceTest extends TestCase
             'proc' => 0,
         ] + $this->emptyUnits());
 
-        $service = new MovementService();
+        $service = new MovementService;
 
         $updated = $service->modifyMovement($movement->id, [
             'end_time=1700000900',
@@ -105,7 +107,7 @@ class MovementServiceTest extends TestCase
         $this->assertTrue((bool) $movement->redeployHero);
     }
 
-    public function testSetMovementMarkStateRequiresOutgoingAttack(): void
+    public function test_set_movement_mark_state_requires_outgoing_attack(): void
     {
         $eligible = Movement::query()->create([
             'kid' => 1,
@@ -141,7 +143,7 @@ class MovementServiceTest extends TestCase
             'proc' => 0,
         ] + $this->emptyUnits());
 
-        $service = new MovementService();
+        $service = new MovementService;
 
         $this->assertTrue($service->setMovementMarkState(2, $eligible->id, 1));
         $eligible->refresh();
@@ -152,9 +154,9 @@ class MovementServiceTest extends TestCase
         $this->assertSame(0, $ineligible->markState);
     }
 
-    public function testEnforcementAndTrappedHelpers(): void
+    public function test_enforcement_and_trapped_helpers(): void
     {
-        $service = new MovementService();
+        $service = new MovementService;
 
         $enforceResult = $service->addEnforce(10, 11, 12, 1, [1 => 50, 4 => 10]);
         $this->assertTrue($enforceResult);
@@ -171,7 +173,7 @@ class MovementServiceTest extends TestCase
         $this->assertTrue($service->deleteTrapped($trappedId));
     }
 
-    public function testDeleteMovementRemovesRow(): void
+    public function test_delete_movement_removes_row(): void
     {
         $movement = Movement::query()->create([
             'kid' => 55,
@@ -190,14 +192,14 @@ class MovementServiceTest extends TestCase
             'proc' => 0,
         ] + $this->emptyUnits());
 
-        $service = new MovementService();
+        $service = new MovementService;
         $this->assertTrue($service->deleteMovement($movement->id));
         $this->assertNull(Movement::query()->find($movement->id));
     }
 
-    public function testAddMovementNormalizesDateTimeTimestamps(): void
+    public function test_add_movement_normalizes_date_time_timestamps(): void
     {
-        $service = new MovementService();
+        $service = new MovementService;
 
         $start = Carbon::createFromTimestamp(1_700_100_000);
         $end = $start->copy()->addMinutes(15);
@@ -271,7 +273,7 @@ class MovementServiceTest extends TestCase
             $table->unsignedInteger('to_kid');
             $table->unsignedTinyInteger('race');
             for ($i = 1; $i <= 10; $i++) {
-                $table->unsignedBigInteger('u' . $i)->default(0);
+                $table->unsignedBigInteger('u'.$i)->default(0);
             }
             $table->unsignedInteger('u11')->default(0);
             $table->unsignedTinyInteger('ctar1')->default(0);
@@ -294,7 +296,7 @@ class MovementServiceTest extends TestCase
             $table->unsignedInteger('to_kid');
             $table->unsignedTinyInteger('race');
             for ($i = 1; $i <= 10; $i++) {
-                $table->unsignedBigInteger('u' . $i)->default(0);
+                $table->unsignedBigInteger('u'.$i)->default(0);
             }
             $table->unsignedInteger('u11')->default(0);
         });
@@ -305,7 +307,7 @@ class MovementServiceTest extends TestCase
             $table->unsignedInteger('to_kid');
             $table->unsignedTinyInteger('race');
             for ($i = 1; $i <= 10; $i++) {
-                $table->unsignedBigInteger('u' . $i)->default(0);
+                $table->unsignedBigInteger('u'.$i)->default(0);
             }
             $table->unsignedInteger('u11')->default(0);
         });

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'timers' => [
         'ArtifactsReleaseTime' => '',
@@ -81,7 +83,7 @@ return [
         'selectedLang' => env('TRAVIAN_DEFAULT_LANGUAGE', 'us'),
         'availableLanguages' => [
             'ir' => [
-                'title' => 'Travian ' . env('TRAVIAN_WORLD_ID', 's1'),
+                'title' => 'Travian '.env('TRAVIAN_WORLD_ID', 's1'),
                 'direction' => 'RTL',
                 'ForumUrl' => env('TRAVIAN_FORUM_URL', 'https://forum.YOUR_DOMAIN.com/'),
                 'AnswersUrl' => env('TRAVIAN_ANSWERS_URL', 'https://answers.travian.com/index.php'),
@@ -90,7 +92,7 @@ return [
                 'country' => 'ir',
             ],
             'ae' => [
-                'title' => 'Travian ' . env('TRAVIAN_WORLD_ID', 's1'),
+                'title' => 'Travian '.env('TRAVIAN_WORLD_ID', 's1'),
                 'direction' => 'RTL',
                 'ForumUrl' => env('TRAVIAN_FORUM_URL', 'https://forum.YOUR_DOMAIN.com/'),
                 'AnswersUrl' => env('TRAVIAN_ANSWERS_URL', 'https://answers.travian.com/index.php'),
@@ -99,7 +101,7 @@ return [
                 'country' => 'ae',
             ],
             'en' => [
-                'title' => 'Travian ' . env('TRAVIAN_WORLD_ID', 's1'),
+                'title' => 'Travian '.env('TRAVIAN_WORLD_ID', 's1'),
                 'direction' => 'LTR',
                 'ForumUrl' => env('TRAVIAN_FORUM_URL', 'https://forum.YOUR_DOMAIN.com/'),
                 'AnswersUrl' => env('TRAVIAN_ANSWERS_URL', 'https://answers.travian.com/index.php'),
@@ -108,7 +110,7 @@ return [
                 'country' => 'en',
             ],
             'gr' => [
-                'title' => 'Travian ' . env('TRAVIAN_WORLD_ID', 's1'),
+                'title' => 'Travian '.env('TRAVIAN_WORLD_ID', 's1'),
                 'direction' => 'LTR',
                 'ForumUrl' => env('TRAVIAN_FORUM_URL', 'https://forum.YOUR_DOMAIN.com/'),
                 'AnswersUrl' => env('TRAVIAN_ANSWERS_URL', 'https://answers.travian.com/index.php'),

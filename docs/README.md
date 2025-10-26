@@ -92,29 +92,70 @@ flowchart LR
 
 - [Project migration analysis](./project-analysis.md) — status summary, risks, and next steps for the TravianT migration effort.
 - [Architecture Decision Records](./adr/README.md) — catalogue of key platform decisions.
+- [Chapter 0 — Project Grounding & Audit](./chapter-0-project-grounding.md) — baseline scope, architecture, and inventory.
 - [Sitter API reference](./sitter-api.md) — REST contract with examples and error handling.
 - [Alerting lifecycle](./alerting-lifecycle.md) — end-to-end view of security alert flows.
 - [On-call runbooks](./runbooks/README.md) — operational guides for common incidents.
 
 ## Getting started
 
+### Prerequisites
+
+- PHP 8.3 with the required extensions
+- Composer 2
+- Node.js 20.11 (run `nvm use` to adopt the version in `.nvmrc`)
+- npm 10+
+- Docker Desktop (optional, for the Sail workflow)
+
+### Native setup
+
 ```bash
 cp .env.example .env
+nvm use
 composer install
+npm install
 php artisan key:generate
 php artisan migrate --seed
+npm run build
 php artisan serve
 ```
 
-The seed data will create example accounts:
+### Docker / Sail setup
 
-| Username     | Email                     | Password   | Notes                |
-|--------------|---------------------------|------------|----------------------|
-| `admin`      | `admin@example.com`       | `Admin!234`| Administrator guard  |
-| `multihunter`| `multihunter@example.com` | `Multi!234`| Multihunter guard    |
-| `playerone`  | `player@example.com`      | *random*   | Delegated to both    |
+```bash
+cp .env.example .env
+composer install
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate --seed
+npm install
+./vendor/bin/sail npm run build
+```
 
-Regular test accounts are also generated via the factory.
+Once containers are up, the Makefile offers shortcuts:
+
+- `make up` / `make down` – start or stop Sail
+- `make seed` – run migrations with the bundled seeders
+- `make dev` – start Vite (`npm run dev`) for Hot Module Reloading
+- `make test` / `make cs` / `make stan` – Pest, Pint, and Larastan respectively
+- `make hooks` – install the repository git hooks (Pint → Larastan → targeted Pest)
+
+Launch a browser session at `http://localhost` (or your Sail host) once either `php artisan serve` or Sail is running.
+
+### Seeded accounts
+
+| Username     | Email                     | Password    | Notes                   |
+|--------------|---------------------------|-------------|-------------------------|
+| `admin`      | `admin@example.com`       | `Admin!234` | Administrator guard     |
+| `multihunter`| `multihunter@example.com` | `Multi!234` | Multihunter guard       |
+| `playerone`  | `player@example.com`      | `Player!234`| Delegated to both sitters |
+
+Run additional diagnostics or create fresh accounts when required:
+
+```bash
+php artisan travian:health-check      # Validates bootstrap, DB, storage, routes
+php artisan travian:create-test-user  # Generates a named test account
+```
 
 ## Sitter management API
 

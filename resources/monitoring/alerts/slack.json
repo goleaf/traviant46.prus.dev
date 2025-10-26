@@ -1,0 +1,84 @@
+{
+  "workflows": [
+    {
+      "name": "Notify #operations on failed login spike",
+      "trigger": {
+        "metric": "cloudwatch:travian:auth.logins",
+        "stat": "Sum",
+        "dimensions": {"status": "failed"},
+        "threshold": "rate > 50 per minute",
+        "window": "5m"
+      },
+      "action": {
+        "type": "slack_webhook",
+        "url_env": "SLACK_FAILED_LOGIN_WEBHOOK",
+        "payload": {
+          "text": ":warning: *Failed Login Spike*\nEnvironment: ${environment}\nFailed per minute: ${value}\nSee <${dashboard}|Grafana dashboard> for details.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": ":warning: *Failed Login Spike Detected*"
+              }
+            },
+            {
+              "type": "section",
+              "fields": [
+                {"type": "mrkdwn", "text": "*Environment:* ${environment}"},
+                {"type": "mrkdwn", "text": "*Failed/min:* ${value}"},
+                {"type": "mrkdwn", "text": "*Ratio:* ${failed_ratio}"}
+              ]
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "text": {"type": "plain_text", "text": "Open Dashboard"},
+                  "url": "${dashboard}"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Notify #security on multi-account alert",
+      "trigger": {
+        "metric": "cloudwatch:travian:security.multi_account_alert",
+        "stat": "Sum",
+        "dimensions": {"state": "created", "severity": "critical"},
+        "threshold": "sum >= 1",
+        "window": "1m"
+      },
+      "action": {
+        "type": "slack_webhook",
+        "url_env": "SLACK_SECURITY_WEBHOOK",
+        "payload": {
+          "text": ":rotating_light: *Critical Multi-Account Alert*\nAlert ID: ${alert_id}\nSeverity: ${severity}\n${details}",
+          "blocks": [
+            {
+              "type": "header",
+              "text": {"type": "plain_text", "text": "Critical Multi-Account Alert"}
+            },
+            {
+              "type": "section",
+              "fields": [
+                {"type": "mrkdwn", "text": "*Alert ID:* ${alert_id}"},
+                {"type": "mrkdwn", "text": "*Severity:* ${severity}"},
+                {"type": "mrkdwn", "text": "*Source:* ${source_type}"}
+              ]
+            },
+            {
+              "type": "section",
+              "text": {"type": "mrkdwn", "text": "${details}"}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Migration;
 
 use App\Services\Migration\MigrationRehearsalReport;
@@ -13,7 +15,7 @@ use Tests\TestCase;
 
 class MigrationRehearsalServiceTest extends TestCase
 {
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         parent::tearDown();
         Mockery::close();
@@ -40,7 +42,7 @@ class MigrationRehearsalServiceTest extends TestCase
 
         Log::spy();
 
-        $service = new MigrationRehearsalService();
+        $service = new MigrationRehearsalService;
         $report = $service->run('hero', 'mysql', 'legacy', triggerRegression: false);
 
         $this->assertInstanceOf(MigrationRehearsalReport::class, $report);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,7 +16,7 @@ dataset('legacy-login-scenarios', function () {
 it('matches the legacy login harness', function (callable $scenarioFactory) {
     $scenario = $scenarioFactory();
     $service = app(LegacyLoginService::class);
-    $harness = new LegacyLoginHarness();
+    $harness = new LegacyLoginHarness;
 
     $legacy = $harness->attempt($scenario['identifier'], $scenario['password']);
     $modern = $service->attempt($scenario['identifier'], $scenario['password']);

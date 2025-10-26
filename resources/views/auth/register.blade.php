@@ -31,7 +31,7 @@
                             @endif
                         >
                         @error('username')
-                            <div id="{{ $usernameErrorId }}" class="legacy-error" role="alert">
+                            <div id="{{ $usernameErrorId }}" class="legacy-error" role="alert" aria-live="assertive">
                                 {{ $message }}
                             </div>
                         @enderror
@@ -56,7 +56,7 @@
                             @endif
                         >
                         @error('name')
-                            <div id="{{ $nameErrorId }}" class="legacy-error" role="alert">
+                            <div id="{{ $nameErrorId }}" class="legacy-error" role="alert" aria-live="assertive">
                                 {{ $message }}
                             </div>
                         @enderror
@@ -82,7 +82,7 @@
                             @endif
                         >
                         @error('email')
-                            <div id="{{ $emailErrorId }}" class="legacy-error" role="alert">
+                            <div id="{{ $emailErrorId }}" class="legacy-error" role="alert" aria-live="assertive">
                                 {{ $message }}
                             </div>
                         @enderror
@@ -107,7 +107,7 @@
                             @endif
                         >
                         @error('password')
-                            <div id="{{ $passwordErrorId }}" class="legacy-error" role="alert">
+                            <div id="{{ $passwordErrorId }}" class="legacy-error" role="alert" aria-live="assertive">
                                 {{ $message }}
                             </div>
                         @enderror

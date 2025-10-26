@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources;
 
 use App\Models\CampaignCustomerSegment;
@@ -8,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
+use JsonException;
 
 class CampaignCustomerSegmentResource
 {
@@ -151,8 +154,8 @@ class CampaignCustomerSegmentResource
 
         try {
             $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $exception) {
-            throw new InvalidArgumentException('The filters JSON is invalid: ' . $exception->getMessage());
+        } catch (JsonException $exception) {
+            throw new InvalidArgumentException('The filters JSON is invalid: '.$exception->getMessage());
         }
 
         if (! is_array($decoded)) {
@@ -163,7 +166,7 @@ class CampaignCustomerSegmentResource
 
         foreach ($decoded as $index => $filter) {
             if (! is_array($filter)) {
-                throw new InvalidArgumentException('Filter #' . ($index + 1) . ' must be an object.');
+                throw new InvalidArgumentException('Filter #'.($index + 1).' must be an object.');
             }
 
             $field = Arr::get($filter, 'field');
@@ -171,18 +174,18 @@ class CampaignCustomerSegmentResource
             $value = Arr::get($filter, 'value');
 
             if (! is_string($field) || ! array_key_exists($field, self::FIELDS)) {
-                throw new InvalidArgumentException('Filter #' . ($index + 1) . ' references an unknown field.');
+                throw new InvalidArgumentException('Filter #'.($index + 1).' references an unknown field.');
             }
 
             if (! is_string($operator) || ! array_key_exists($operator, self::OPERATORS)) {
-                throw new InvalidArgumentException('Filter #' . ($index + 1) . ' uses an unsupported operator.');
+                throw new InvalidArgumentException('Filter #'.($index + 1).' uses an unsupported operator.');
             }
 
             $requiresValue = self::OPERATORS[$operator]['requires_value'];
 
             if ($requiresValue) {
                 if ($value === null || (is_string($value) && trim($value) === '')) {
-                    throw new InvalidArgumentException('Filter #' . ($index + 1) . ' requires a value.');
+                    throw new InvalidArgumentException('Filter #'.($index + 1).' requires a value.');
                 }
 
                 $value = self::normalizeFilterValue($field, $value);
@@ -208,8 +211,8 @@ class CampaignCustomerSegmentResource
 
         return collect($filters)
             ->map(function (array $filter): string {
-                $fieldLabel = Arr::get(self::FIELDS, $filter['field'] . '.label', Str::title(str_replace('_', ' ', $filter['field'])));
-                $operatorLabel = Arr::get(self::OPERATORS, $filter['operator'] . '.label', $filter['operator']);
+                $fieldLabel = Arr::get(self::FIELDS, $filter['field'].'.label', Str::title(str_replace('_', ' ', $filter['field'])));
+                $operatorLabel = Arr::get(self::OPERATORS, $filter['operator'].'.label', $filter['operator']);
                 $value = $filter['value'] ?? '—';
 
                 if (is_array($value)) {
@@ -223,7 +226,7 @@ class CampaignCustomerSegmentResource
 
     private static function normalizeFilterValue(string $field, mixed $value): mixed
     {
-        $fieldType = Arr::get(self::FIELDS, $field . '.type', 'string');
+        $fieldType = Arr::get(self::FIELDS, $field.'.type', 'string');
 
         return match ($fieldType) {
             'datetime' => self::parseDateValue($value),

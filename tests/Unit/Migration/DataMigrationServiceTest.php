@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Migration;
 
 use App\Services\Migration\DataMigrationReport;
@@ -61,7 +63,7 @@ class DataMigrationServiceTest extends TestCase
             ],
         ]);
 
-        $service = new DataMigrationService();
+        $service = new DataMigrationService;
         $report = $service->run('accounts', 'legacy', config('database.default'));
 
         $this->assertInstanceOf(DataMigrationReport::class, $report);
@@ -100,7 +102,7 @@ class DataMigrationServiceTest extends TestCase
             ],
         ]);
 
-        $service = new DataMigrationService();
+        $service = new DataMigrationService;
         $report = $service->run('accounts', 'legacy', config('database.default'));
 
         $usernames = DB::table('users')->orderBy('id')->pluck('username')->all();
@@ -114,6 +116,6 @@ class DataMigrationServiceTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        (new DataMigrationService())->run('missing', 'legacy', config('database.default'));
+        (new DataMigrationService)->run('missing', 'legacy', config('database.default'));
     }
 }

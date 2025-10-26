@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\CampaignCustomerSegment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,8 +21,98 @@ function asAdmin(): User
     actingAs($user);
     actingAs($user, 'admin');
 
+    if (! app()->bound('session')) {
+        config()->set('session.driver', 'array');
+        app()->register(\Illuminate\Session\SessionServiceProvider::class);
+    }
+
+    if (! session()->isStarted()) {
+        session()->start();
+    }
+
+    if (! app()->bound('bugsnag')) {
+        app()->singleton('bugsnag', fn () => new class
+        {
+            public function __call(string $name, array $arguments): void
+            {
+                // no-op stub for tests
+            }
+        });
+    }
+
     return $user;
 }
+
+/**
+ * @param array<string, mixed> $overrides
+ * @return array<string, mixed>
+ */
+function campaignSegmentPayload(array $overrides = []): array
+{
+    return array_merge([
+        'name' => 'Example Segment',
+        'slug' => 'example-segment',
+        'description' => 'Testing segment creation',
+        'is_active' => true,
+        'filters' => json_encode([
+            ['field' => 'email', 'operator' => 'contains', 'value' => '@example.com'],
+        ], JSON_THROW_ON_ERROR),
+    ], $overrides);
+}
+
+dataset('invalidCampaignSegmentPayloads', [
+    'missing name' => [
+        fn (): array => tap(campaignSegmentPayload(), static function (array &$payload): void {
+            unset($payload['name']);
+        }),
+        'name',
+        'Please enter a segment name.',
+    ],
+    'name not string' => [
+        fn (): array => campaignSegmentPayload(['name' => ['invalid']]),
+        'name',
+        'The segment name must be a valid string.',
+    ],
+    'name too long' => [
+        fn (): array => campaignSegmentPayload(['name' => str_repeat('A', 256)]),
+        'name',
+        'The segment name may not be greater than 255 characters.',
+    ],
+    'slug not string' => [
+        fn (): array => campaignSegmentPayload(['slug' => ['invalid']]),
+        'slug',
+        'The slug must be a valid string.',
+    ],
+    'slug too long' => [
+        fn (): array => campaignSegmentPayload(['slug' => str_repeat('s', 256)]),
+        'slug',
+        'The slug may not be greater than 255 characters.',
+    ],
+    'description not string' => [
+        fn (): array => campaignSegmentPayload(['description' => ['invalid']]),
+        'description',
+        'The description must be a valid string.',
+    ],
+    'is_active not boolean' => [
+        fn (): array => campaignSegmentPayload(['is_active' => 'yes']),
+        'is_active',
+        'The active flag must be true or false.',
+    ],
+]);
+
+it('validates campaign customer segment input when storing', function (callable $payloadFactory, string $errorField, string $expectedMessage): void {
+    asAdmin();
+
+    $payload = $payloadFactory();
+
+    $response = $this->from(route('admin.campaign-customer-segments.create'))
+        ->post(route('admin.campaign-customer-segments.store'), $payload);
+
+    $response->assertRedirect(route('admin.campaign-customer-segments.create'));
+    $response->assertSessionHasErrors([
+        $errorField => fn (array $messages): bool => in_array($expectedMessage, $messages, true),
+    ]);
+})->with('invalidCampaignSegmentPayloads');
 
 it('creates a campaign customer segment', function () {
     asAdmin();
@@ -89,6 +181,31 @@ it('updates a campaign customer segment', function () {
     expect($segment->is_active)->toBeFalse();
     expect($segment->filters)->toBe([
         ['field' => 'username', 'operator' => 'starts_with', 'value' => 'travian'],
+    ]);
+});
+
+it('enforces unique slug when updating a campaign customer segment', function (): void {
+    asAdmin();
+
+    $segment = CampaignCustomerSegment::factory()->create([
+        'slug' => 'initial-segment',
+    ]);
+
+    CampaignCustomerSegment::factory()->create([
+        'slug' => 'conflicting-segment',
+    ]);
+
+    $payload = campaignSegmentPayload([
+        'name' => 'Updated Segment',
+        'slug' => 'conflicting-segment',
+    ]);
+
+    $response = $this->from(route('admin.campaign-customer-segments.edit', $segment))
+        ->put(route('admin.campaign-customer-segments.update', $segment), $payload);
+
+    $response->assertRedirect(route('admin.campaign-customer-segments.edit', $segment));
+    $response->assertSessionHasErrors([
+        'slug' => fn (array $messages): bool => in_array('Another segment is already using this slug.', $messages, true),
     ]);
 });
 

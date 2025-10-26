@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
@@ -64,6 +66,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'daily' => [
@@ -72,6 +75,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'structured' => [
@@ -96,6 +100,7 @@ return [
             'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
             'level' => env('LOG_LEVEL', 'critical'),
             'replace_placeholders' => true,
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'papertrail' => [
@@ -108,6 +113,7 @@ return [
                 'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'stderr' => [
@@ -119,6 +125,7 @@ return [
             ],
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'syslog' => [
@@ -126,12 +133,14 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
             'replace_placeholders' => true,
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'errorlog' => [
             'driver' => 'errorlog',
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [App\Support\Logging\RedactSensitiveDataTap::class],
         ],
 
         'metrics' => [

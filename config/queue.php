@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -39,7 +41,7 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', (int) env('QUEUE_MAX_RUNTIME', 120)),
             'after_commit' => false,
         ],
 
@@ -72,6 +74,14 @@ return [
             'after_commit' => false,
         ],
 
+    ],
+
+    'backpressure' => [
+        'max_attempts' => (int) env('QUEUE_MAX_ATTEMPTS', 3),
+        'max_runtime' => (int) env('QUEUE_MAX_RUNTIME', 120),
+        'failure_threshold' => (int) env('QUEUE_FAILURE_THRESHOLD', 5),
+        'cooldown_seconds' => (int) env('QUEUE_COOLDOWN_SECONDS', 60),
+        'cache_store' => env('QUEUE_BACKPRESSURE_STORE'),
     ],
 
     /*

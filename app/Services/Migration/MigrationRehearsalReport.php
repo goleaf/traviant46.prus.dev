@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Migration;
 
 class MigrationRehearsalReport
 {
     public string $migrationPreview = '';
+
     public string $regressionSummary = '';
 
     /**
-     * @var list<array{name: string, context: array<string, mixed>}> 
+     * @var list<array{name: string, context: array<string, mixed>}>
      */
     public array $events = [];
 

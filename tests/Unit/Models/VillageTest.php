@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Models;
 
 use App\Models\Game\Building;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
+use App\Models\Game\VillageBuilding;
 use App\Models\Game\VillageBuildingUpgrade;
 use App\Models\Game\VillageResource;
 use App\Models\Game\VillageUnit;
-use App\Models\Game\VillageBuilding;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +26,7 @@ class VillageTest extends TestCase
     {
         parent::setUp();
 
-        if (!class_exists(VillageBuilding::class)) {
+        if (! class_exists(VillageBuilding::class)) {
             eval(<<<'PHP'
                 namespace App\Models\Game;
 
@@ -47,19 +49,19 @@ class VillageTest extends TestCase
             PHP);
         }
 
-        if (!Schema::hasColumn('villages', 'production')) {
+        if (! Schema::hasColumn('villages', 'production')) {
             Schema::table('villages', function (Blueprint $table) {
                 $table->json('production')->nullable();
             });
         }
 
-        if (!Schema::hasColumn('villages', 'deleted_at')) {
+        if (! Schema::hasColumn('villages', 'deleted_at')) {
             Schema::table('villages', function (Blueprint $table) {
                 $table->softDeletes();
             });
         }
 
-        if (!Schema::hasTable('village_resources')) {
+        if (! Schema::hasTable('village_resources')) {
             Schema::create('village_resources', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
@@ -72,7 +74,7 @@ class VillageTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('buildings')) {
+        if (! Schema::hasTable('buildings')) {
             Schema::create('buildings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
@@ -86,7 +88,7 @@ class VillageTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('movement_orders')) {
+        if (! Schema::hasTable('movement_orders')) {
             Schema::create('movement_orders', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -159,11 +161,11 @@ class VillageTest extends TestCase
     public function test_accessors_combine_coordinates_population_and_production(): void
     {
         $village = Village::factory()->create([
-                'x_coordinate' => -123,
-                'y_coordinate' => 45,
-                'population' => 200,
-                'production' => ['wood' => 100, 'clay' => 90],
-            ]);
+            'x_coordinate' => -123,
+            'y_coordinate' => 45,
+            'population' => 200,
+            'production' => ['wood' => 100, 'clay' => 90],
+        ]);
 
         VillageUnit::query()->create([
             'village_id' => $village->id,
@@ -203,22 +205,22 @@ class VillageTest extends TestCase
     public function test_scopes_filter_villages(): void
     {
         $origin = Village::factory()->create([
-                'x_coordinate' => 0,
-                'y_coordinate' => 0,
-                'is_capital' => true,
-            ]);
+            'x_coordinate' => 0,
+            'y_coordinate' => 0,
+            'is_capital' => true,
+        ]);
 
         $near = Village::factory()->create([
-                'x_coordinate' => 3,
-                'y_coordinate' => 4,
-                'is_capital' => false,
-            ]);
+            'x_coordinate' => 3,
+            'y_coordinate' => 4,
+            'is_capital' => false,
+        ]);
 
         $far = Village::factory()->create([
-                'x_coordinate' => 10,
-                'y_coordinate' => 10,
-                'is_capital' => false,
-            ]);
+            'x_coordinate' => 10,
+            'y_coordinate' => 10,
+            'is_capital' => false,
+        ]);
 
         $this->assertTrue(Village::capital()->pluck('id')->contains($origin->id));
         $this->assertFalse(Village::capital()->pluck('id')->contains($near->id));

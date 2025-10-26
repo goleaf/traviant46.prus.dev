@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use App\Models\User;
@@ -12,17 +14,20 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Date;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Applies maintenance and start-time gates before exposing Livewire gameplay routes.
+ */
 class EnsureGameIsAccessible
 {
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response|RedirectResponse)  $next
+     * @param Closure(Request): (Response|RedirectResponse) $next
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::guard($this->resolveGuard())->user();
 
         if (! $user) {
             return $next($request);
@@ -67,5 +72,16 @@ class EnsureGameIsAccessible
     private function isInMaintenance(): bool
     {
         return (bool) Config::get('game.maintenance.enabled', false);
+    }
+
+    private function resolveGuard(): string
+    {
+        $guard = (string) config('fortify.guard', '');
+
+        if ($guard === '') {
+            $guard = (string) config('auth.defaults.guard', 'web');
+        }
+
+        return $guard !== '' ? $guard : 'web';
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SitterPermission;
+use App\Enums\SitterPermissionPreset;
 use App\ValueObjects\SitterPermissionSet;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -134,5 +135,48 @@ class SitterDelegation extends Model
     public function canSpendGold(): bool
     {
         return $this->permissions->canSpendGold();
+    }
+
+    public function permissionBitmask(): int
+    {
+        return $this->permissions->toBitmask();
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function permissionKeys(): ?array
+    {
+        if ($this->permissions->isFull()) {
+            return null;
+        }
+
+        return $this->permissions->toArray();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function effectivePermissionKeys(): array
+    {
+        if ($this->permissions->isFull()) {
+            return SitterPermissionSet::full()->toArray();
+        }
+
+        return $this->permissions->toArray();
+    }
+
+    public function preset(): ?SitterPermissionPreset
+    {
+        if ($this->permissions->isFull()) {
+            return SitterPermissionPreset::FullAccess;
+        }
+
+        return SitterPermissionPreset::detectFromPermissions($this->permissions);
+    }
+
+    public function isFullAccess(): bool
+    {
+        return $this->permissions->isFull();
     }
 }

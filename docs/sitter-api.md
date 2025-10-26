@@ -28,7 +28,7 @@ Base URL: `https://<host>/sitters`
 ```
 
 - `permissions` is nullable; when `null` it denotes full access and `effective_permissions` lists every capability.
-- `preset` reveals the matched `SitterPermissionPreset` (`full`, `farming`, `minimal`, or `custom`).
+- `permissions` enumerates the granted keys (for example `farm`, `build`, `send_troops`).
 - Delegations are stored in the `sitter_delegations` table.
 
 ## Endpoints

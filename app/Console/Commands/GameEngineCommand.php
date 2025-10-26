@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Jobs\ProcessAdventures;
@@ -33,6 +35,7 @@ class GameEngineCommand extends Command
     {
         if ($sync) {
             $job::dispatchSync();
+
             return;
         }
 

@@ -1,0 +1,138 @@
+{
+  "info": {
+    "name": "Travian T46 API",
+    "_postman_id": "a4f6c26c-0961-42dc-a1df-f8fa473de767",
+    "description": "Collection covering the versioned /api/v1 sitter delegation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "item": [
+    {
+      "name": "Sitter Delegations",
+      "item": [
+        {
+          "name": "List sitter delegations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "laravel_session={{sessionCookie}}; XSRF-TOKEN={{xsrfToken}}"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{xsrfToken}}"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "{{ifNoneMatch}}",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/sitters?per_page={{perPage}}&page={{page}}"
+          }
+        },
+        {
+          "name": "Create or update sitter delegation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "laravel_session={{sessionCookie}}; XSRF-TOKEN={{xsrfToken}}"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{xsrfToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sitter_username\": \"example_sitter\",\n  \"permissions\": [\n    \"canFarm\",\n    \"canSendTroops\"\n  ],\n  \"expires_at\": \"2025-01-01T12:00:00Z\"\n}"
+            },
+            "url": "{{baseUrl}}/sitters"
+          }
+        },
+        {
+          "name": "Delete sitter delegation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/problem+json"
+              },
+              {
+                "key": "Cookie",
+                "value": "laravel_session={{sessionCookie}}; XSRF-TOKEN={{xsrfToken}}"
+              },
+              {
+                "key": "X-XSRF-TOKEN",
+                "value": "{{xsrfToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/sitters/{{sitterDelegationId}}"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": []
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "perPage",
+      "value": "15"
+    },
+    {
+      "key": "page",
+      "value": "1"
+    },
+    {
+      "key": "sessionCookie",
+      "value": ""
+    },
+    {
+      "key": "xsrfToken",
+      "value": ""
+    },
+    {
+      "key": "ifNoneMatch",
+      "value": ""
+    },
+    {
+      "key": "sitterDelegationId",
+      "value": ""
+    }
+  ]
+}

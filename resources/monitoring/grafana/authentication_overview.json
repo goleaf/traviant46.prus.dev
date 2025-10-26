@@ -1,0 +1,127 @@
+{
+  "title": "Authentication & Security",
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "environment",
+        "label": "Environment",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "$PROMETHEUS_DS"
+        },
+        "query": "label_values(auth_logins, environment)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Logins per Minute",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(auth_logins_total{status=\"success\", environment=~\"$environment\"}[5m]) * 60",
+          "legendFormat": "Successful"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(auth_logins_total{status=\"failed\", environment=~\"$environment\"}[5m]) * 60",
+          "legendFormat": "Failed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Failed Login Ratio (5m)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "sum(rate(auth_logins_total{status=\"failed\", environment=~\"$environment\"}[5m])) / clamp_min(sum(rate(auth_logins_total{environment=~\"$environment\"}[5m])), 1e-6)",
+          "legendFormat": "Failed Ratio"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 0.1},
+              {"color": "red", "value": 0.2}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Sitter Delegation Operations",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(sitter_delegation_total{operation=\"created\", environment=~\"$environment\"}[15m])",
+          "legendFormat": "Created"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(sitter_delegation_total{operation=\"deleted\", environment=~\"$environment\"}[15m])",
+          "legendFormat": "Deleted"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Multi-Account Alerts",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(security_multi_account_alert_total{state=\"created\", environment=~\"$environment\"}[15m])",
+          "legendFormat": "New Alerts"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "$PROMETHEUS_DS"},
+          "expr": "rate(security_multi_account_notification_total{channel=\"webhook\", environment=~\"$environment\"}[15m])",
+          "legendFormat": "Webhooks"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2
+        }
+      }
+    }
+  ],
+  "annotations": {
+    "list": []
+  }
+}
+

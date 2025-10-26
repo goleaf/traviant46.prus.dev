@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\ServerTasks;
 
+use App\Enums\Game\ServerTaskStatus;
 use App\Models\Game\ServerTask;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Arr;
@@ -17,7 +20,7 @@ class ServerTaskScheduler
 
         $pendingTask = ServerTask::query()
             ->where('type', $type)
-            ->where('status', ServerTask::STATUS_PENDING)
+            ->where('status', ServerTaskStatus::Pending)
             ->orderBy('available_at')
             ->first();
 

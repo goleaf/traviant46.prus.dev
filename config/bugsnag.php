@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -386,4 +388,3 @@ return [
 
     'attach_hidden_context' => env('BUGSNAG_ATTACH_HIDDEN_CONTEXT', true),
 ];
-

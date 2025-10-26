@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
@@ -14,7 +16,7 @@ class LegacyRoleGuardsTest extends TestCase
 
     public function test_admin_guard_requires_legacy_uid_zero(): void
     {
-        $password = 'Admin#1234';
+        $password = 'Admin#1234VW';
 
         $admin = User::factory()->create([
             'legacy_uid' => User::LEGACY_ADMIN_UID,
@@ -40,7 +42,7 @@ class LegacyRoleGuardsTest extends TestCase
 
     public function test_multihunter_guard_requires_legacy_uid_two(): void
     {
-        $password = 'Multi#1234';
+        $password = 'Multi#1234XY';
 
         $multihunter = User::factory()->create([
             'legacy_uid' => User::LEGACY_MULTIHUNTER_UID,

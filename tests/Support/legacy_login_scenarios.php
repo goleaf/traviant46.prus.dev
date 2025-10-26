@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\Activation;
 use App\Models\User;
 use App\Services\Auth\LegacyLoginResult;
@@ -7,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 return [
     'owner via username' => function () {
-        $password = 'Owner#1234';
+        $password = 'Owner#1234AB';
         $user = User::factory()->create([
             'username' => 'playerone',
             'email' => 'player@example.com',
@@ -26,7 +28,7 @@ return [
         ];
     },
     'owner via email' => function () {
-        $password = 'Email#1234';
+        $password = 'Email#1234CD';
         $user = User::factory()->create([
             'username' => 'player',
             'email' => 'email@example.com',
@@ -50,7 +52,7 @@ return [
             'email' => 'owner@example.com',
         ]);
 
-        $password = 'Sitter#4321';
+        $password = 'Sitter#4321EF';
         $sitter = User::factory()->create([
             'username' => 'sitter-one',
             'email' => 'sitter@example.com',
@@ -76,7 +78,7 @@ return [
             'email' => 'owner-two@example.com',
         ]);
 
-        $password = 'Second#999';
+        $password = 'Second#999GH';
         $sitter = User::factory()->create([
             'username' => 'sitter-two',
             'email' => 'sitter-two@example.com',
@@ -97,7 +99,7 @@ return [
         ];
     },
     'activation pending' => function () {
-        $password = 'Activate#111';
+        $password = 'Activate#111IJ';
         $activation = Activation::query()->create([
             'name' => 'pending',
             'email' => 'pending@example.com',
@@ -122,12 +124,12 @@ return [
         User::factory()->create([
             'username' => 'someone',
             'email' => 'someone@example.com',
-            'password' => Hash::make('Valid#123'),
+            'password' => Hash::make('Valid#1234KL'),
         ]);
 
         return [
             'identifier' => 'someone',
-            'password' => 'Wrong#321',
+            'password' => 'Wrong#321MN',
             'expected' => [
                 'mode' => null,
                 'user_id' => null,

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\MultiAccountAlertSeverity;
 use App\Enums\MultiAccountAlertStatus;
+use App\Services\Security\IpAnonymizer;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +28,7 @@ class MultiAccountAlert extends Model
         'source_type',
         'ip_address',
         'device_hash',
+        'ip_address_hash',
         'user_ids',
         'occurrences',
         'first_seen_at',
@@ -70,7 +74,22 @@ class MultiAccountAlert extends Model
 
     public function scopeForIp(Builder $query, string $ipAddress): Builder
     {
-        return $query->where('ip_address', $ipAddress);
+        /** @var IpAnonymizer $anonymizer */
+        $anonymizer = app(IpAnonymizer::class);
+        $hash = $anonymizer->anonymize($ipAddress);
+
+        return $query->where(function (Builder $builder) use ($ipAddress, $hash): void {
+            $builder->where('ip_address', $ipAddress);
+
+            if ($hash !== null) {
+                $builder->orWhere('ip_address_hash', $hash);
+            }
+        });
+    }
+
+    public function scopeForIpHash(Builder $query, string $hash): Builder
+    {
+        return $query->where('ip_address_hash', $hash);
     }
 
     public function scopeForDevice(Builder $query, string $deviceHash): Builder
@@ -99,7 +118,27 @@ class MultiAccountAlert extends Model
 
     public function prunable(): Builder
     {
-        return static::query()
-            ->where('last_seen_at', '<', Carbon::now()->subDays(self::ARCHIVE_AFTER_DAYS));
+        $retentionDays = $this->retentionDays();
+
+        if ($retentionDays <= 0) {
+            return static::query()->whereRaw('0 = 1');
+        }
+
+        return static::query()->where('last_seen_at', '<', Carbon::now()->subDays($retentionDays));
+    }
+
+    protected function retentionDays(): int
+    {
+        $privacyRetention = config('privacy.ip.retention.multi_account_alerts', []);
+        $privacyDays = (int) ($privacyRetention['delete_after_days'] ?? self::ARCHIVE_AFTER_DAYS);
+        $multiAccountDays = (int) config('multiaccount.pruning.alert_days', $privacyDays);
+
+        $candidates = array_filter([$privacyDays, $multiAccountDays], static fn (int $value): bool => $value > 0);
+
+        if ($candidates === []) {
+            return 0;
+        }
+
+        return min($candidates);
     }
 }

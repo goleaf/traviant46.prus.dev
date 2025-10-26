@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Illuminate\Foundation\Console\KeyGenerateCommand as BaseKeyGenerateCommand;
@@ -26,4 +28,3 @@ class SecuredKeyGenerateCommand extends BaseKeyGenerateCommand
         return Command::SUCCESS;
     }
 }
-

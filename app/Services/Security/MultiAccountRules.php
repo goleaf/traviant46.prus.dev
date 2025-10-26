@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Security;
 
 use Illuminate\Support\Arr;
@@ -8,8 +10,8 @@ use Symfony\Component\HttpFoundation\IpUtils;
 class MultiAccountRules
 {
     /**
-     * @param  array{ip_addresses: list<string>, cidr_ranges: list<string>, device_hashes: list<string>}  $allowlist
-     * @param  array{user_agent_keywords?: list<string>, cidr_ranges?: list<string>}  $vpnIndicators
+     * @param array{ip_addresses: list<string>, cidr_ranges: list<string>, device_hashes: list<string>} $allowlist
+     * @param array{user_agent_keywords?: list<string>, cidr_ranges?: list<string>} $vpnIndicators
      */
     public function __construct(
         protected array $allowlist,
@@ -60,7 +62,7 @@ class MultiAccountRules
     }
 
     /**
-     * @param  list<string>  $ranges
+     * @param list<string> $ranges
      */
     protected function matchesRange(string $ipAddress, array $ranges): bool
     {

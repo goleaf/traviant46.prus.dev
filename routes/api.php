@@ -17,6 +17,10 @@ Route::prefix('v1')
     ])
     ->group(function (): void {
         Route::get('sitters', [SitterDelegationController::class, 'index'])->name('sitters.index');
-        Route::post('sitters', [SitterDelegationController::class, 'store'])->name('sitters.store');
-        Route::delete('sitters/{sitterDelegation}', [SitterDelegationController::class, 'destroy'])->name('sitters.destroy');
+        Route::post('sitters', [SitterDelegationController::class, 'store'])
+            ->middleware('throttle:sitter-mutations')
+            ->name('sitters.store');
+        Route::delete('sitters/{sitterDelegation}', [SitterDelegationController::class, 'destroy'])
+            ->middleware('throttle:sitter-mutations')
+            ->name('sitters.destroy');
     });

@@ -6,9 +6,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Filament\Resources\CampaignCustomerSegmentResource;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreCampaignCustomerSegmentRequest;
+use App\Http\Requests\Admin\UpdateCampaignCustomerSegmentRequest;
 use App\Models\CampaignCustomerSegment;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 use InvalidArgumentException;
 
@@ -33,9 +34,9 @@ class CampaignCustomerSegmentController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCampaignCustomerSegmentRequest $request): RedirectResponse
     {
-        $data = $request->validate(CampaignCustomerSegmentResource::rules());
+        $data = $request->validated();
 
         try {
             $filters = CampaignCustomerSegmentResource::decodeFilters($request->input('filters'));
@@ -68,9 +69,9 @@ class CampaignCustomerSegmentController extends Controller
         ]);
     }
 
-    public function update(Request $request, CampaignCustomerSegment $campaignCustomerSegment): RedirectResponse
+    public function update(UpdateCampaignCustomerSegmentRequest $request, CampaignCustomerSegment $campaignCustomerSegment): RedirectResponse
     {
-        $data = $request->validate(CampaignCustomerSegmentResource::rules($campaignCustomerSegment));
+        $data = $request->validated();
 
         try {
             $filters = CampaignCustomerSegmentResource::decodeFilters($request->input('filters'));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ValueObjects\Travian;
 
 final class PaymentPaths
@@ -8,8 +10,7 @@ final class PaymentPaths
         public readonly string $root,
         public readonly string $include,
         public readonly string $locale,
-    ) {
-    }
+    ) {}
 
     public static function resolve(): self
     {

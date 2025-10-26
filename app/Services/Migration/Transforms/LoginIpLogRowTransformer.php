@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Migration\Transforms;
 
 use Carbon\CarbonImmutable;
@@ -39,6 +41,7 @@ class LoginIpLogRowTransformer
         return [
             'user_id' => $userId,
             'ip_address' => $ipAddress,
+            'ip_address_hash' => app(\App\Services\Security\IpAnonymizer::class)->anonymize($ipAddress),
             'ip_address_numeric' => $numericAddress,
             'recorded_at' => $recordedAt,
             'created_at' => $recordedAt,

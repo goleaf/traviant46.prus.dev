@@ -28,7 +28,7 @@
             <p id="{{ $nameHintId }}" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __($nameHint) }}</p>
         @endif
         @error('name')
-            <p id="{{ $nameErrorId }}" class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
+            <p id="{{ $nameErrorId }}" class="mt-1 text-sm text-red-600" role="alert" aria-live="polite">{{ $message }}</p>
         @enderror
     </div>
 
@@ -58,7 +58,7 @@
             <p id="{{ $slugHintId }}" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __($slugHint) }}</p>
         @endif
         @error('slug')
-            <p id="{{ $slugErrorId }}" class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
+            <p id="{{ $slugErrorId }}" class="mt-1 text-sm text-red-600" role="alert" aria-live="polite">{{ $message }}</p>
         @enderror
     </div>
 
@@ -79,7 +79,7 @@
             @endif
         >{{ old('description', $segment->description ?? '') }}</textarea>
         @error('description')
-            <p id="{{ $descriptionErrorId }}" class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
+            <p id="{{ $descriptionErrorId }}" class="mt-1 text-sm text-red-600" role="alert" aria-live="polite">{{ $message }}</p>
         @enderror
     </div>
 
@@ -108,7 +108,7 @@
             <p id="{{ $filtersHintId }}" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __($filtersHint) }}</p>
         @endif
         @error('filters')
-            <p id="{{ $filtersErrorId }}" class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
+            <p id="{{ $filtersErrorId }}" class="mt-1 text-sm text-red-600" role="alert" aria-live="polite">{{ $message }}</p>
         @enderror
     </div>
 

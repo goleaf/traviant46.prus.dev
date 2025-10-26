@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\SitterAssignment;
+use App\Models\SitterDelegation;
 use App\Monitoring\Metrics\LogMetricRecorder;
 use App\Monitoring\Metrics\MetricRecorder;
 use App\Monitoring\Metrics\StatsdMetricRecorder;
-use App\Observers\SitterAssignmentObserver;
+use App\Observers\SitterDelegationObserver;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -91,6 +92,9 @@ class MonitoringServiceProvider extends ServiceProvider
             ]);
         }
 
-        SitterAssignment::observe($this->app->make(SitterAssignmentObserver::class));
+        $sitterObserver = $this->app->make(SitterDelegationObserver::class);
+
+        SitterDelegation::observe($sitterObserver);
+        SitterAssignment::observe($sitterObserver);
     }
 }

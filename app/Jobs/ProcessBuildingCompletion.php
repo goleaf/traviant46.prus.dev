@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Models\Game\Building;
@@ -21,12 +23,12 @@ class ProcessBuildingCompletion implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 120;
+
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 50)
-    {
-    }
+    public function __construct(private readonly int $chunkSize = 50) {}
 
     public function handle(): void
     {
@@ -53,7 +55,7 @@ class ProcessBuildingCompletion implements ShouldQueue
                     return;
                 }
 
-                if (!$lockedUpgrade->isPending()) {
+                if (! $lockedUpgrade->isPending()) {
                     return;
                 }
 

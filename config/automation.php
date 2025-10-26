@@ -1,10 +1,12 @@
 <?php
 
-use App\Services\ServerTasks\Handlers\FlushTokensHandler;
+declare(strict_types=1);
+
 use App\Services\ServerTasks\Handlers\DistributeMedalsHandler;
+use App\Services\ServerTasks\Handlers\FlushTokensHandler;
 use App\Services\ServerTasks\Handlers\InstallServerHandler;
-use App\Services\ServerTasks\Handlers\RestartEngineHandler;
 use App\Services\ServerTasks\Handlers\ResetDailyQuestsHandler;
+use App\Services\ServerTasks\Handlers\RestartEngineHandler;
 use App\Services\ServerTasks\Handlers\StartEngineHandler;
 use App\Services\ServerTasks\Handlers\StopEngineHandler;
 use App\Services\ServerTasks\Handlers\UninstallServerHandler;

@@ -7,7 +7,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'Travian T46 API',
             ],
 
             'routes' => [
@@ -30,12 +30,12 @@ return [
                 /*
                  * File name of the generated json documentation file
                  */
-                'docs_json' => 'api-docs.json',
+                'docs_json' => 'v1.json',
 
                 /*
                  * File name of the generated YAML documentation file
                  */
-                'docs_yaml' => 'api-docs.yaml',
+                'docs_yaml' => 'v1.yaml',
 
                 /*
                  * Set this to `json` or `yaml` to determine which documentation file to use in UI
@@ -93,7 +93,7 @@ return [
             /*
              * Edit to set the api's base path
              */
-            'base' => env('L5_SWAGGER_BASE_PATH', null),
+            'base' => env('L5_SWAGGER_BASE_PATH', '/api/v1'),
 
             /*
              * Absolute path to directories that should be excluded from scanning

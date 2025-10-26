@@ -1,0 +1,78 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "stacked": false,
+        "title": "Logins Per Minute",
+        "region": "us-east-1",
+        "stat": "Sum",
+        "period": 60,
+        "metrics": [
+          ["travian", "auth.logins", "status", "success", {"label": "Successful"}],
+          ["travian", "auth.logins", "status", "failed", {"label": "Failed"}]
+        ]
+      }
+    },
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "singleValue",
+        "title": "Failed Login Ratio",
+        "region": "us-east-1",
+        "period": 300,
+        "metrics": [
+          [
+            "", "metric math", {
+              "expression": "F/(S+F)",
+              "label": "Failed Ratio",
+              "period": 300,
+              "id": "e1"
+            }
+          ],
+          ["travian", "auth.logins", "status", "failed", {"id": "F", "visible": false}],
+          ["travian", "auth.logins", "status", "success", {"id": "S", "visible": false}]
+        ]
+      }
+    },
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "title": "Sitter Delegation Operations",
+        "region": "us-east-1",
+        "stat": "Sum",
+        "period": 300,
+        "metrics": [
+          ["travian", "sitter.delegation", "operation", "created", {"label": "Created"}],
+          ["travian", "sitter.delegation", "operation", "deleted", {"label": "Deleted"}]
+        ]
+      }
+    },
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "view": "timeSeries",
+        "title": "Multi-Account Alerts",
+        "region": "us-east-1",
+        "stat": "Sum",
+        "period": 300,
+        "metrics": [
+          ["travian", "security.multi_account_alert", "state", "created", {"label": "Created"}],
+          ["travian", "security.multi_account_alert", "state", "updated", {"label": "Updated"}],
+          ["travian", "security.multi_account_notification", "channel", "webhook", {"label": "Webhook"}]
+        ]
+      }
+    }
+  ]
+}
+

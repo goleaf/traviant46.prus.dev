@@ -38,17 +38,17 @@ enum SitterPermission: int
     public function label(): string
     {
         return match ($this) {
-            self::Farm => 'Farm resources and manage fields',
-            self::Build => 'Construct or upgrade buildings',
-            self::SendTroops => 'Send troops on missions',
-            self::Trade => 'Trade resources via the marketplace',
-            self::SpendGold => 'Spend gold on premium actions',
-            self::Raid => 'Launch raids on behalf of the account owner',
-            self::Reinforce => 'Send reinforcements to allied villages',
-            self::SendResources => 'Dispatch resources between villages',
-            self::ManageMessages => 'Read and respond to account messages',
-            self::ManageArchives => 'Organise reports and archive records',
-            self::AllianceContribute => 'Manage alliance contributions and spend shared resources',
+            self::Farm => __('Farm resources and manage fields'),
+            self::Build => __('Construct or upgrade buildings'),
+            self::SendTroops => __('Send troops on missions'),
+            self::Trade => __('Trade resources via the marketplace'),
+            self::SpendGold => __('Spend gold on premium actions'),
+            self::Raid => __('Launch raids on behalf of the account owner'),
+            self::Reinforce => __('Send reinforcements to allied villages'),
+            self::SendResources => __('Dispatch resources between villages'),
+            self::ManageMessages => __('Read and respond to account messages'),
+            self::ManageArchives => __('Organise reports and archive records'),
+            self::AllianceContribute => __('Manage alliance contributions and spend shared resources'),
         };
     }
 

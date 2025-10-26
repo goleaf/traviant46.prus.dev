@@ -18,18 +18,24 @@ class SyncLegacyRoleGuardsOnLogin
             return;
         }
 
+        $preserveAdmin = $this->shouldPreserveAdminGuard();
+
         if ($event->guard !== 'admin') {
-            $this->syncGuard('admin', $user->isAdmin(), $user);
+            $this->syncGuard('admin', $user->isAdmin(), $user, $preserveAdmin);
         }
 
         if ($event->guard !== 'multihunter') {
-            $this->syncGuard('multihunter', $user->isMultihunter(), $user);
+            $this->syncGuard('multihunter', $user->isMultihunter(), $user, false);
         }
     }
 
-    private function syncGuard(string $guard, bool $shouldBeLoggedIn, User $user): void
+    private function syncGuard(string $guard, bool $shouldBeLoggedIn, User $user, bool $preserveAdmin): void
     {
         $authGuard = Auth::guard($guard);
+
+        if ($guard === 'admin' && $preserveAdmin && ! $shouldBeLoggedIn) {
+            return;
+        }
 
         if ($shouldBeLoggedIn) {
             if (! $authGuard->check() || (int) $authGuard->id() !== (int) $user->getKey()) {
@@ -42,5 +48,20 @@ class SyncLegacyRoleGuardsOnLogin
         if ($authGuard->check()) {
             $authGuard->logout();
         }
+    }
+
+    private function shouldPreserveAdminGuard(): bool
+    {
+        $session = request()?->session();
+
+        if ($session === null) {
+            return false;
+        }
+
+        if (! $session->get('impersonation.active', false)) {
+            return false;
+        }
+
+        return $session->has('impersonation.admin_user_id');
     }
 }

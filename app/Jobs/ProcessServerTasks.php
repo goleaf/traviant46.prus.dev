@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
+use App\Enums\Game\ServerTaskStatus;
 use App\Models\Game\ServerTask;
 use App\Services\ServerTasks\ServerTaskProcessor;
 use Illuminate\Bus\Queueable;
@@ -21,12 +24,12 @@ class ProcessServerTasks implements ShouldQueue
     use SerializesModels;
 
     public int $tries = 1;
+
     public int $timeout = 120;
+
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 25)
-    {
-    }
+    public function __construct(private readonly int $chunkSize = 25) {}
 
     public function handle(ServerTaskProcessor $processor): void
     {
@@ -55,7 +58,7 @@ class ProcessServerTasks implements ShouldQueue
                     return;
                 }
 
-                if ($lockedTask->status !== ServerTask::STATUS_PENDING) {
+                if ($lockedTask->status !== ServerTaskStatus::Pending) {
                     return;
                 }
 
@@ -67,7 +70,7 @@ class ProcessServerTasks implements ShouldQueue
                 $lockedTask->save();
             }, 5);
 
-            if ($lockedTask === null || $lockedTask->status !== ServerTask::STATUS_PROCESSING) {
+            if ($lockedTask === null || $lockedTask->status !== ServerTaskStatus::Processing) {
                 return;
             }
 
@@ -78,7 +81,7 @@ class ProcessServerTasks implements ShouldQueue
                 return;
             }
 
-            if ($latestTask->status === ServerTask::STATUS_PROCESSING) {
+            if ($latestTask->status === ServerTaskStatus::Processing) {
                 $latestTask->markCompleted();
                 $latestTask->save();
             }

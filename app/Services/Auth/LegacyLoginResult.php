@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Auth;
 
 use App\Models\Activation;
@@ -8,7 +10,9 @@ use App\Models\User;
 class LegacyLoginResult
 {
     public const MODE_OWNER = 'owner';
+
     public const MODE_SITTER = 'sitter';
+
     public const MODE_ACTIVATION = 'activation';
 
     public function __construct(

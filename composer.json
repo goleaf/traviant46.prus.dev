@@ -23,6 +23,7 @@
         "barryvdh/laravel-debugbar": "^3.16",
         "darkaonline/l5-swagger": "*",
         "fakerphp/faker": "^1.23",
+        "infection/infection": "^0.29",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^1.3",
         "laravel/pail": "^1.2.2",
@@ -64,6 +65,7 @@
         "lint": "vendor/bin/pint --dirty",
         "lint:all": "vendor/bin/pint",
         "stan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G",
+        "mutation": "vendor/bin/infection --configuration=infection.json.dist --threads=4",
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
@@ -98,7 +100,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "infection/extension-installer": true
         }
     },
     "minimum-stability": "stable",

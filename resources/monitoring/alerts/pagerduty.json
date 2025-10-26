@@ -1,0 +1,81 @@
+{
+  "rules": [
+    {
+      "name": "High Failed Login Ratio",
+      "description": "Triggers when failed logins exceed 20% over a five minute window.",
+      "conditions": {
+        "operator": "and",
+        "subconditions": [
+          {
+            "metric": "cloudwatch:travian:auth.logins",
+            "stat": "Sum",
+            "dimensions": {"status": "failed"},
+            "threshold": "rate > 50 per minute",
+            "window": "5m"
+          },
+          {
+            "metric": "cloudwatch:travian:auth.logins",
+            "stat": "Sum",
+            "dimensions": {"status": "failed"},
+            "compareTo": {
+              "metric": "cloudwatch:travian:auth.logins",
+              "dimensions": {"status": "success"},
+              "ratio": 0.2
+            }
+          }
+        ]
+      },
+      "payload": {
+        "severity": "error",
+        "source": "travian-authentication",
+        "component": "login",
+        "group": "authentication",
+        "class": "failed-login-ratio",
+        "custom_details": {
+          "description": "Failure ratio over 20% in the last five minutes",
+          "dashboard": "grafana/authentication_overview"
+        }
+      },
+      "responders": [
+        {
+          "type": "team",
+          "id": "PRIMARY_ONCALL"
+        }
+      ]
+    },
+    {
+      "name": "Multi-Account Alert Surge",
+      "description": "Triggers when more than 10 high severity alerts fire within ten minutes.",
+      "conditions": {
+        "operator": "and",
+        "subconditions": [
+          {
+            "metric": "cloudwatch:travian:security.multi_account_alert",
+            "stat": "Sum",
+            "dimensions": {"state": "created", "severity": "high"},
+            "threshold": "sum >= 10",
+            "window": "10m"
+          }
+        ]
+      },
+      "payload": {
+        "severity": "critical",
+        "source": "travian-security",
+        "component": "multi-account-detector",
+        "group": "security",
+        "class": "multi-account-surge",
+        "custom_details": {
+          "description": "High severity alerts exceeded safe threshold",
+          "dashboard": "grafana/authentication_overview"
+        }
+      },
+      "responders": [
+        {
+          "type": "team",
+          "id": "SECURITY_ONCALL"
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\UserDataExportStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +16,6 @@ class UserDataExport extends Model
 {
     use HasFactory;
     use Prunable;
-
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
         'user_id',
@@ -38,6 +36,7 @@ class UserDataExport extends Model
         'requested_at' => 'datetime',
         'completed_at' => 'datetime',
         'expires_at' => 'datetime',
+        'status' => UserDataExportStatus::class,
     ];
 
     public function user(): BelongsTo
@@ -72,7 +71,7 @@ class UserDataExport extends Model
 
     public function isDownloadable(): bool
     {
-        if ($this->status !== self::STATUS_COMPLETED) {
+        if ($this->status !== UserDataExportStatus::Completed) {
             return false;
         }
 

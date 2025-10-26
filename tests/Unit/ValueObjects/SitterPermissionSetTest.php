@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\SitterPermission;
 use App\ValueObjects\SitterPermissionSet;
-use InvalidArgumentException;
 
 it('constructs a permission set from keys and exposes helper accessors', function (): void {
     $set = SitterPermissionSet::fromArray(['farm', 'send_troops']);
@@ -29,5 +28,5 @@ it('restores permissions from an integer mask', function (): void {
 });
 
 it('rejects unknown permission keys', function (): void {
-    expect(fn () => SitterPermissionSet::fromArray(['not-a-permission']))->toThrow(InvalidArgumentException::class);
+    expect(fn () => SitterPermissionSet::fromArray(['not-a-permission']))->toThrow(\InvalidArgumentException::class);
 });

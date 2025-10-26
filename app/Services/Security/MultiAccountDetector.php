@@ -9,7 +9,9 @@ use App\Enums\MultiAccountAlertStatus;
 use App\Models\LoginActivity;
 use App\Models\MultiAccountAlert;
 use App\Models\User;
+use App\Monitoring\Metrics\MetricRecorder;
 use App\Notifications\MultiAccountAlertRaised;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Notifications\Notification as IlluminateNotification;
 use Illuminate\Support\Carbon;
@@ -17,6 +19,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Throwable;
 
 class MultiAccountDetector
 {
@@ -24,6 +27,7 @@ class MultiAccountDetector
 
     public function __construct(
         protected MultiAccountRules $rules,
+        protected MetricRecorder $metrics,
     ) {}
 
     public function record(LoginActivity $activity): void
@@ -34,13 +38,19 @@ class MultiAccountDetector
 
         $vpnSuspected = $this->rules->isLikelyVpn($activity->ip_address, $activity->user_agent);
 
+        $ipMatches = collect([
+            $activity->ip_address,
+            $activity->ip_address_hash,
+        ])->filter(static fn ($value) => $value !== null && $value !== '')->values();
+
         $this->evaluateSource(
             sourceType: 'ip',
-            identifier: $activity->ip_address,
+            identifier: $ipMatches->first() ?? $activity->ip_address,
             activity: $activity,
             windowStart: $windowStart,
             vpnSuspected: $vpnSuspected,
             suppressionReason: $this->rules->allowlistReason($activity->ip_address, null),
+            matchIdentifiers: $ipMatches->all(),
         );
 
         if (! blank($activity->device_hash)) {
@@ -51,6 +61,7 @@ class MultiAccountDetector
                 windowStart: $windowStart,
                 vpnSuspected: $vpnSuspected,
                 suppressionReason: $this->rules->allowlistReason(null, $activity->device_hash),
+                matchIdentifiers: [$activity->device_hash],
             );
         }
     }
@@ -62,13 +73,39 @@ class MultiAccountDetector
         Carbon $windowStart,
         bool $vpnSuspected,
         ?string $suppressionReason,
+        array $matchIdentifiers = [],
     ): void {
         if (blank($identifier)) {
             return;
         }
 
+        $normalizedMatches = collect($matchIdentifiers)
+            ->merge([$identifier])
+            ->filter(static fn ($value) => $value !== null && $value !== '')
+            ->unique()
+            ->values();
+
         $activities = LoginActivity::query()
-            ->when($sourceType === 'ip', fn ($query) => $query->where('ip_address', $identifier))
+            ->when($sourceType === 'ip', function (Builder $query) use ($normalizedMatches): Builder {
+                if ($normalizedMatches->isEmpty()) {
+                    return $query;
+                }
+
+                return $query->where(function (Builder $builder) use ($normalizedMatches): void {
+                    $normalizedMatches->each(function (string $value, int $index) use ($builder): void {
+                        $clause = static function (Builder $inner) use ($value): void {
+                            $inner->where('ip_address', $value)
+                                ->orWhere('ip_address_hash', $value);
+                        };
+
+                        if ($index === 0) {
+                            $builder->where($clause);
+                        } else {
+                            $builder->orWhere($clause);
+                        }
+                    });
+                });
+            })
             ->when($sourceType === 'device', fn ($query) => $query->where('device_hash', $identifier))
             ->whereBetween('logged_at', [$windowStart, $activity->logged_at ?? $activity->created_at ?? now()])
             ->orderBy('logged_at')
@@ -93,6 +130,7 @@ class MultiAccountDetector
         $groupKey = $this->buildGroupKey($sourceType, $identifier, $userIds);
 
         $alert = MultiAccountAlert::query()->firstOrNew(['group_key' => $groupKey]);
+        $wasExisting = $alert->exists;
 
         if (! $alert->exists) {
             $alert->alert_id = (string) Str::uuid();
@@ -106,6 +144,7 @@ class MultiAccountDetector
         $alert->fill([
             'source_type' => $sourceType,
             'ip_address' => $activity->ip_address,
+            'ip_address_hash' => $activity->ip_address_hash,
             'device_hash' => $sourceType === 'device' ? $identifier : $activity->device_hash,
             'user_ids' => $userIds->all(),
             'occurrences' => $occurrences,
@@ -114,8 +153,16 @@ class MultiAccountDetector
             'severity' => $severity ?? MultiAccountAlertSeverity::Low,
             'status' => $status,
             'suppression_reason' => $suppressionReason,
-            'metadata' => $this->buildMetadata($sourceType, $identifier, $activities, $vpnSuspected),
+            'metadata' => $this->buildMetadata($sourceType, $identifier, $activities, $vpnSuspected, $normalizedMatches->all()),
         ])->save();
+
+        $this->metrics->increment('security.multi_account_alert', 1.0, [
+            'state' => $wasExisting ? 'updated' : 'created',
+            'source' => $sourceType,
+            'severity' => $alert->severity?->value ?? 'unknown',
+            'status' => $status->value,
+            'suppressed' => $status === MultiAccountAlertStatus::Suppressed ? 'yes' : 'no',
+        ]);
 
         if ($status === MultiAccountAlertStatus::Open) {
             $this->maybeNotify($alert);
@@ -187,10 +234,10 @@ class MultiAccountDetector
     }
 
     /**
-     * @param  EloquentCollection<int, LoginActivity>  $activities
+     * @param EloquentCollection<int, LoginActivity> $activities
      * @return array<string, mixed>
      */
-    protected function buildMetadata(string $sourceType, string $identifier, EloquentCollection $activities, bool $vpnSuspected): array
+    protected function buildMetadata(string $sourceType, string $identifier, EloquentCollection $activities, bool $vpnSuspected, array $matchIdentifiers): array
     {
         $timeline = $activities
             ->sortByDesc(static fn (LoginActivity $activity): ?Carbon => $activity->logged_at ?? $activity->created_at)
@@ -201,6 +248,7 @@ class MultiAccountDetector
                     'acting_sitter_id' => $activity->acting_sitter_id,
                     'via_sitter' => $activity->via_sitter,
                     'ip_address' => $activity->ip_address,
+                    'ip_address_hash' => $activity->ip_address_hash,
                     'logged_at' => optional($activity->logged_at ?? $activity->created_at)->toAtomString(),
                 ];
             })
@@ -217,6 +265,7 @@ class MultiAccountDetector
             'source' => [
                 'type' => $sourceType,
                 'identifier' => $identifier,
+                'identifiers' => array_values(array_unique(array_filter($matchIdentifiers))),
             ],
             'vpn_suspected' => $vpnSuspected,
             'user_counts' => $countsByUser,
@@ -252,9 +301,19 @@ class MultiAccountDetector
         $recipients = $this->resolveRecipients();
         if ($recipients->isNotEmpty()) {
             Notification::send($recipients, $notification);
+
+            $this->metrics->increment('security.multi_account_notification', 1.0, [
+                'channel' => 'broadcast',
+                'severity' => $severity->value,
+            ]);
         }
 
-        $this->sendWebhook($alert);
+        if ($this->sendWebhook($alert)) {
+            $this->metrics->increment('security.multi_account_notification', 1.0, [
+                'channel' => 'webhook',
+                'severity' => $severity->value,
+            ]);
+        }
 
         $alert->forceFill([
             'last_notified_at' => now(),
@@ -276,28 +335,31 @@ class MultiAccountDetector
             ->get();
     }
 
-    protected function sendWebhook(MultiAccountAlert $alert): void
+    protected function sendWebhook(MultiAccountAlert $alert): bool
     {
         $webhookUrl = config('multiaccount.notifications.webhook_url');
         if ($webhookUrl === null || $webhookUrl === '') {
-            return;
+            return false;
         }
 
         try {
-            Http::timeout(5)->post($webhookUrl, [
+            $response = Http::timeout(5)->post($webhookUrl, [
                 'alert_id' => $alert->alert_id,
                 'severity' => $alert->severity?->value,
                 'status' => $alert->status?->value,
                 'source_type' => $alert->source_type,
                 'device_hash' => $alert->device_hash,
                 'ip_address' => $alert->ip_address,
+                'ip_address_hash' => $alert->ip_address_hash,
                 'user_ids' => $alert->user_ids,
                 'occurrences' => $alert->occurrences,
                 'last_seen_at' => optional($alert->last_seen_at)->toAtomString(),
                 'metadata' => $alert->metadata,
             ]);
-        } catch (\Throwable) {
-            // Silently swallow webhook failures to avoid blocking the login flow.
+
+            return $response->successful();
+        } catch (Throwable) {
+            return false;
         }
     }
 

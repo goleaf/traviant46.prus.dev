@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Migration;
 
 use Illuminate\Database\ConnectionInterface;
@@ -7,6 +9,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+
 use function collect;
 
 class DataMigrationService
@@ -47,7 +50,7 @@ class DataMigrationService
                 $sourceConnection,
                 $targetConnection,
                 $normalised,
-                $truncateBeforeImport || $normalised['truncate']
+                $truncateBeforeImport || $normalised['truncate'],
             );
 
             $report->addTableResult($normalised['target'], $stats);

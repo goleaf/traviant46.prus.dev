@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\VerifyEmail as BaseVerifyEmail;
@@ -12,7 +14,7 @@ class QueuedVerifyEmailNotification extends BaseVerifyEmail implements ShouldQue
 
     public function __construct()
     {
-        $this->configureQueue();
+        $this->onQueue(config('queue.mail_queue', 'mail'));
     }
 
     /**
@@ -22,32 +24,10 @@ class QueuedVerifyEmailNotification extends BaseVerifyEmail implements ShouldQue
      */
     public function viaQueues(): array
     {
-        $queueConfiguration = config('mail.queue', []);
-        $queue = $queueConfiguration['name'] ?? config('queue.mail_queue', 'mail');
+        $queue = config('queue.mail_queue', 'mail');
 
         return [
             'mail' => $queue,
         ];
-    }
-
-    private function configureQueue(): void
-    {
-        $queueConfiguration = config('mail.queue', []);
-
-        $connection = $queueConfiguration['connection'] ?? config('queue.mail_connection');
-        $queue = $queueConfiguration['name'] ?? config('queue.mail_queue', 'mail');
-        $retryAfter = $queueConfiguration['retry_after'] ?? null;
-
-        if ($connection) {
-            $this->onConnection($connection);
-        }
-
-        if ($queue) {
-            $this->onQueue($queue);
-        }
-
-        if ($retryAfter) {
-            $this->retryAfter((int) $retryAfter);
-        }
     }
 }

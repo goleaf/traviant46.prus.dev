@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -100,9 +101,9 @@ class CampaignCustomerSegment extends Model
         return match ($operator) {
             'equals' => $query->where($field, $value),
             'not_equals' => $query->where($field, '!=', $value),
-            'contains' => $query->where($field, 'like', '%' . $value . '%'),
-            'starts_with' => $query->where($field, 'like', $value . '%'),
-            'ends_with' => $query->where($field, 'like', '%' . $value),
+            'contains' => $query->where($field, 'like', '%'.$value.'%'),
+            'starts_with' => $query->where($field, 'like', $value.'%'),
+            'ends_with' => $query->where($field, 'like', '%'.$value),
             'greater_than' => $query->where($field, '>', $value),
             'greater_than_or_equal_to' => $query->where($field, '>=', $value),
             'less_than' => $query->where($field, '<', $value),

@@ -11,7 +11,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasColumn('multi_account_alerts', 'primary_user_id')) {
+        if (! Schema::hasTable('multi_account_alerts') || Schema::hasColumn('multi_account_alerts', 'source_type')) {
             return;
         }
 
@@ -43,15 +43,15 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (! Schema::hasColumn('multi_account_alerts', 'primary_user_id')) {
+        if (! Schema::hasTable('multi_account_alerts') || ! Schema::hasColumn('multi_account_alerts', 'source_type')) {
             return;
         }
 
         Schema::table('multi_account_alerts', function (Blueprint $table) {
             $table->dropForeign(['resolved_by_user_id']);
             $table->dropForeign(['dismissed_by_user_id']);
-            $table->dropIndex(['device_hash']);
-            $table->dropIndex(['status']);
+            $table->dropIndex('multi_account_alerts_device_hash_index');
+            $table->dropIndex('multi_account_alerts_status_index');
             $table->dropColumn([
                 'source_type',
                 'device_hash',
@@ -67,7 +67,6 @@ return new class extends Migration
                 'metadata',
                 'last_notified_at',
             ]);
-            $table->unique(['ip_address', 'primary_user_id', 'conflict_user_id'], 'multi_account_unique');
         });
     }
 };

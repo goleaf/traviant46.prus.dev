@@ -21,6 +21,11 @@
 </head>
 <body class="@yield('body_class', 'app-body')">
     <div class="@yield('app_container_class', 'app-shell')" id="app">
+        @include('layouts.partials.impersonation-banner')
+        @if (! empty($sitterContext['active'] ?? false))
+            @include('layouts.partials.sitter-banner', ['context' => $sitterContext, 'cspNonce' => $cspNonce])
+        @endif
+
         @yield('content')
     </div>
 

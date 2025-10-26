@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support\Travian;
 
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\QueryException;
+use Throwable;
 
 final class LegacyConfigRepository
 {
@@ -117,29 +120,64 @@ final class LegacyConfigRepository
             ? $this->cacheFactory->store($cacheStore)
             : $this->cacheFactory->store();
 
-        return $cache->remember($cacheKey, $ttl, function (): array {
-            $connection = $this->databaseManager->connection();
-            $schema = $connection->getSchemaBuilder();
+        try {
+            return $cache->remember($cacheKey, $ttl, function (): array {
+                try {
+                    $connection = $this->databaseManager->connection();
+                } catch (Throwable $exception) {
+                    if ($this->isTransientConnectionFailure($exception)) {
+                        return [];
+                    }
 
-            if ($schema === null || ! $schema->hasTable('config')) {
-                return [];
-            }
+                    throw $exception;
+                }
 
-            try {
-                $row = $connection->table('config')->first();
-            } catch (QueryException $exception) {
-                if (str_contains(strtolower($exception->getMessage()), 'no such table')) {
+                $schema = $connection->getSchemaBuilder();
+
+                if ($schema === null || ! $schema->hasTable('config')) {
                     return [];
                 }
 
-                throw $exception;
-            }
+                try {
+                    $row = $connection->table('config')->first();
+                } catch (QueryException $exception) {
+                    if (str_contains(strtolower($exception->getMessage()), 'no such table')) {
+                        return [];
+                    }
 
-            if ($row === null) {
+                    throw $exception;
+                }
+
+                if ($row === null) {
+                    return [];
+                }
+
+                return (array) $row;
+            });
+        } catch (Throwable $exception) {
+            if (
+                $exception instanceof QueryException
+                && str_contains(strtolower($exception->getMessage()), 'no such table')
+            ) {
                 return [];
             }
 
-            return (array) $row;
-        });
+            if ($this->isTransientConnectionFailure($exception)) {
+                return [];
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function isTransientConnectionFailure(Throwable $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'php_network_getaddresses')
+            || str_contains($message, 'could not find driver')
+            || str_contains($message, 'connection refused')
+            || str_contains($message, 'no such host is known')
+            || str_contains($message, 'server has gone away');
     }
 }

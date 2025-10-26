@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Game;
 
+use App\Enums\Game\VillageBuildingUpgradeStatus;
 use App\Models\Game\Village;
 use App\Models\Game\VillageBuilding;
 use App\Models\Game\VillageBuildingUpgrade;
@@ -56,7 +59,7 @@ class BuildingService
         int $levels = 1,
         array $context = []
     ): VillageBuildingUpgrade {
-        if (!$this->canUpgrade($village, $building, $levels)) {
+        if (! $this->canUpgrade($village, $building, $levels)) {
             throw new InvalidArgumentException('Building cannot be upgraded to the requested level.');
         }
 
@@ -75,7 +78,7 @@ class BuildingService
 
         $segments = [];
         $totalDuration = 0;
-        for ($level = $effectiveLevel + 1; $level <= $targetLevel; ++$level) {
+        for ($level = $effectiveLevel + 1; $level <= $targetLevel; $level++) {
             $duration = $this->calculateBuildTime((int) $building->building_type, $level, $mainBuildingLevel, $isWorldWonder);
             $segments[] = [
                 'level' => $level,
@@ -109,7 +112,7 @@ class BuildingService
                 'current_level' => $building->level,
                 'target_level' => $targetLevel,
                 'queue_position' => $queuePosition,
-                'status' => VillageBuildingUpgrade::STATUS_PENDING,
+                'status' => VillageBuildingUpgradeStatus::Pending,
                 'metadata' => [
                     'segments' => $segments,
                 ],
@@ -131,8 +134,8 @@ class BuildingService
         $pending = $village->buildingUpgrades()
             ->where('slot_number', $building->slot_number)
             ->whereIn('status', [
-                VillageBuildingUpgrade::STATUS_PENDING,
-                VillageBuildingUpgrade::STATUS_PROCESSING,
+                VillageBuildingUpgradeStatus::Pending,
+                VillageBuildingUpgradeStatus::Processing,
             ])
             ->count();
 
@@ -161,10 +164,10 @@ class BuildingService
             $time[2] = 1875 * $time[1];
         }
 
-        $calculated = (($time[0] * pow($time[1], $level - 1) - $time[2]) * ($mainBuildingLevel != 0 ? pow(0.964, $mainBuildingLevel - 1) : 5) / $this->gameSpeed / ($isWorldWonder ? 2 : 1));
+        $calculated = (($time[0] * pow($time[1], $level - 1) - $time[2]) * ($mainBuildingLevel !== 0 ? pow(0.964, $mainBuildingLevel - 1) : 5) / $this->gameSpeed / ($isWorldWonder ? 2 : 1));
 
         if ($this->gameSpeed > 500) {
-            if ($buildingType == 40) {
+            if ($buildingType === 40) {
                 if ($level < 50 && $calculated < 30) {
                     return 30;
                 } elseif ($level < 90 && $calculated < 90) {
@@ -195,10 +198,10 @@ class BuildingService
         $cost = $definition['cost'];
         $k = $definition['k'];
 
-        for ($i = 0; $i < 4; ++$i) {
+        for ($i = 0; $i < 4; $i++) {
             $cost[$i] = round($cost[$i] * pow($k, $level - 1) / 5) * 5;
-            if ($buildingType == 40) {
-                if ((($level == 100) && ($i < 3)) || ($cost[$i] > 1e6)) {
+            if ($buildingType === 40) {
+                if ((($level === 100) && ($i < 3)) || ($cost[$i] > 1e6)) {
                     $cost[$i] = 1000000;
                 }
             }
@@ -216,12 +219,12 @@ class BuildingService
 
     private function buildingMaxLevel(int $buildingType, bool $isCapital, bool $real = true): int
     {
-        if ($buildingType == 40) {
+        if ($buildingType === 40) {
             return 100;
         }
 
         if ($buildingType <= 4) {
-            if (!$isCapital) {
+            if (! $isCapital) {
                 return 10;
             }
 
@@ -232,7 +235,7 @@ class BuildingService
         $maxLevel = (int) $definition['maxLvl'];
 
         if (isset($definition['req']['capital']) && (int) $definition['req']['capital'] > 1) {
-            if (!$isCapital) {
+            if (! $isCapital) {
                 $maxLevel = (int) $definition['req']['capital'];
             }
         }
@@ -243,8 +246,8 @@ class BuildingService
     private function getBuildingDefinition(int $buildingType): array
     {
         $index = $buildingType - 1;
-        if (!isset($this->buildingDefinitions[$index])) {
-            throw new InvalidArgumentException('Unknown building type: ' . $buildingType);
+        if (! isset($this->buildingDefinitions[$index])) {
+            throw new InvalidArgumentException('Unknown building type: '.$buildingType);
         }
 
         return $this->buildingDefinitions[$index];
@@ -255,8 +258,8 @@ class BuildingService
         $latest = $village->buildingUpgrades()
             ->where('slot_number', $building->slot_number)
             ->whereIn('status', [
-                VillageBuildingUpgrade::STATUS_PENDING,
-                VillageBuildingUpgrade::STATUS_PROCESSING,
+                VillageBuildingUpgradeStatus::Pending,
+                VillageBuildingUpgradeStatus::Processing,
             ])
             ->orderByDesc('target_level')
             ->value('target_level');
@@ -269,8 +272,8 @@ class BuildingService
         return $village->buildingUpgrades()
             ->where('slot_number', $building->slot_number)
             ->whereIn('status', [
-                VillageBuildingUpgrade::STATUS_PENDING,
-                VillageBuildingUpgrade::STATUS_PROCESSING,
+                VillageBuildingUpgradeStatus::Pending,
+                VillageBuildingUpgradeStatus::Processing,
             ])
             ->orderByDesc('completes_at')
             ->first();

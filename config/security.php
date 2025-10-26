@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $csv = static function (string $value): array {
     $parts = array_map('trim', explode(',', $value));
 
@@ -61,6 +63,14 @@ return [
         'login' => [
             'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_ATTEMPTS', 5),
             'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_DECAY_MINUTES', 1),
+            'per_ip' => [
+                'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_IP_ATTEMPTS', 50),
+                'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_IP_DECAY_MINUTES', 10),
+            ],
+            'per_device' => [
+                'max_attempts' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_DEVICE_ATTEMPTS', 15),
+                'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_LOGIN_PER_DEVICE_DECAY_MINUTES', 5),
+            ],
         ],
         'two_factor' => [
             'max_attempts' => (int) env('SECURITY_RATE_LIMIT_TWO_FACTOR_ATTEMPTS', 5),
@@ -69,7 +79,96 @@ return [
         'password_reset' => [
             'max_attempts' => (int) env('SECURITY_RATE_LIMIT_PASSWORD_RESET_ATTEMPTS', 3),
             'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_PASSWORD_RESET_DECAY_MINUTES', 10),
+            'per_ip' => [
+                'max_attempts' => (int) env('SECURITY_RATE_LIMIT_PASSWORD_RESET_PER_IP_ATTEMPTS', 10),
+                'decay_minutes' => (int) env('SECURITY_RATE_LIMIT_PASSWORD_RESET_PER_IP_DECAY_MINUTES', 60),
+            ],
         ],
+        'sitter_mutations' => [
+            'per_minute' => (int) env('SECURITY_RATE_LIMIT_SITTER_MINUTE', 6),
+            'per_hour' => (int) env('SECURITY_RATE_LIMIT_SITTER_HOUR', 30),
+        ],
+        'admin_actions' => [
+            'per_minute' => (int) env('SECURITY_RATE_LIMIT_ADMIN_MINUTE', 30),
+            'per_hour' => (int) env('SECURITY_RATE_LIMIT_ADMIN_HOUR', 120),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | HTTP Security Headers
+    |--------------------------------------------------------------------------
+    |
+    | Define the default HTTP response headers that enforce browser security
+    | policies such as the Content Security Policy and referrer behaviour.
+    | Directives can be customised per-environment using the overrides array.
+    |
+    */
+
+    'headers' => [
+        'csp' => [
+            'default-src' => ["'self'"],
+            'base-uri' => ["'self'"],
+            'form-action' => ["'self'"],
+            'frame-ancestors' => ["'none'"],
+            'object-src' => ["'none'"],
+            'script-src' => ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            'style-src' => ["'self'", "'unsafe-inline'", 'https://fonts.bunny.net'],
+            'font-src' => ["'self'", 'https://fonts.bunny.net', 'data:'],
+            'img-src' => ["'self'", 'data:', 'blob:'],
+            'connect-src' => ["'self'"],
+        ],
+        'csp_environment_overrides' => [
+            'local' => [
+                'script-src' => ['http://localhost:5173', 'http://127.0.0.1:5173'],
+                'style-src' => ['http://localhost:5173', 'http://127.0.0.1:5173'],
+                'connect-src' => [
+                    'ws://localhost:5173',
+                    'ws://127.0.0.1:5173',
+                    'http://localhost:5173',
+                    'http://127.0.0.1:5173',
+                ],
+            ],
+        ],
+        'referrer-policy' => env('SECURITY_REFERRER_POLICY', 'strict-origin-when-cross-origin'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Trusted Device Management
+    |--------------------------------------------------------------------------
+    |
+    | Configure how remembered devices are handled, including whether the
+    | feature is enabled, cookie characteristics, expiration windows, and
+    | per-user limits. These values are consumed by the TrustedDeviceManager.
+    |
+    */
+
+    'trusted_devices' => [
+        'enabled' => (bool) env('SECURITY_TRUSTED_DEVICES_ENABLED', true),
+        'max_per_user' => (int) env('SECURITY_TRUSTED_DEVICES_MAX_PER_USER', 10),
+        'default_expiration_days' => (int) env('SECURITY_TRUSTED_DEVICES_EXPIRATION_DAYS', 180),
+        'cookie' => [
+            'name' => env('SECURITY_TRUSTED_DEVICE_COOKIE_NAME', 'travian_trusted_device'),
+            'lifetime_days' => (int) env('SECURITY_TRUSTED_DEVICE_COOKIE_DAYS', 180),
+            'same_site' => env('SECURITY_TRUSTED_DEVICE_COOKIE_SAME_SITE', env('SESSION_SAME_SITE', 'lax')),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Device Verification
+    |--------------------------------------------------------------------------
+    |
+    | Controls notifications for logins originating from unrecognised device
+    | fingerprints or network locations. Cache TTL defines how long a device
+    | fingerprint remains trusted before re-notification occurs.
+    |
+    */
+
+    'device_verification' => [
+        'enabled' => (bool) env('SECURITY_DEVICE_VERIFICATION', true),
+        'cache_ttl_minutes' => (int) env('SECURITY_DEVICE_VERIFICATION_CACHE_TTL', 720),
     ],
 
     /*
@@ -172,6 +271,22 @@ return [
             'name' => env('MAIL_QUEUE', 'mail'),
             'retry_after' => (int) env('MAIL_QUEUE_RETRY_AFTER', 90),
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Signed Cookie Key Rotation
+    |--------------------------------------------------------------------------
+    |
+    | Configure how many previous keys should be retained when rotating the
+    | application's signing key set. Keeping previous keys allows active
+    | sessions to remain valid while new cookies are minted with the latest
+    | secret. Adjust the retention window to meet operational requirements.
+    |
+    */
+
+    'cookie_keys' => [
+        'max_previous' => (int) env('SECURITY_COOKIE_KEYS_MAX_PREVIOUS', 5),
     ],
 
 ];

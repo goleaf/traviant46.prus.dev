@@ -7,7 +7,6 @@ use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Closure;
 
 uses(RefreshDatabase::class);
 
@@ -15,9 +14,12 @@ dataset('legacy-login-identifiers', [
     'username' => static fn (User $user): string => $user->username,
     'email' => static fn (User $user): string => $user->email,
     'trimmed username' => static fn (User $user): string => '  '.$user->username.'  ',
+    'trimmed email' => static fn (User $user): string => '  '.$user->email.'  ',
+    'uppercase email' => static fn (User $user): string => strtoupper($user->email),
+    'uppercase username' => static fn (User $user): string => strtoupper($user->username),
 ]);
 
-it('authenticates the account owner via supported identifiers', function (Closure $identifierResolver): void {
+it('authenticates the account owner via supported identifiers', function (callable $identifierResolver): void {
     $password = 'Secret#90210';
 
     $user = User::factory()->create([

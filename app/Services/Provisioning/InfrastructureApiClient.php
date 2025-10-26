@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Provisioning;
 
 use App\Services\Provisioning\Exceptions\ProvisioningException;
@@ -11,9 +13,7 @@ use Throwable;
 
 class InfrastructureApiClient
 {
-    public function __construct(private readonly array $config)
-    {
-    }
+    public function __construct(private readonly array $config) {}
 
     public function installGameWorld(array $payload): void
     {

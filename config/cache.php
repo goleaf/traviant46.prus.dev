@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Str;
 
 return [
@@ -16,6 +18,25 @@ return [
     */
 
     'default' => env('CACHE_STORE', 'database'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Store Retry Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Transient failures (for example, Redis connection hiccups) will be retried
+    | according to these settings. The base delay is doubled until the cap is
+    | reached or the maximum number of attempts have been exhausted.
+    |
+    */
+
+    'retry' => [
+        'attempts' => env('CACHE_RETRY_ATTEMPTS', 3),
+        'backoff' => [
+            'base' => env('CACHE_RETRY_BACKOFF_BASE', 50),
+            'cap' => env('CACHE_RETRY_BACKOFF_CAP', 1000),
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -83,7 +104,7 @@ return [
             'lock_connection' => env('REDIS_SESSION_LOCK_CONNECTION', env('REDIS_SESSION_CACHE', 'session')),
             'prefix' => env(
                 'SESSION_CACHE_PREFIX',
-                env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-session-')
+                env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-session-'),
             ),
         ],
 

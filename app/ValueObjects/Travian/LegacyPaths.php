@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ValueObjects\Travian;
 
 final class LegacyPaths
@@ -11,8 +13,7 @@ final class LegacyPaths
         public readonly string $resources,
         public readonly string $locale,
         public readonly string $templates,
-    ) {
-    }
+    ) {}
 
     public static function resolve(): self
     {

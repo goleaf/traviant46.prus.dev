@@ -1,33 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Observers;
 
 use App\Models\SitterDelegation;
-use App\Services\Auth\AuthLookupCache;
+use App\Monitoring\Metrics\MetricRecorder;
+use App\ValueObjects\SitterPermissionSet;
 
 class SitterDelegationObserver
 {
-    public function __construct(private readonly AuthLookupCache $cache)
+    public function __construct(private readonly MetricRecorder $metrics) {}
+
+    public function created(SitterDelegation $delegation): void
     {
+        $this->record('created', $delegation);
     }
 
-    public function saved(SitterDelegation $delegation): void
+    public function updated(SitterDelegation $delegation): void
     {
-        $this->cache->forgetSitterPermissions((int) $delegation->owner_user_id);
+        $this->record('updated', $delegation);
     }
 
     public function deleted(SitterDelegation $delegation): void
     {
-        $this->cache->forgetSitterPermissions((int) $delegation->owner_user_id);
+        $this->record('deleted', $delegation);
     }
 
-    public function restored(SitterDelegation $delegation): void
+    private function record(string $operation, SitterDelegation $delegation): void
     {
-        $this->cache->forgetSitterPermissions((int) $delegation->owner_user_id);
-    }
+        $fullMask = SitterPermissionSet::full()->toBitmask();
 
-    public function forceDeleted(SitterDelegation $delegation): void
-    {
-        $this->cache->forgetSitterPermissions((int) $delegation->owner_user_id);
+        $this->metrics->increment('sitter.delegation', 1.0, [
+            'operation' => $operation,
+            'profile' => $delegation->permissionBitmask() === $fullMask ? 'full' : 'custom',
+            'has_expiry' => $delegation->expires_at !== null ? 'yes' : 'no',
+        ]);
     }
 }

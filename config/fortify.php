@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Laravel\Fortify\Features;
 
 return [
@@ -117,6 +119,18 @@ return [
     'limiters' => [
         'login' => 'login',
         'two-factor' => 'two-factor',
+        'verification' => 'verify-email',
+    ],
+
+    'rate_limits' => [
+        'password_reset' => [
+            'max_attempts' => env('FORTIFY_PASSWORD_RESET_MAX_ATTEMPTS', 5),
+            'decay_seconds' => env('FORTIFY_PASSWORD_RESET_DECAY_SECONDS', 900),
+        ],
+        'verification' => [
+            'max_attempts' => env('FORTIFY_VERIFICATION_MAX_ATTEMPTS', 6),
+            'decay_minutes' => env('FORTIFY_VERIFICATION_DECAY_MINUTES', 10),
+        ],
     ],
 
     /*

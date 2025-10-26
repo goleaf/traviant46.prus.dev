@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'chunk_size' => env('DATA_MIGRATION_CHUNK_SIZE', 500),
 

@@ -13,6 +13,7 @@ use App\Models\SitterDelegation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class SitterDelegationController extends Controller
@@ -30,9 +31,7 @@ class SitterDelegationController extends Controller
             ->get()
             ->map(fn (SitterDelegation $delegation): array => $this->transformDelegation($delegation));
 
-        return response()->json([
-            'data' => $delegations,
-        ]);
+        return response()->json(['data' => $delegations]);
     }
 
     public function store(StoreSitterDelegationRequest $request): JsonResponse
@@ -69,7 +68,6 @@ class SitterDelegationController extends Controller
         $changes = $delegation->getDirty();
 
         $delegation->save();
-
         $delegation->loadMissing('sitter', 'owner');
 
         if (! $wasExisting) {
@@ -87,7 +85,7 @@ class SitterDelegationController extends Controller
         ], $status);
     }
 
-    public function destroy(Request $request, SitterDelegation $sitterDelegation): JsonResponse
+    public function destroy(Request $request, SitterDelegation $sitterDelegation): Response
     {
         $sitterDelegation->loadMissing('owner', 'sitter');
 
@@ -105,7 +103,7 @@ class SitterDelegationController extends Controller
     /**
      * @return array<string, mixed>
      */
-    protected function transformDelegation(SitterDelegation $delegation): array
+    private function transformDelegation(SitterDelegation $delegation): array
     {
         $delegation->loadMissing('sitter');
 
@@ -116,7 +114,10 @@ class SitterDelegationController extends Controller
                 'username' => $delegation->sitter->username,
                 'name' => $delegation->sitter->name,
             ],
-            'permissions' => $delegation->permissions->toArray(),
+            'permissions' => $delegation->permissionKeys(),
+            'bitmask' => $delegation->permissionBitmask(),
+            'preset' => $delegation->preset()?->value,
+            'preset_label' => $delegation->preset()?->label(),
             'expires_at' => optional($delegation->expires_at)->toIso8601String(),
             'created_at' => optional($delegation->created_at)->toIso8601String(),
             'updated_at' => optional($delegation->updated_at)->toIso8601String(),

@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Game;
 
-use App\Models\Game\UnitTrainingBatch;
+use App\Enums\Game\UnitTrainingBatchStatus;
 use App\Models\Game\Village;
 use App\Models\Game\VillageBuilding;
 use App\Services\Game\TroopTrainingService;
@@ -23,7 +25,7 @@ class TroopTrainingServiceTest extends TestCase
     {
         parent::setUp();
 
-        if (!class_exists(VillageBuilding::class)) {
+        if (! class_exists(VillageBuilding::class)) {
             eval(<<<'PHP'
                 namespace App\Models\Game;
 
@@ -46,7 +48,7 @@ class TroopTrainingServiceTest extends TestCase
             PHP);
         }
 
-        if (!Schema::hasTable('buildings')) {
+        if (! Schema::hasTable('buildings')) {
             Schema::create('buildings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('village_id')->constrained('villages')->cascadeOnDelete();
@@ -58,7 +60,7 @@ class TroopTrainingServiceTest extends TestCase
             });
         }
 
-        $this->service = new TroopTrainingService();
+        $this->service = new TroopTrainingService;
     }
 
     public function test_cannot_train_with_non_positive_quantity(): void
@@ -127,7 +129,7 @@ class TroopTrainingServiceTest extends TestCase
 
         $firstBatch = $this->service->train($village->fresh(), 1, 5, 'barracks');
 
-        $this->assertSame(UnitTrainingBatch::STATUS_PENDING, $firstBatch->status);
+        $this->assertSame(UnitTrainingBatchStatus::Pending, $firstBatch->status);
         $this->assertSame(0, $firstBatch->queue_position);
         $this->assertSame('barracks', $firstBatch->training_building);
         $this->assertArrayHasKey('calculation', $firstBatch->metadata ?? []);
@@ -183,7 +185,7 @@ class TroopTrainingServiceTest extends TestCase
                 'level' => $level,
                 'updated_at' => Carbon::now(),
                 'created_at' => Carbon::now(),
-            ]
+            ],
         );
     }
 }

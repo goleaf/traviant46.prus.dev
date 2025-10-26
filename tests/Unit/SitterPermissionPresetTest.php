@@ -5,34 +5,41 @@ declare(strict_types=1);
 use App\Enums\SitterPermission;
 use App\Enums\SitterPermissionPreset;
 
-it('provides labelled permission presets', function (): void {
+it('exposes consistent keys and labels for sitter permissions', function (): void {
+    $keys = SitterPermission::keys();
+
+    expect($keys)->toContain('farm')
+        ->and($keys)->toContain('build')
+        ->and(count($keys))->toBe(count(SitterPermission::cases()));
+
+    foreach (SitterPermission::cases() as $permission) {
+        expect(SitterPermission::fromKey($permission->key()))->toBe($permission)
+            ->and($permission->label())->not->toBe('');
+    }
+});
+
+it('returns null when looking up an unknown permission key', function (): void {
+    expect(SitterPermission::fromKey('unknown-feature'))->toBeNull();
+});
+
+it('exposes preset metadata and permissions', function (): void {
     $preset = SitterPermissionPreset::Guardian;
 
     expect($preset->value)->toBe('guardian')
         ->and($preset->label())->toContain('Guardian')
-        ->and($preset->description())->not->toBe('');
-
-    $permissions = $preset->permissionValues();
-
-    expect($permissions)->toBeArray()
-        ->and($permissions)->toContain(SitterPermission::Reinforce->value)
-        ->and($permissions)->toContain(SitterPermission::SendResources->value);
+        ->and($preset->permissionKeys())
+        ->toContain('send_troops')
+        ->toContain('reinforce');
 });
 
 it('detects presets from stored permissions', function (): void {
-    expect(SitterPermissionPreset::detectFromPermissions(null))
-        ->toBe(SitterPermissionPreset::FullAccess);
+    $guardianKeys = SitterPermissionPreset::Guardian->permissionKeys();
+    $fullKeys = SitterPermissionPreset::FullAccess->permissionKeys();
 
-    $guardian = SitterPermissionPreset::Guardian->permissionValues();
-
-    expect(SitterPermissionPreset::detectFromPermissions($guardian))
-        ->toBe(SitterPermissionPreset::Guardian);
-
-    $custom = [
-        SitterPermission::SpendGold->value,
-        SitterPermission::AllianceContribute->value,
-    ];
-
-    expect(SitterPermissionPreset::detectFromPermissions($custom))
+    expect(SitterPermissionPreset::detectFromPermissions($guardianKeys))
+        ->toBe(SitterPermissionPreset::Guardian)
+        ->and(SitterPermissionPreset::detectFromPermissions($fullKeys))
+        ->toBe(SitterPermissionPreset::FullAccess)
+        ->and(SitterPermissionPreset::detectFromPermissions(['spend_gold']))
         ->toBeNull();
 });

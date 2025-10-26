@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Provisioning;
 
 use App\Models\Game\ServerTask;
@@ -7,9 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class ServerProvisioningService
 {
-    public function __construct(private readonly InfrastructureApiClient $client)
-    {
-    }
+    public function __construct(private readonly InfrastructureApiClient $client) {}
 
     public function install(ServerTask $task): void
     {

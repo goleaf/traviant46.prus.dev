@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\AuthEventType;
+use App\Http\Requests\Auth\PasswordResetLinkRequest;
 use App\Models\AuthEvent;
 use App\Models\User;
 use Illuminate\Contracts\Support\Responsable;
@@ -24,20 +27,12 @@ class PasswordResetLinkController extends BasePasswordResetLinkController
         return parent::create($request);
     }
 
-    public function store(Request $request): Responsable
+    public function store(PasswordResetLinkRequest $request): Responsable
     {
         $this->ensureIsNotRateLimited($request);
 
-        $request->validate([Fortify::email() => 'required|email']);
-
-        if (config('fortify.lowercase_usernames') && $request->has(Fortify::email())) {
-            $request->merge([
-                Fortify::email() => Str::lower($request->{Fortify::email()}),
-            ]);
-        }
-
         $status = $this->broker()->sendResetLink(
-            $request->only(Fortify::email())
+            $request->only(Fortify::email()),
         );
 
         $this->recordAuditEvent($request, $status);
@@ -49,9 +44,10 @@ class PasswordResetLinkController extends BasePasswordResetLinkController
 
     protected function ensureIsNotRateLimited(Request $request): void
     {
-        $settings = config('fortify.rate_limits.password_reset', []);
-        $maxAttempts = (int) ($settings['max_attempts'] ?? 5);
-        $decaySeconds = (int) ($settings['decay_seconds'] ?? 900);
+        $settings = config('security.rate_limits.password_reset', []);
+        $maxAttempts = max(1, (int) ($settings['max_attempts'] ?? 5));
+        $decayMinutes = max(1, (int) ($settings['decay_minutes'] ?? 10));
+        $decaySeconds = $decayMinutes * 60;
 
         $key = $this->throttleKey($request);
 

@@ -21,6 +21,11 @@ final class SitterPermissionSet
         return new self;
     }
 
+    public static function full(): self
+    {
+        return self::fromArray(SitterPermission::cases());
+    }
+
     public static function fromInt(int $bitmask): self
     {
         return new self($bitmask);
@@ -48,6 +53,11 @@ final class SitterPermissionSet
     public function toBitmask(): int
     {
         return $this->bitmask;
+    }
+
+    public function isFull(): bool
+    {
+        return $this->bitmask === self::full()->toBitmask();
     }
 
     /**

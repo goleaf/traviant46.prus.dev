@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Game;
 
+use App\Enums\Game\UnitTrainingBatchStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,11 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UnitTrainingBatch extends Model
 {
     use HasFactory;
-
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_COMPLETED = 'completed';
-    public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
         'village_id',
@@ -39,6 +37,7 @@ class UnitTrainingBatch extends Model
         'completes_at' => 'datetime',
         'processed_at' => 'datetime',
         'failed_at' => 'datetime',
+        'status' => UnitTrainingBatchStatus::class,
     ];
 
     public function village(): BelongsTo
@@ -49,26 +48,26 @@ class UnitTrainingBatch extends Model
     public function scopeDue(Builder $query): Builder
     {
         return $query
-            ->where('status', self::STATUS_PENDING)
+            ->where('status', UnitTrainingBatchStatus::Pending)
             ->whereNull('processed_at')
             ->where('completes_at', '<=', now());
     }
 
     public function markProcessing(): void
     {
-        $this->status = self::STATUS_PROCESSING;
+        $this->status = UnitTrainingBatchStatus::Processing;
         $this->starts_at = $this->starts_at ?? now();
     }
 
     public function markCompleted(): void
     {
-        $this->status = self::STATUS_COMPLETED;
+        $this->status = UnitTrainingBatchStatus::Completed;
         $this->processed_at = now();
     }
 
     public function markFailed(string $reason): void
     {
-        $this->status = self::STATUS_FAILED;
+        $this->status = UnitTrainingBatchStatus::Failed;
         $this->failed_at = now();
         $this->failure_reason = $reason;
     }

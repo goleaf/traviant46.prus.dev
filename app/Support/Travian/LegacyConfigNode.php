@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support\Travian;
 
 use ArrayAccess;
@@ -11,13 +13,11 @@ final class LegacyConfigNode implements ArrayAccess, IteratorAggregate
     /**
      * @param array<string, mixed> $items
      */
-    public function __construct(private array $items)
-    {
-    }
+    public function __construct(private array $items) {}
 
     public function __get(string $name): mixed
     {
-        if (!array_key_exists($name, $this->items)) {
+        if (! array_key_exists($name, $this->items)) {
             return null;
         }
 

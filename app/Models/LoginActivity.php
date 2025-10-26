@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Services\Security\IpAnonymizer;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,6 +22,7 @@ class LoginActivity extends Model
         'user_id',
         'acting_sitter_id',
         'ip_address',
+        'ip_address_hash',
         'user_agent',
         'device_hash',
         'geo',
@@ -58,7 +62,22 @@ class LoginActivity extends Model
 
     public function scopeFromIp(Builder $query, string $ipAddress): Builder
     {
-        return $query->where('ip_address', $ipAddress);
+        /** @var IpAnonymizer $anonymizer */
+        $anonymizer = app(IpAnonymizer::class);
+        $hash = $anonymizer->anonymize($ipAddress);
+
+        return $query->where(function (Builder $builder) use ($ipAddress, $hash): void {
+            $builder->where('ip_address', $ipAddress);
+
+            if ($hash !== null) {
+                $builder->orWhere('ip_address_hash', $hash);
+            }
+        });
+    }
+
+    public function scopeFromIpHash(Builder $query, string $ipHash): Builder
+    {
+        return $query->where('ip_address_hash', $ipHash);
     }
 
     public function scopeViaSitter(Builder $query, bool $viaSitter = true): Builder
@@ -81,13 +100,29 @@ class LoginActivity extends Model
 
     public function prunable(): Builder
     {
-        $retentionDays = (int) config('security.ip_retention.login_days', 90);
+        $retentionDays = $this->retentionDays();
 
         if ($retentionDays <= 0) {
             return static::query()->whereRaw('0 = 1');
         }
 
-        return static::query()
-            ->where('logged_at', '<', Carbon::now()->subDays($retentionDays));
+        $threshold = Carbon::now()->subDays($retentionDays);
+
+        return static::query()->where('logged_at', '<', $threshold);
+    }
+
+    protected function retentionDays(): int
+    {
+        $privacyRetention = config('privacy.ip.retention.login_activities', []);
+        $privacyDays = (int) ($privacyRetention['delete_after_days'] ?? 365);
+        $multiAccountDays = (int) config('multiaccount.pruning.login_activity_days', $privacyDays);
+
+        $candidates = array_filter([$privacyDays, $multiAccountDays], static fn (int $value): bool => $value > 0);
+
+        if ($candidates === []) {
+            return 0;
+        }
+
+        return min($candidates);
     }
 }

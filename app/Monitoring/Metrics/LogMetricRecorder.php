@@ -67,7 +67,13 @@ class LogMetricRecorder implements MetricRecorder
             $filtered[$this->normalizeTagKey($key)] = (string) $value;
         }
 
-        return Arr::sortKeys($filtered);
+        if (is_callable([Arr::class, 'sortKeys'])) {
+            return Arr::sortKeys($filtered);
+        }
+
+        ksort($filtered);
+
+        return $filtered;
     }
 
     private function normalizeTagKey(string $key): string

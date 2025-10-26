@@ -1,0 +1,22 @@
+{
+    "$schema": "https://infection.github.io/schema.json",
+    "source": {
+        "directories": [
+            "app/Services/Auth",
+            "app/Services/Security",
+            "app/Models",
+            "app/ValueObjects"
+        ]
+    },
+    "logs": {
+        "text": "storage/logs/infection.log"
+    },
+    "tmpDir": "storage/framework/cache/infection",
+    "phpUnit": {
+        "customPath": "vendor/bin/pest",
+        "args": "--testsuite=Unit"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

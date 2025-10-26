@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Migration\Transforms;
 
 use App\Services\Migration\Transforms\WorldCasualtySnapshotRowTransformer;

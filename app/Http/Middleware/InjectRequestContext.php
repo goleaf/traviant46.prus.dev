@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Bugsnag\BugsnagLaravel\Facades\Bugsnag;
@@ -43,7 +45,7 @@ class InjectRequestContext
                 });
             }
 
-            if (class_exists(Bugsnag::class)) {
+            if (class_exists(Bugsnag::class) && app()->bound('bugsnag')) {
                 Bugsnag::setMetaData([
                     'request' => [
                         'request_id' => $incomingRequestId,

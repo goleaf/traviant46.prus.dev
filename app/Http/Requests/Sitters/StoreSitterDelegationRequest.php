@@ -13,7 +13,29 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Schema(
+ *     schema="StoreSitterDelegationRequest",
+ *     type="object",
+ *     required={"sitter_username"},
+ *     @OA\Property(property="sitter_username", type="string", maxLength=255, example="example_sitter"),
+ *     @OA\Property(
+ *         property="permissions",
+ *         type="array",
+ *         @OA\Items(type="string", example="canFarm"),
+ *         nullable=true
+ *     ),
+ *     @OA\Property(
+ *         property="expires_at",
+ *         type="string",
+ *         format="date-time",
+ *         nullable=true,
+ *         example="2025-01-01T12:00:00+00:00"
+ *     )
+ * )
+ */
 class StoreSitterDelegationRequest extends FormRequest
 {
     public function authorize(): bool

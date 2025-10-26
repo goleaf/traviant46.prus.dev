@@ -12,11 +12,26 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Annotations as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
+/**
+ * @OA\Schema(
+ *     schema="ProblemDetails",
+ *     type="object",
+ *     required={"type","title","status","detail","code"},
+ *     @OA\Property(property="type", type="string", example="https://prus.dev/problems/validation-failed"),
+ *     @OA\Property(property="title", type="string", example="Validation failed"),
+ *     @OA\Property(property="status", type="integer", example=422),
+ *     @OA\Property(property="detail", type="string", example="Validation failed. Review the `errors` object for fields that need attention."),
+ *     @OA\Property(property="instance", type="string", nullable=true, example="/api/v1/sitters"),
+ *     @OA\Property(property="code", type="string", example="validation_failed"),
+ *     @OA\Property(property="errors", type="object", nullable=true)
+ * )
+ */
 final class ProblemDetails
 {
     /**
@@ -31,8 +46,7 @@ final class ProblemDetails
         private readonly ?string $instance,
         private readonly array $extensions,
         private readonly array $headers
-    ) {
-    }
+    ) {}
 
     public static function fromException(Throwable $throwable, Request $request): self
     {
@@ -51,11 +65,11 @@ final class ProblemDetails
                     status: $status,
                     instance: self::instance($request),
                     extensions: array_diff_key($data, array_flip(['type', 'title', 'detail', 'status', 'instance', 'code'])),
-                    headers: $response->headers->all()
+                    headers: $response->headers->all(),
                 );
             }
 
-            return self::fromException($throwable->getPrevious() ?? new NotFoundHttpException(), $request);
+            return self::fromException($throwable->getPrevious() ?? new NotFoundHttpException, $request);
         }
 
         if ($throwable instanceof ValidationException) {
@@ -69,7 +83,7 @@ final class ProblemDetails
                 extensions: [
                     'errors' => $throwable->errors(),
                 ],
-                headers: []
+                headers: [],
             );
         }
 
@@ -82,7 +96,7 @@ final class ProblemDetails
                 status: 401,
                 instance: self::instance($request),
                 extensions: [],
-                headers: []
+                headers: [],
             );
         }
 
@@ -95,7 +109,7 @@ final class ProblemDetails
                 status: 403,
                 instance: self::instance($request),
                 extensions: [],
-                headers: []
+                headers: [],
             );
         }
 
@@ -108,7 +122,7 @@ final class ProblemDetails
                 status: 404,
                 instance: self::instance($request),
                 extensions: [],
-                headers: []
+                headers: [],
             );
         }
 
@@ -133,7 +147,7 @@ final class ProblemDetails
                 status: $throwable->getStatusCode(),
                 instance: self::instance($request),
                 extensions: empty($meta) ? [] : ['meta' => $meta],
-                headers: $headers
+                headers: $headers,
             );
         }
 
@@ -149,7 +163,7 @@ final class ProblemDetails
                 status: $status,
                 instance: self::instance($request),
                 extensions: [],
-                headers: $throwable->getHeaders()
+                headers: $throwable->getHeaders(),
             );
         }
 
@@ -161,7 +175,7 @@ final class ProblemDetails
             status: 500,
             instance: self::instance($request),
             extensions: [],
-            headers: []
+            headers: [],
         );
     }
 
@@ -223,7 +237,7 @@ final class ProblemDetails
 
     private static function instance(Request $request): string
     {
-        $path = '/' . ltrim($request->path(), '/');
+        $path = '/'.ltrim($request->path(), '/');
 
         return $path === '//' ? '/' : $path;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ValueObjects\Travian;
 
 final class TaskWorkerRuntime
@@ -8,8 +10,7 @@ final class TaskWorkerRuntime
         public readonly string $root,
         public readonly string $include,
         public readonly string $phpBinary,
-    ) {
-    }
+    ) {}
 
     public static function resolve(): self
     {

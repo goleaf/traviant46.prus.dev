@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Str;
-use PDO;
 
 $filterConfig = static fn (array $config): array => array_filter(
     $config,
@@ -120,7 +119,7 @@ $buildRedisConnection = static function (string $databaseEnv, string $defaultDat
         'port' => env('REDIS_PORT', '6379'),
         'database' => env($databaseEnv, $defaultDatabase),
         'read_timeout' => env('REDIS_READ_TIMEOUT'),
-        'max_retries' => env('REDIS_MAX_RETRIES', 3),
+        'max_retries' => env('REDIS_MAX_RETRIES', env('CACHE_RETRY_ATTEMPTS', 3)),
     ]);
 };
 
