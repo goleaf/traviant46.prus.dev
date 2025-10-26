@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 class LoginActivity extends Model
 {
@@ -30,5 +33,42 @@ class LoginActivity extends Model
     public function actingSitter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'acting_sitter_id');
+    }
+
+    public function scopeForUser(Builder $query, User|int $user): Builder
+    {
+        $userId = $user instanceof User ? $user->getKey() : $user;
+
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeExceptUser(Builder $query, User|int $user): Builder
+    {
+        $userId = $user instanceof User ? $user->getKey() : $user;
+
+        return $query->where('user_id', '!=', $userId);
+    }
+
+    public function scopeFromIp(Builder $query, string $ipAddress): Builder
+    {
+        return $query->where('ip_address', $ipAddress);
+    }
+
+    public function scopeViaSitter(Builder $query, bool $viaSitter = true): Builder
+    {
+        return $query->where('via_sitter', $viaSitter);
+    }
+
+    public function scopeWithin(Builder $query, DateTimeInterface|string $start, DateTimeInterface|string|null $end = null): Builder
+    {
+        $startAt = Carbon::parse($start);
+
+        $query->where('created_at', '>=', $startAt);
+
+        if ($end !== null) {
+            $query->where('created_at', '<=', Carbon::parse($end));
+        }
+
+        return $query;
     }
 }

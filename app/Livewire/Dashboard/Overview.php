@@ -34,21 +34,17 @@ class Overview extends Component
         }
 
         $activeAssignments = SitterAssignment::query()
-            ->where('account_id', $user->id)
-            ->where(fn ($query) => $query
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>', Date::now()))
+            ->forAccount($user)
+            ->active(Date::now())
             ->count();
 
         $delegatedAccounts = SitterAssignment::query()
-            ->where('sitter_id', $user->id)
-            ->where(fn ($query) => $query
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>', Date::now()))
+            ->forSitter($user)
+            ->active(Date::now())
             ->count();
 
         $recentLogins = LoginActivity::query()
-            ->where('user_id', $user->id)
+            ->forUser($user)
             ->latest('created_at')
             ->limit(5)
             ->get()

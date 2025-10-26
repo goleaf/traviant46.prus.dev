@@ -16,8 +16,8 @@ class MultiAccountDetector
         }
 
         $conflictingUserIds = LoginActivity::query()
-            ->where('ip_address', $ipAddress)
-            ->where('user_id', '!=', $user->getKey())
+            ->fromIp($ipAddress)
+            ->exceptUser($user)
             ->distinct()
             ->pluck('user_id');
 
