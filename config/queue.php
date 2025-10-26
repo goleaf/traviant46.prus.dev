@@ -109,6 +109,8 @@ return [
         'table' => 'failed_jobs',
     ],
 
-    'mail_queue' => env('QUEUE_MAIL_QUEUE', 'mail'),
+    'mail_connection' => env('MAIL_QUEUE_CONNECTION', env('QUEUE_CONNECTION', 'database')),
+
+    'mail_queue' => env('MAIL_QUEUE', env('QUEUE_MAIL_QUEUE', 'mail')),
 
 ];

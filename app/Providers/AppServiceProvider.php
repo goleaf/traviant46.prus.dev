@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Console\Commands\SecuredKeyGenerateCommand;
+use App\Models\Activation;
+use App\Models\SitterDelegation;
+use App\Models\User;
+use App\Observers\ActivationObserver;
+use App\Observers\SitterDelegationObserver;
+use App\Observers\UserObserver;
 use App\Services\Provisioning\InfrastructureApiClient;
 use App\Services\Security\IpAnonymizer;
 use App\Services\Security\MultiAccountRules;
@@ -55,6 +61,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        User::observe(UserObserver::class);
+        Activation::observe(ActivationObserver::class);
+        SitterDelegation::observe(SitterDelegationObserver::class);
     }
 }

@@ -12,6 +12,7 @@ beforeEach(function () {
     config()->set('cache.default', 'array');
     config()->set('session.driver', 'array');
     Cache::setDefaultDriver('array');
+    Cache::store('array')->forever('travian.world_config', []);
 });
 
 it('renders associated label for login input', function () {

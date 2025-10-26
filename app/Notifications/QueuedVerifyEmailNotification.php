@@ -34,7 +34,7 @@ class QueuedVerifyEmailNotification extends BaseVerifyEmail implements ShouldQue
     {
         $queueConfiguration = config('mail.queue', []);
 
-        $connection = $queueConfiguration['connection'] ?? null;
+        $connection = $queueConfiguration['connection'] ?? config('queue.mail_connection');
         $queue = $queueConfiguration['name'] ?? config('queue.mail_queue', 'mail');
         $retryAfter = $queueConfiguration['retry_after'] ?? null;
 

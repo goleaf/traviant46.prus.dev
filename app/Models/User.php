@@ -128,6 +128,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Hero::class);
     }
 
+    public function dataExports(): HasMany
+    {
+        return $this->hasMany(UserDataExport::class);
+    }
+
+    public function deletionRequests(): HasMany
+    {
+        return $this->hasMany(AccountDeletionRequest::class);
+    }
+
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class, 'sender_id');

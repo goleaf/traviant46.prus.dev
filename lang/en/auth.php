@@ -19,44 +19,44 @@ return [
 
     'passwords' => [
         'email' => [
-            'title' => 'Request a TravianT reset link',
-            'heading' => 'Queue a reset for your commander profile',
-            'subtitle' => 'Enter the email tied to your TravianT account and we will dispatch a secure recovery link through our mail queue.',
-            'label' => 'Account email',
+            'title' => 'Reset password',
+            'heading' => 'Reset your password',
+            'subtitle' => 'We will email a secure link so you can choose a new password.',
+            'label' => 'Email address',
             'actions' => [
-                'submit' => 'Send reset link to my inbox',
+                'submit' => 'Send password reset link',
             ],
         ],
 
         'reset' => [
-            'title' => 'Forge a fresh password',
-            'heading' => 'Lock down your TravianT empire',
-            'subtitle' => 'Confirm your email and craft a strong password to reclaim command of your villages.',
+            'title' => 'Choose a new password',
+            'heading' => 'Create a new password',
+            'subtitle' => 'Enter your email and pick a strong new password to regain access.',
             'actions' => [
-                'submit' => 'Update password and return to TravianT',
+                'submit' => 'Update password',
             ],
         ],
 
         'links' => [
-            'login' => 'Return to the login gate',
-            'register' => 'Recruit a new account',
+            'login' => 'Back to login',
+            'register' => 'Create a new account',
         ],
     ],
 
     'verification' => [
-        'title' => 'Verify your TravianT contact address',
-        'heading' => 'Confirm your rally horn',
-        'subtitle' => 'Verification proves you own the inbox we use for siege alerts, sitter approvals, and premium receipts.',
-        'instructions' => 'We just queued a verification link. Open your inbox, follow the button to confirm, or request another dispatch below.',
+        'title' => 'Verify your email',
+        'heading' => 'Confirm your email address',
+        'subtitle' => 'Activate account alerts by confirming your email.',
+        'instructions' => 'We sent you a verification link. Click it to finish setting up your account or request another copy below.',
         'current_email_label' => 'Signed in as',
         'status' => [
-            'resent' => 'A fresh verification link is on its way to your inbox.',
+            'resent' => 'A new verification link has been sent to your email address.',
         ],
         'actions' => [
-            'resend' => 'Send another verification email',
+            'resend' => 'Resend verification email',
             'logout' => 'Log out',
         ],
-        'support_prompt' => 'Need to switch to a different war room address?',
+        'support_prompt' => 'Need to update your contact address?',
         'support_cta' => 'Contact support',
     ],
 ];

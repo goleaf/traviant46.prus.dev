@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\ExpireSitterDelegations;
 use App\Jobs\ProcessAdventures;
 use App\Jobs\ProcessBuildingCompletion;
 use App\Jobs\ProcessServerTasks;
@@ -36,6 +37,12 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ProcessServerTasks())
             ->name('automation:server-tasks')
             ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        $schedule->job(new ExpireSitterDelegations())
+            ->name('automation:sitter-expiry')
+            ->everyFiveMinutes()
             ->withoutOverlapping()
             ->runInBackground();
 

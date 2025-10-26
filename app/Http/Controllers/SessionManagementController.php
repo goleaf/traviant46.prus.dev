@@ -22,13 +22,10 @@ class SessionManagementController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with(
-            'status',
-            trans_choice(
-                ':count session was terminated.',
-                $sessionIds->count(),
-                ['count' => $sessionIds->count()]
-            )
-        );
+        $message = $sessionIds->count() > 1
+            ? __('All active sessions were terminated. Please sign in again to continue.')
+            : __('Your active session was terminated. Please sign in again to continue.');
+
+        return redirect()->route('login')->with('status', $message);
     }
 }

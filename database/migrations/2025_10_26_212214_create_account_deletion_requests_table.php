@@ -11,9 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('account_deletion_requests', function (Blueprint $table) {
+        Schema::create('account_deletion_requests', function (Blueprint $table): void {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('status', 32)->default('pending');
+            $table->timestamp('requested_at')->useCurrent();
+            $table->timestamp('scheduled_for');
+            $table->timestamp('processed_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->ipAddress('request_ip')->nullable();
+            $table->string('request_ip_hash', 128)->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->index(['user_id', 'status']);
+            $table->index('scheduled_for');
         });
     }
 

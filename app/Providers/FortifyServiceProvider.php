@@ -6,6 +6,8 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController as AppEmailVerificationNotificationController;
+use App\Http\Controllers\Auth\PasswordResetLinkController as AppPasswordResetLinkController;
 use App\Services\Auth\LegacyLoginResult;
 use App\Services\Auth\LegacyLoginService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -16,6 +18,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -24,7 +28,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PasswordResetLinkController::class, AppPasswordResetLinkController::class);
+        $this->app->bind(EmailVerificationNotificationController::class, AppEmailVerificationNotificationController::class);
     }
 
     /**

@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class LegacyLoginService
 {
+    public function __construct(private readonly AuthLookupCache $cache)
+    {
+    }
+
     public function attempt(string $identifier, string $password): ?LegacyLoginResult
     {
         $identifier = trim($identifier);
@@ -44,23 +48,39 @@ class LegacyLoginService
 
     protected function findActiveUser(string $identifier): ?User
     {
-        return User::query()
-            ->where(function ($query) use ($identifier) {
-                $query->where('username', $identifier)
-                    ->orWhere('email', $identifier);
-            })
-            ->first();
+        $normalized = trim($identifier);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return $this->cache->rememberUser($normalized, function () use ($normalized) {
+            return User::query()
+                ->where(function ($query) use ($normalized) {
+                    $query->where('username', $normalized)
+                        ->orWhere('email', $normalized);
+                })
+                ->first();
+        });
     }
 
     protected function findActivation(string $identifier): ?Activation
     {
-        return Activation::query()
-            ->unused()
-            ->where(function ($query) use ($identifier) {
-                $query->where('name', $identifier)
-                    ->orWhere('email', $identifier);
-            })
-            ->first();
+        $normalized = trim($identifier);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return $this->cache->rememberActivation($normalized, function () use ($normalized) {
+            return Activation::query()
+                ->unused()
+                ->where(function ($query) use ($normalized) {
+                    $query->where('name', $normalized)
+                        ->orWhere('email', $normalized);
+                })
+                ->first();
+        });
     }
 
     /**
@@ -68,16 +88,18 @@ class LegacyLoginService
      */
     protected function resolveSitterCandidates(User $user): Collection
     {
-        $legacyIds = collect([$user->sit1_uid, $user->sit2_uid])
-            ->filter()
-            ->map(static fn ($id) => (int) $id);
+        return $this->cache->rememberSitterPermissions($user->getKey(), function () use ($user) {
+            $legacyIds = collect([$user->sit1_uid, $user->sit2_uid])
+                ->filter()
+                ->map(static fn ($id) => (int) $id);
 
-        $legacySitters = $legacyIds->isEmpty()
-            ? collect()
-            : User::query()->whereIn('id', $legacyIds)->get();
+            $legacySitters = $legacyIds->isEmpty()
+                ? collect()
+                : User::query()->whereIn('id', $legacyIds)->get();
 
-        $delegatedSitters = $user->sitters()->get();
+            $delegatedSitters = $user->sitters()->get();
 
-        return $legacySitters->merge($delegatedSitters)->unique('id');
+            return $legacySitters->merge($delegatedSitters)->unique('id')->values();
+        });
     }
 }

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ProductController extends Controller
 {
     /**
-     * 1200x630 PNG optimized for social sharing stored under public/images/storefront.
+     * @var string 1200x630 PNG optimized for social sharing stored under public/images/storefront.
      */
     private const DEFAULT_PRODUCT_SOCIAL_PREVIEW = 'images/storefront/product-og.png';
 

@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
 
 class MultiAccountDetector
 {
+    protected bool $suppressNotifications = false;
+
     public function __construct(
         protected MultiAccountRules $rules,
     ) {}
@@ -120,6 +122,18 @@ class MultiAccountDetector
         }
     }
 
+    public function withoutNotifications(callable $callback): void
+    {
+        $previous = $this->suppressNotifications;
+        $this->suppressNotifications = true;
+
+        try {
+            $callback($this);
+        } finally {
+            $this->suppressNotifications = $previous;
+        }
+    }
+
     protected function determineSeverity(int $uniqueUsers, int $occurrences, bool $vpnSuspected): ?MultiAccountAlertSeverity
     {
         $thresholds = collect(config('multiaccount.thresholds', []));
@@ -212,6 +226,10 @@ class MultiAccountDetector
 
     protected function maybeNotify(MultiAccountAlert $alert): void
     {
+        if ($this->suppressNotifications) {
+            return;
+        }
+
         $severity = $alert->severity;
         if (! $severity instanceof MultiAccountAlertSeverity) {
             return;

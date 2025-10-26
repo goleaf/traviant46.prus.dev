@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notifications;
 
+use App\Models\SitterDelegation;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -11,17 +14,12 @@ class SitterDelegationExpired extends Notification
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct()
+    public function __construct(private readonly SitterDelegation $delegation)
     {
-        //
+        $this->delegation->loadMissing('owner', 'sitter');
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -29,26 +27,25 @@ class SitterDelegationExpired extends Notification
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
+        $mail = (new MailMessage())
+            ->subject('Sitter delegation expired');
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        return [
-            //
-        ];
+        if ($notifiable instanceof User && $this->delegation->owner !== null && $notifiable->is($this->delegation->owner)) {
+            $sitterName = $this->delegation->sitter?->username ?? __('your sitter');
+
+            return $mail
+                ->greeting(__('Hello :name,', ['name' => $notifiable->name ?? $notifiable->username ?? '']))
+                ->line(__('Your sitter :sitter no longer has access because the delegation expired.', ['sitter' => $sitterName]))
+                ->line(__('You can assign a new sitter from your account settings if needed.'));
+        }
+
+        $ownerName = $this->delegation->owner?->username ?? __('the account owner');
+
+        return $mail
+            ->greeting(__('Hello :name,', ['name' => $notifiable instanceof User ? ($notifiable->name ?? $notifiable->username ?? '') : '']))
+            ->line(__('Your delegation for :owner has expired and you no longer have sitter access.', ['owner' => $ownerName]))
+            ->line(__('If the owner needs your help again they can set up a new delegation.'));
     }
 }

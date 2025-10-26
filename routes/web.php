@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\CampaignCustomerSegmentController;
 use App\Http\Controllers\Frontend\OrderController as FrontendOrderController;
-use App\Http\Controllers\SitterController;
+use App\Http\Controllers\SessionManagementController;
 use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Livewire\Account\BannedNotice;
@@ -29,13 +29,11 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/verify-account', VerificationPrompt::class)->name('game.verify');
     Route::get('/orders', [FrontendOrderController::class, 'index'])->name('frontend.orders.index');
     Route::get('/orders/create', [FrontendOrderController::class, 'create'])->name('frontend.orders.create');
+    Route::post('/sessions/sign-out-everywhere', [SessionManagementController::class, 'destroyAll'])
+        ->name('sessions.sign-out-everywhere');
 
     Route::middleware(['verified', 'game.verified', 'game.banned', 'game.maintenance'])->group(function () {
         Route::view('/home', 'dashboard')->name('home');
-
-        Route::get('/sitters', [SitterController::class, 'index'])->name('sitters.index');
-        Route::post('/sitters', [SitterController::class, 'store'])->name('sitters.store');
-        Route::delete('/sitters/{sitter}', [SitterController::class, 'destroy'])->name('sitters.destroy');
     });
 });
 
