@@ -81,6 +81,10 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_SESSION_CACHE', 'session'),
             'lock_connection' => env('REDIS_SESSION_LOCK_CONNECTION', env('REDIS_SESSION_CACHE', 'session')),
+            'prefix' => env(
+                'SESSION_CACHE_PREFIX',
+                env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-session-')
+            ),
         ],
 
         'dynamodb' => [

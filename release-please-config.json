@@ -1,0 +1,33 @@
+{
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+    "include-component-in-tag": false,
+    "include-v-in-tag": true,
+    "bump-minor-pre-major": true,
+    "bump-patch-for-minor-pre-major": true,
+    "changelog-sections": [
+        { "type": "feat", "section": "Features" },
+        { "type": "fix", "section": "Bug Fixes" },
+        { "type": "perf", "section": "Performance Improvements" },
+        { "type": "refactor", "section": "Refactors" },
+        { "type": "docs", "section": "Documentation" },
+        { "type": "test", "section": "Tests" },
+        { "type": "build", "section": "Build System" },
+        { "type": "ci", "section": "Continuous Integration" },
+        { "type": "chore", "section": "Chores", "hidden": true },
+        { "type": "revert", "section": "Reverts" }
+    ],
+    "packages": {
+        ".": {
+            "package-name": "traviant-api",
+            "release-type": "simple",
+            "initial-version": "0.1.0",
+            "changelog-path": "CHANGELOG.md",
+            "extra-files": [
+                {
+                    "type": "plain",
+                    "path": "VERSION"
+                }
+            ]
+        }
+    }
+}

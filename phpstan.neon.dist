@@ -1,7 +1,6 @@
 includes:
     - phpstan-baseline.neon
-    - vendor/nunomaduro/larastan/extension.neon
-    - vendor/nunomaduro/larastan/rules.neon
+    - vendor/larastan/larastan/extension.neon
 
 parameters:
     level: 7
@@ -13,8 +12,6 @@ parameters:
         - routes
         - tests
     tmpDir: storage/framework/cache/phpstan
-    checkMissingIterableValueType: true
-    checkGenericClassInNonGenericObjectType: true
     treatPhpDocTypesAsCertain: true
     checkOctaneCompatibility: true
     parallel:

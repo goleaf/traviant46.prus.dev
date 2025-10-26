@@ -5,13 +5,16 @@
 @section('subtitle', __('Access your Travian administration account securely.'))
 
 @section('content')
-    <form method="POST" action="{{ route('login') }}" class="legacy-form" autocomplete="on">
+    <form method="POST" action="{{ route('login') }}" class="legacy-form" autocomplete="on" novalidate>
         @csrf
 
         <table class="transparent loginTable">
             <tbody>
                 <tr class="account">
-                    <th class="accountNameOrEmailAddress">{{ __('Account name or Email address') }}</th>
+                    @php($loginErrorId = 'login-error')
+                    <th scope="row" class="accountNameOrEmailAddress">
+                        <label for="login">{{ __('auth.login.fields.login.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="login"
@@ -22,14 +25,23 @@
                             required
                             autofocus
                             autocomplete="username"
+                            @if ($errors->has('login'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $loginErrorId }}"
+                            @endif
                         >
                         @error('login')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $loginErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="pass">
-                    <th>{{ __('Password') }}</th>
+                    @php($passwordErrorId = 'password-error')
+                    <th scope="row">
+                        <label for="password">{{ __('auth.shared.fields.password.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="password"
@@ -38,14 +50,22 @@
                             class="legacy-input"
                             required
                             autocomplete="current-password"
+                            @if ($errors->has('password'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $passwordErrorId }}"
+                            @endif
                         >
                         @error('password')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $passwordErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="remember">
-                    <th>{{ __('Remember me') }}</th>
+                    <th scope="row">
+                        <label for="remember">{{ __('auth.login.fields.remember.label') }}</label>
+                    </th>
                     <td>
                         <label class="legacy-checkbox" for="remember">
                             <input
@@ -55,7 +75,7 @@
                                 value="1"
                                 {{ old('remember') ? 'checked' : '' }}
                             >
-                            <span>{{ __('Keep me signed in on this device') }}</span>
+                            <span>{{ __('auth.login.fields.remember.help') }}</span>
                         </label>
                     </td>
                 </tr>
@@ -63,7 +83,7 @@
                     <th></th>
                     <td>
                         <button type="submit" class="legacy-button">
-                            {{ __('Log in to your empire') }}
+                            {{ __('auth.login.actions.submit') }}
                         </button>
                     </td>
                 </tr>
@@ -74,8 +94,8 @@
 
 @section('footer')
     <div class="legacy-links">
-        <a href="{{ route('password.request') }}">{{ __('Forgot your password?') }}</a>
-        <a href="{{ route('register') }}">{{ __('Create a new account') }}</a>
+        <a href="{{ route('password.request') }}">{{ __('auth.login.links.forgot_password') }}</a>
+        <a href="{{ route('register') }}">{{ __('auth.login.links.register') }}</a>
     </div>
 @endsection
 

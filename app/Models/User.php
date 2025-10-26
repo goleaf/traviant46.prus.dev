@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\StaffRole;
+use App\Notifications\QueuedPasswordResetNotification;
+use App\Notifications\QueuedVerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -26,7 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public const LEGACY_ADMIN_UID = 0;
     public const LEGACY_MULTIHUNTER_UID = 2;
-    public const FIRST_PLAYER_LEGACY_UID = 3;
+    public const FIRST_PLAYER_LEGACY_UID = 1;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -251,5 +253,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $expires = $this->asDateTime($expiresAt);
 
         return $expires->isFuture();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmailNotification());
+    }
+
+    public function sendPasswordResetNotification(string $token): void
+    {
+        $this->notify(new QueuedPasswordResetNotification($token));
     }
 }

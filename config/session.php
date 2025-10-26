@@ -48,6 +48,19 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Absolute Session Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | In addition to idle timeouts, you may enforce an absolute expiration for
+    | each session. After this duration elapses the session is invalidated
+    | regardless of activity which is helpful for high security contexts.
+    |
+    */
+
+    'absolute_lifetime' => max(0, (int) env('SESSION_ABSOLUTE_LIFETIME', 720)),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*
@@ -116,6 +129,19 @@ return [
     */
 
     'store' => $sessionStore,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Session Cache Prefix
+    |--------------------------------------------------------------------------
+    |
+    | When leveraging cache-backed session stores such as Redis the cache key
+    | prefix determines how session identifiers are namespaced. Sharing this
+    | prefix across services enables a unified session surface area.
+    |
+    */
+
+    'prefix' => env('SESSION_CACHE_PREFIX'),
 
     /*
     |--------------------------------------------------------------------------

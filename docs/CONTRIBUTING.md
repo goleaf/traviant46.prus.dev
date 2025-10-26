@@ -27,6 +27,7 @@ Thanks for helping move the TravianT authentication service forward! The project
 ## Git & Tooling Hygiene
 
 - **Commits:** Use conventional, informative commit messages. Avoid committing generated assets or IDE metadata.
+- **Semantic versioning:** Follow Conventional Commit prefixes (`feat:`, `fix:`, etc.) and add `!` or a `BREAKING CHANGE:` footer whenever the public API changes. The release automation infers SemVer bumps and changelog sections from these messages.
 - **Environment files:** Never commit `.env` changes or secrets. Update `.env.example` when new configuration keys are required.
 - **Dependencies:** Do not add Composer or npm packages without prior discussion. Keep lock files in sync when dependency changes are approved.
 - **Linting scripts:** The repository provides `composer test`, `composer dev`, and Vite scripts—use them where applicable instead of ad-hoc commands.

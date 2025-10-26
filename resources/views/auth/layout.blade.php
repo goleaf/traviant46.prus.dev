@@ -21,13 +21,19 @@
             </noscript>
 
             @if (session('status'))
-                <div class="legacy-callout legacy-callout--success">
-                    {{ session('status') }}
+                <div class="legacy-callout legacy-callout--success" role="status" aria-live="polite">
+                    <p class="legacy-callout__message">{{ session('status') }}</p>
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="legacy-callout legacy-callout--danger">
+                <div
+                    class="legacy-callout legacy-callout--danger"
+                    role="alert"
+                    aria-live="assertive"
+                    aria-label="{{ __('auth.alerts.error_summary_label') }}"
+                >
+                    <p class="legacy-callout__message">{{ __('auth.alerts.error_summary_heading') }}</p>
                     <ul>
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\SitterDelegation;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -44,7 +45,23 @@ class DatabaseSeeder extends Seeder
             'email' => 'player@example.com',
         ]);
 
-        $player->sitters()->attach($admin->id);
-        $player->sitters()->attach($multihunter->id);
+        $this->ensureDelegation($player->id, $admin->id, $player->id);
+        $this->ensureDelegation($player->id, $multihunter->id, $player->id);
+    }
+
+    protected function ensureDelegation(int $ownerId, int $sitterId, int $actorId): void
+    {
+        $delegation = SitterDelegation::query()->firstOrNew([
+            'owner_user_id' => $ownerId,
+            'sitter_user_id' => $sitterId,
+        ]);
+
+        if (! $delegation->exists) {
+            $delegation->created_by = $actorId;
+            $delegation->permissions = ['full_access'];
+        }
+
+        $delegation->updated_by = $actorId;
+        $delegation->save();
     }
 }

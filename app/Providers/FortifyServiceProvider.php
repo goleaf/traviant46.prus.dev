@@ -79,14 +79,23 @@ class FortifyServiceProvider extends ServiceProvider
             return $result->user;
         });
 
-        RateLimiter::for('login', function (Request $request) {
+        $loginRateLimit = config('security.rate_limits.login', []);
+        $twoFactorRateLimit = config('security.rate_limits.two_factor', []);
+
+        RateLimiter::for('login', function (Request $request) use ($loginRateLimit) {
+            $maxAttempts = max(1, (int) ($loginRateLimit['max_attempts'] ?? 5));
+            $decayMinutes = max(1, (int) ($loginRateLimit['decay_minutes'] ?? 1));
+
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinutes($decayMinutes, $maxAttempts)->by($throttleKey);
         });
 
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+        RateLimiter::for('two-factor', function (Request $request) use ($twoFactorRateLimit) {
+            $maxAttempts = max(1, (int) ($twoFactorRateLimit['max_attempts'] ?? 5));
+            $decayMinutes = max(1, (int) ($twoFactorRateLimit['decay_minutes'] ?? 1));
+
+            return Limit::perMinutes($decayMinutes, $maxAttempts)->by($request->session()->get('login.id'));
         });
     }
 }

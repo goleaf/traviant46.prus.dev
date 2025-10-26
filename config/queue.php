@@ -109,4 +109,6 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    'mail_queue' => env('QUEUE_MAIL_QUEUE', 'mail'),
+
 ];

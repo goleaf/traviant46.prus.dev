@@ -1,22 +1,44 @@
 # Security Policy
 
-## Supported Versions
-
-The TravianT authentication service is actively maintained on the `main` branch. Security fixes are backported to the latest tagged release when applicable.
-
-| Version | Supported |
-| ------- | --------- |
-| main    | ✅ |
-| < latest release | ✅ (critical & high issues only) |
-| older tags | ❌ |
+Security is a first-class concern for the TravianT authentication platform. This document explains how to report vulnerabilities and what to expect during the disclosure process.
 
 ## Reporting a Vulnerability
 
-- Use GitHub's **"Report a vulnerability"** workflow to open a private security advisory. Provide reproduction steps, affected endpoints, and any mitigation ideas you have tested.
-- If GitHub is unavailable, email the maintainers at `security@traviant.dev`. Encrypt messages with PGP if possible.
-- You should receive an acknowledgment within 48 hours. Triage updates, remediation timelines, and release plans will follow within five business days.
-- Do **not** disclose vulnerabilities publicly until a fix has been released and you receive permission from the maintainers.
+- Email the security desk at [security@traviant.com](mailto:security@traviant.com) with the subject line `SECURITY: <summary>`.
+- Provide a detailed description, proof-of-concept, and any logs/screenshots that help reproduce the issue.
+- Request our PGP key in the initial email if you prefer to encrypt subsequent messages.
+- Do not create public issues or pull requests for vulnerabilities.
 
-## Coordinated Disclosure
+## Response Timeline
 
-We appreciate responsible disclosure. Reporters will be credited in release notes unless they request anonymity. Critical patches are published as quickly as possible and bundled into the next scheduled release for non-critical issues.
+| Stage | Target |
+|-------|--------|
+| Acknowledge receipt | within 2 business days |
+| Initial assessment & priority assignment | within 5 business days |
+| Patch availability | within 14 business days for high/critical, 30 days for medium |
+| Public disclosure | Coordinated with the reporter once a fixed release is available |
+
+We will keep you updated about progress and may ask for additional information during triage.
+
+## Scope
+
+- Laravel authentication service and supporting infrastructure in this repository.
+- Redis-based session storage and sitter delegation logic.
+- CI/CD pipelines and deployment scripts contained here.
+
+Out of scope:
+
+- Third-party services not maintained by TravianT.
+- Vulnerabilities requiring physical access to infrastructure.
+
+## Patching & Releases
+
+- Security fixes land on the `main` branch and are cherry-picked to maintained release branches.
+- Each fix is accompanied by regression tests and documented in the release notes.
+- We may issue emergency hotfix tags when an immediate deployment is necessary.
+
+## Safe Harbour
+
+If you adhere to this policy while researching, we will not pursue or support any legal action against you. Please avoid actions that could degrade service (e.g., DDoS, mass account creation) during testing.
+
+Thank you for helping keep TravianT players safe!

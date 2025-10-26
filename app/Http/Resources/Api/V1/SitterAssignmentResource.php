@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\SitterAssignment
+ * @mixin \App\Models\SitterDelegation
  */
 class SitterAssignmentResource extends JsonResource
 {
@@ -26,6 +26,8 @@ class SitterAssignmentResource extends JsonResource
             ],
             'permissions' => $this->permissions,
             'expires_at' => optional($this->expires_at)->toIso8601String(),
+            'created_by' => $this->created_by,
+            'updated_by' => $this->updated_by,
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
         ];

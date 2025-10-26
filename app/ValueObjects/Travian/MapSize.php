@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ValueObjects\Travian;
 
 final class MapSize
 {
-    public function __construct(private readonly int $value)
-    {
-    }
+    public function __construct(private readonly int $value) {}
 
-    public function value(): int
+    public function toInt(): int
     {
         return $this->value;
     }
@@ -20,6 +20,6 @@ final class MapSize
 
     public static function value(): int
     {
-        return self::resolve()->value();
+        return self::resolve()->toInt();
     }
 }

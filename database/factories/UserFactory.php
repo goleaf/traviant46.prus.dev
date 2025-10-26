@@ -26,7 +26,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'legacy_uid' => fake()->unique()->numberBetween(User::FIRST_PLAYER_LEGACY_UID, 50000),
+            'legacy_uid' => $this->generateLegacyUid(),
             'username' => Str::lower(Str::replace(' ', '', fake()->unique()->userName())) . fake()->unique()->numberBetween(1, 99),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
@@ -49,5 +49,14 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    private function generateLegacyUid(): int
+    {
+        do {
+            $legacyUid = fake()->unique()->numberBetween(User::FIRST_PLAYER_LEGACY_UID, 50000);
+        } while (User::isReservedLegacyUid($legacyUid));
+
+        return $legacyUid;
     }
 }

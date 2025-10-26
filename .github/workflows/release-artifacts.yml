@@ -1,0 +1,82 @@
+name: Publish Release Artifacts
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: production
+      APP_DEBUG: false
+      CACHE_STORE: array
+      CACHE_DRIVER: array
+      QUEUE_CONNECTION: sync
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /tmp/database.sqlite
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, bcmath, zip, pcntl, pdo_mysql, sqlite3
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: |
+          touch /tmp/database.sqlite
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Package Vite build output
+        run: |
+          tar --directory=public -czf traviant-dist.tar.gz build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production container image
+        run: |
+          docker buildx build --load --iidfile image.iid --target production .
+
+      - name: Capture container image digest
+        run: |
+          cat image.iid > container-image-digest.txt
+          echo "Container digest: $(cat container-image-digest.txt)"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" traviant-dist.tar.gz container-image-digest.txt --clobber
+
+      - name: Summarise release artifacts
+        run: |
+          {
+            echo "### Release artifacts"
+            echo ""
+            echo "- dist archive: \`traviant-dist.tar.gz\`"
+            echo "- container image digest: \`$(cat container-image-digest.txt)\`"
+          } >> "$GITHUB_STEP_SUMMARY"

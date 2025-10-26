@@ -5,13 +5,16 @@
 @section('subtitle', __('Launch a new Travian account with secure authentication defaults.'))
 
 @section('content')
-    <form method="POST" action="{{ route('register') }}" class="legacy-form" autocomplete="on">
+    <form method="POST" action="{{ route('register') }}" class="legacy-form" autocomplete="on" novalidate>
         @csrf
 
         <table class="transparent loginTable">
             <tbody>
                 <tr class="account-name">
-                    <th>{{ __('Account name') }}</th>
+                    @php($usernameErrorId = 'username-error')
+                    <th scope="row">
+                        <label for="username">{{ __('auth.register.fields.username.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="username"
@@ -22,14 +25,23 @@
                             required
                             autofocus
                             autocomplete="username"
+                            @if ($errors->has('username'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $usernameErrorId }}"
+                            @endif
                         >
                         @error('username')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $usernameErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="display-name">
-                    <th>{{ __('Display name') }}</th>
+                    @php($nameErrorId = 'name-error')
+                    <th scope="row">
+                        <label for="name">{{ __('auth.register.fields.name.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="name"
@@ -38,14 +50,23 @@
                             value="{{ old('name') }}"
                             class="legacy-input"
                             required
+                            @if ($errors->has('name'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $nameErrorId }}"
+                            @endif
                         >
                         @error('name')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $nameErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="email">
-                    <th>{{ __('Email address') }}</th>
+                    @php($emailErrorId = 'email-error')
+                    <th scope="row">
+                        <label for="email">{{ __('auth.shared.fields.email.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="email"
@@ -55,14 +76,23 @@
                             class="legacy-input"
                             required
                             autocomplete="email"
+                            @if ($errors->has('email'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $emailErrorId }}"
+                            @endif
                         >
                         @error('email')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $emailErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="password">
-                    <th>{{ __('Password') }}</th>
+                    @php($passwordErrorId = 'password-error')
+                    <th scope="row">
+                        <label for="password">{{ __('auth.shared.fields.password.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="password"
@@ -71,14 +101,22 @@
                             class="legacy-input"
                             required
                             autocomplete="new-password"
+                            @if ($errors->has('password'))
+                                aria-invalid="true"
+                                aria-describedby="{{ $passwordErrorId }}"
+                            @endif
                         >
                         @error('password')
-                            <div class="legacy-error">{{ $message }}</div>
+                            <div id="{{ $passwordErrorId }}" class="legacy-error" role="alert">
+                                {{ $message }}
+                            </div>
                         @enderror
                     </td>
                 </tr>
                 <tr class="password-confirmation">
-                    <th>{{ __('Confirm password') }}</th>
+                    <th scope="row">
+                        <label for="password_confirmation">{{ __('auth.shared.fields.password_confirmation.label') }}</label>
+                    </th>
                     <td>
                         <input
                             id="password_confirmation"
@@ -94,7 +132,7 @@
                     <th></th>
                     <td>
                         <button type="submit" class="legacy-button">
-                            {{ __('Create my Travian account') }}
+                            {{ __('auth.register.actions.submit') }}
                         </button>
                     </td>
                 </tr>
@@ -105,7 +143,7 @@
 
 @section('footer')
     <div class="legacy-links">
-        <a href="{{ route('login') }}">{{ __('Already have an account? Sign in') }}</a>
+        <a href="{{ route('login') }}">{{ __('auth.register.links.login') }}</a>
     </div>
 @endsection
 

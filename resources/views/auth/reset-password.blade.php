@@ -1,90 +1,103 @@
-@extends('auth.layout')
+@extends('layouts.minimal')
 
-@section('title', __('Choose a new password'))
-
-@section('subtitle', __('Securely set a new password to regain access.'))
+@section('title', __('auth.passwords.reset.title'))
 
 @section('content')
-    <form method="POST" action="{{ route('password.update') }}" class="legacy-form" autocomplete="on">
-        @csrf
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
+    <main class="w-full max-w-md space-y-8 rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-xl shadow-amber-900/15 backdrop-blur">
+        <header class="space-y-2 text-center">
+            <h1 class="text-2xl font-semibold text-white">
+                {{ __('auth.passwords.reset.heading') }}
+            </h1>
+            <p class="text-sm text-slate-300">
+                {{ __('auth.passwords.reset.subtitle') }}
+            </p>
+        </header>
 
-        <table class="transparent loginTable">
-            <tbody>
-                <tr class="email">
-                    <th>{{ __('Email address') }}</th>
-                    <td>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value="{{ old('email', $request->email) }}"
-                            class="legacy-input"
-                            required
-                            autofocus
-                            autocomplete="email"
-                        >
-                        @error('email')
-                            <div class="legacy-error">{{ $message }}</div>
-                        @enderror
-                    </td>
-                </tr>
-                <tr class="password">
-                    <th>{{ __('New password') }}</th>
-                    <td>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            class="legacy-input"
-                            required
-                            autocomplete="new-password"
-                        >
-                        @error('password')
-                            <div class="legacy-error">{{ $message }}</div>
-                        @enderror
-                    </td>
-                </tr>
-                <tr class="password-confirmation">
-                    <th>{{ __('Confirm password') }}</th>
-                    <td>
-                        <input
-                            id="password_confirmation"
-                            type="password"
-                            name="password_confirmation"
-                            class="legacy-input"
-                            required
-                            autocomplete="new-password"
-                        >
-                    </td>
-                </tr>
-                <tr class="submit">
-                    <th></th>
-                    <td>
-                        <button type="submit" class="legacy-button">
-                            {{ __('Reset password') }}
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
-@endsection
+        @if ($errors->any())
+            <div class="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-100" role="alert">
+                <ul class="space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-@section('footer')
-    <div class="legacy-links">
-        <a href="{{ route('login') }}">{{ __('Return to login') }}</a>
-    </div>
-@endsection
+        <form method="POST" action="{{ route('password.update') }}" class="space-y-6" autocomplete="on" novalidate>
+            @csrf
+            <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-@section('aside')
-    <h3>{{ __('Reclaim your empire') }}</h3>
-    <p>
-        {{ __('Set a strong password to regain control over your Travian realm. The Laravel Fortify reset flow keeps intruders at bay while restoring your command.') }}
-    </p>
-    <ul>
-        <li>{{ __('Use a mix of letters, numbers, and symbols for the toughest defenses.') }}</li>
-        <li>{{ __('Passwords update instantly across sitter sessions and alliance tools.') }}</li>
-        <li>{{ __('Log back in to resume growth, diplomacy, and conquest.') }}</li>
-    </ul>
+            <div class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-slate-200">
+                    {{ __('auth.shared.fields.email.label') }}
+                </label>
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value="{{ old('email', $request->email) }}"
+                    class="w-full rounded-xl border border-white/15 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder-slate-500 shadow-inner focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+                    required
+                    autofocus
+                    autocomplete="email"
+                    @if ($errors->has('email'))
+                        aria-invalid="true"
+                        aria-describedby="email-error"
+                    @endif
+                >
+                @error('email')
+                    <p id="email-error" class="text-sm text-rose-200">
+                        {{ $message }}
+                    </p>
+                @enderror
+            </div>
+
+            <div class="space-y-2">
+                <label for="password" class="block text-sm font-medium text-slate-200">
+                    {{ __('auth.shared.fields.password.label') }}
+                </label>
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    class="w-full rounded-xl border border-white/15 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder-slate-500 shadow-inner focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+                    required
+                    autocomplete="new-password"
+                    @if ($errors->has('password'))
+                        aria-invalid="true"
+                        aria-describedby="password-error"
+                    @endif
+                >
+                @error('password')
+                    <p id="password-error" class="text-sm text-rose-200">
+                        {{ $message }}
+                    </p>
+                @enderror
+            </div>
+
+            <div class="space-y-2">
+                <label for="password_confirmation" class="block text-sm font-medium text-slate-200">
+                    {{ __('auth.shared.fields.password_confirmation.label') }}
+                </label>
+                <input
+                    id="password_confirmation"
+                    type="password"
+                    name="password_confirmation"
+                    class="w-full rounded-xl border border-white/15 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder-slate-500 shadow-inner focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <button type="submit" class="flex w-full justify-center rounded-xl bg-amber-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
+                {{ __('auth.passwords.reset.actions.submit') }}
+            </button>
+        </form>
+
+        <nav class="text-center text-sm text-slate-300">
+            <a href="{{ route('login') }}" class="font-medium text-amber-200 hover:text-amber-100">
+                {{ __('auth.passwords.links.login') }}
+            </a>
+        </nav>
+    </main>
 @endsection

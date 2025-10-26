@@ -1,5 +1,7 @@
+@php($nonce = $cspNonce ?? null)
+
 @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
     @vite(['resources/scss/game.scss', 'resources/js/app.js'])
 @else
-    @include('layouts.partials.fallback-styles')
+    @include('layouts.partials.fallback-styles', ['cspNonce' => $nonce])
 @endif

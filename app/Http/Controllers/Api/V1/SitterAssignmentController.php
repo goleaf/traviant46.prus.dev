@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreSitterAssignmentRequest;
 use App\Http\Resources\Api\V1\SitterAssignmentResource;
-use App\Models\SitterAssignment;
+use App\Models\SitterDelegation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,29 +77,35 @@ class SitterAssignmentController extends Controller
             );
         }
 
-        $assignment = SitterAssignment::query()->updateOrCreate(
-            [
-                'account_id' => $user->getKey(),
-                'sitter_id' => $sitter->getKey(),
-            ],
-            [
-                'permissions' => $request->validated('permissions'),
-                'expires_at' => $this->parseExpiresAt($request->validated('expires_at')),
-            ]
-        );
+        $delegation = SitterDelegation::query()->firstOrNew([
+            'owner_user_id' => $user->getKey(),
+            'sitter_user_id' => $sitter->getKey(),
+        ]);
 
-        return SitterAssignmentResource::make($assignment->load('sitter'))
+        $delegation->permissions = $request->validated('permissions');
+        $delegation->expires_at = $this->parseExpiresAt($request->validated('expires_at'));
+
+        if (! $delegation->exists) {
+            $delegation->created_by = $user->getKey();
+        }
+
+        $delegation->updated_by = $user->getKey();
+        $delegation->save();
+
+        $status = $delegation->wasRecentlyCreated ? 201 : 200;
+
+        return SitterAssignmentResource::make($delegation->load('sitter'))
             ->response()
-            ->setStatusCode(201);
+            ->setStatusCode($status);
     }
 
-    public function destroy(Request $request, SitterAssignment $sitterAssignment): Response
+    public function destroy(Request $request, SitterDelegation $sitterAssignment): Response
     {
-        if ($sitterAssignment->account_id !== $request->user()->getKey()) {
+        if ($sitterAssignment->owner_user_id !== $request->user()->getKey()) {
             throw new NotFoundHttpException();
         }
 
-        $request->user()->sitters()->detach($sitterAssignment->sitter_id);
+        $request->user()->sitters()->detach($sitterAssignment->sitter_user_id);
 
         $sitterAssignment->delete();
 
@@ -132,7 +138,7 @@ class SitterAssignmentController extends Controller
         foreach ($assignments as $assignment) {
             $payload[] = [
                 'id' => $assignment->getKey(),
-                'sitter_id' => $assignment->sitter_id,
+                'sitter_id' => $assignment->sitter_user_id,
                 'permissions' => $assignment->permissions,
                 'expires_at' => optional($assignment->expires_at)->toIso8601String(),
                 'updated_at' => optional($assignment->updated_at)->toIso8601String(),
