@@ -31,6 +31,14 @@ Base URL: `https://<host>/sitters`
 - `permissions` enumerates the granted keys (for example `farm`, `build`, `send_troops`).
 - Delegations are stored in the `sitter_delegations` table.
 
+## Session context
+
+Use the `context.sitter` middleware (powered by `App\\Http\\Middleware\\SitterContextMiddleware`) on all authenticated
+player routes. The middleware resolves the current sitter delegation, shares the data with Blade so the global
+banner renders as `Acting as: @Owner` with a `Leave` call-to-action, and enriches audit logs by tagging every
+mutating request with `acted_by` metadata. This guarantees moderation tooling can distinguish between owner and
+sitter initiated actions without requiring controllers to duplicate the lookup logic.
+
 ## Endpoints
 
 ### List assignments
