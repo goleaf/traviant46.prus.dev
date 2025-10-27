@@ -176,6 +176,12 @@ Requests accept optional `permissions` arrays and `expires_at` timestamps (ISO86
 
 Successful logins write to the `login_activities` table (Redis sessions remain active). The `MultiAccountDetector` keeps a running set of `multi_account_alerts` whenever multiple accounts appear from the same IP, mirroring the behaviour of the legacy PHP stack.
 
+## Admin player audit console
+
+- Located at `/admin/player-audit` as a Livewire surface restricted to the administrator guard.
+- Supports fuzzy search by username, numeric UID, or email before generating a consolidated text report.
+- The report now merges login history with active session IPs so that escalations always receive village rosters, session summaries, recent IP fingerprints, and troop movement activity in a copy-ready format.
+
 ## Environments & Release Channels
 
 - **Local:** Docker/Sail or native setups using SQLite or MySQL, Redis, and mailhog. Feature branches merge through pull requests with passing Pest suites and Pint formatting.
