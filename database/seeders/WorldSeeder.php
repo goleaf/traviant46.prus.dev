@@ -28,6 +28,9 @@ class WorldSeeder extends Seeder
 
     private const OASIS_FREQUENCY = 25;
 
+    /**
+     * Seed the canonical Travian world instance with default 1x speed settings.
+     */
     public function run(): void
     {
         $this->oasisPresets = config('oasis.presets', []);
@@ -167,6 +170,9 @@ class WorldSeeder extends Seeder
         ])->save();
     }
 
+    /**
+     * Calculate the respawn timestamp for a nature oasis based on the world speed multiplier.
+     */
     private function calculateRespawnAt(Carbon $reference, float $worldSpeed, int $oasisTypeId): Carbon
     {
         $preset = $this->oasisPresets[$oasisTypeId] ?? null;
