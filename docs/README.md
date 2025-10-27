@@ -153,6 +153,13 @@ Launch a browser session at `http://localhost` (or your Sail host) once either `
 | `multihunter`| `multihunter@example.com` | `Multi!234` | Multihunter guard       |
 | `playerone`  | `player@example.com`      | `Player!234`| Delegated to both sitters |
 
+### Seeded world
+
+- `Database\\Seeders\\WorldSeeder` provisions the canonical world with ID `1` before generating map data.
+- The map spans a square from `-200` to `200` on both axes, mirroring Travian T4 polar coordinates.
+- Resource tiles use a deterministic distribution of `4-4-4-6`, `9c`, and `15c` patterns while oases are interleaved using the `WorldSeeder::OASIS_PRESETS` table.
+- Tile and oasis counts are recorded in `world.features['map']`, exposing totals plus per-pattern breakdowns for diagnostics and monitoring.
+
 Run additional diagnostics or create fresh accounts when required:
 
 ```bash

@@ -53,3 +53,4 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 
 ## Migration considerations
 - These tables rely heavily on implicit foreign keys (`owner`, `kid`, `did`) that need explicit relationships when ported to Laravel's schema. Capturing these dependencies up front helps design normalized replacements like `villages`, `village_buildings`, `map_tiles`, and `oases`. 【F:main_script/include/schema/T4.4.sql†L1215-L1229】【F:main_script/include/schema/T4.4.sql†L1595-L1636】
+- `database/seeders/WorldSeeder.php` now materialises the `map_tiles` and `oases` equivalents for world `1`, preserving distribution metrics inside `world.features['map']` for downstream systems.

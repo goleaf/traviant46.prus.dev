@@ -67,6 +67,7 @@ it('seeds the default world with expected attributes and map data', function ():
     $world = World::query()->where('name', 'World #1')->first();
 
     expect($world)->not->toBeNull();
+    expect($world->getKey())->toBe(1);
     expect($world->speed)->toBe(1.0);
     expect($world->status)->toBe('active');
     expect($world->starts_at)->not->toBeNull();

@@ -19,6 +19,10 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 4. Deployment and rollback runbooks updated to reflect new infrastructure.
 5. Stakeholder-approved Laravel 12 migration plan (see `travian-to.plan.md`).
 
+### Seeder Baseline
+
+- `database/seeders/WorldSeeder.php` must provision `World #1` with a deterministic `-200…200` map, distributing `4-4-4-6`, `9c`, and `15c` tiles, spawning oases from the defined presets, and storing aggregate counts inside `World::features['map']` for observability.
+
 **Key Statistics:**
 
 - **Old Codebase:** 90 database tables, 45 models, 80+ controllers, 200+ templates, custom MVC framework

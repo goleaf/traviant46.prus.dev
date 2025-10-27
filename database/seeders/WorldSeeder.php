@@ -73,24 +73,26 @@ class WorldSeeder extends Seeder
 
     private const OASIS_FREQUENCY = 25;
 
+    /**
+     * Seed the canonical Travian world with deterministic tile and oasis distribution.
+     */
     public function run(): void
     {
-        World::query()->updateOrCreate(
-            ['name' => 'World #1'],
-            [
-                'speed' => 1.0,
-                'features' => [],
-                'starts_at' => Carbon::now()->subDay(),
-                'status' => 'active',
-            ],
-        );
+        $world = World::query()->firstOrNew(['id' => 1]);
 
-        /** @var \App\Models\Game\World $world */
-        $world = World::query()->firstWhere('name', 'World #1');
-
-        if ($world === null) {
-            return;
+        if ($world->exists === false) {
+            $world->setAttribute($world->getKeyName(), 1);
         }
+
+        $world->forceFill([
+            'name' => 'World #1',
+            'speed' => 1.0,
+            'features' => [],
+            'starts_at' => Carbon::now()->subDay(),
+            'status' => 'active',
+        ])->save();
+
+        $world->refresh();
 
         $worldIdentifier = sprintf('world-%d', $world->getKey());
 
@@ -210,6 +212,9 @@ class WorldSeeder extends Seeder
         ])->save();
     }
 
+    /**
+     * Calculate the oasis respawn timestamp adjusted for the current world speed.
+     */
     private function calculateRespawnAt(Carbon $reference, float $worldSpeed, int $oasisTypeId): Carbon
     {
         $preset = self::OASIS_PRESETS[$oasisTypeId] ?? null;
