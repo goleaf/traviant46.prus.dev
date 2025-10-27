@@ -11,55 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class WorldSeeder extends Seeder
 {
-    public const OASIS_PRESETS = [
-        1 => [
-            'label' => 'wood',
-            'garrison' => [
-                'rat' => 25,
-                'spider' => 18,
-                'boar' => 12,
-                'wolf' => 5,
-                'bear' => 2,
-            ],
-            'respawn_minutes' => 180,
-        ],
-        2 => [
-            'label' => 'clay',
-            'garrison' => [
-                'rat' => 22,
-                'spider' => 20,
-                'snake' => 18,
-                'bat' => 10,
-                'boar' => 5,
-            ],
-            'respawn_minutes' => 240,
-        ],
-        3 => [
-            'label' => 'iron',
-            'garrison' => [
-                'rat' => 18,
-                'spider' => 16,
-                'snake' => 20,
-                'bat' => 16,
-                'bear' => 12,
-                'crocodile' => 8,
-            ],
-            'respawn_minutes' => 300,
-        ],
-        4 => [
-            'label' => 'crop',
-            'garrison' => [
-                'rat' => 20,
-                'spider' => 20,
-                'boar' => 24,
-                'wolf' => 20,
-                'bear' => 18,
-                'tiger' => 12,
-                'elephant' => 6,
-            ],
-            'respawn_minutes' => 360,
-        ],
-    ];
+    /**
+     * @var array<int, array<string, mixed>>
+     */
+    private array $oasisPresets = [];
 
     private const MAP_MIN_COORDINATE = -200;
 
@@ -73,8 +28,13 @@ class WorldSeeder extends Seeder
 
     private const OASIS_FREQUENCY = 25;
 
+    /**
+     * Seed the canonical Travian world instance with default 1x speed settings.
+     */
     public function run(): void
     {
+        $this->oasisPresets = config('oasis.presets', []);
+
         World::query()->updateOrCreate(
             ['name' => 'World #1'],
             [
@@ -104,11 +64,11 @@ class WorldSeeder extends Seeder
         $tileCounts = array_fill_keys(array_keys(self::TILE_TYPES), 0);
         $oasisCounts = [
             'total' => 0,
-            'by_type' => array_fill_keys(array_column(self::OASIS_PRESETS, 'label'), 0),
+            'by_type' => array_fill_keys(array_column($this->oasisPresets, 'label'), 0),
         ];
 
         $totalTiles = ($bounds['max_x'] - $bounds['min_x'] + 1) * ($bounds['max_y'] - $bounds['min_y'] + 1);
-        $oasisTypeIds = array_keys(self::OASIS_PRESETS);
+        $oasisTypeIds = array_keys($this->oasisPresets);
         $tileBatch = [];
         $oasisBatch = [];
         $now = Carbon::now();
@@ -124,9 +84,9 @@ class WorldSeeder extends Seeder
                     $seed = hexdec(substr(md5($x.'|'.$y), 0, 8));
                     $isOasis = ($seed % self::OASIS_FREQUENCY) === 0;
 
-                    if ($isOasis) {
+                    if ($isOasis && $oasisTypeIds !== []) {
                         $oasisTypeId = $oasisTypeIds[$seed % count($oasisTypeIds)];
-                        $preset = self::OASIS_PRESETS[$oasisTypeId];
+                        $preset = $this->oasisPresets[$oasisTypeId];
                         $oasisLabel = $preset['label'];
 
                         $tileBatch[] = [
@@ -210,9 +170,12 @@ class WorldSeeder extends Seeder
         ])->save();
     }
 
+    /**
+     * Calculate the respawn timestamp for a nature oasis based on the world speed multiplier.
+     */
     private function calculateRespawnAt(Carbon $reference, float $worldSpeed, int $oasisTypeId): Carbon
     {
-        $preset = self::OASIS_PRESETS[$oasisTypeId] ?? null;
+        $preset = $this->oasisPresets[$oasisTypeId] ?? null;
 
         if ($preset === null) {
             return $reference->copy();

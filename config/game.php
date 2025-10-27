@@ -4,6 +4,21 @@ declare(strict_types=1);
 
 use App\Models\User;
 
+/**
+ * Game runtime configuration values that drive core mechanics and feature toggles.
+ *
+ * @return array{
+ *     world_id_default: string|null,
+ *     speed: array<int, int>,
+ *     features: array<int, string>,
+ *     tick_interval_seconds: int,
+ *     shards: int,
+ *     start_time: string|null,
+ *     maintenance: array<string, mixed>,
+ *     communication: array<string, array<string, int|array<string, int>>>,
+ *     movements: array<string, int>
+ * }
+ */
 return [
     'world_id_default' => env('GAME_WORLD_ID_DEFAULT'),
 
@@ -39,6 +54,7 @@ return [
             'global_unread_threshold' => 10,
         ],
     ],
+
     'movements' => [
         'cancel_window_seconds' => (int) env('GAME_MOVEMENT_CANCEL_WINDOW_SECONDS', 60),
     ],

@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create the movements table that tracks every in-flight troop or merchant journey.
+     */
     public function up(): void
     {
         Schema::create('movements', function (Blueprint $table): void {
@@ -24,6 +27,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Drop the movements table when rolling back the migration.
+     */
     public function down(): void
     {
         Schema::dropIfExists('movements');

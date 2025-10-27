@@ -27,6 +27,7 @@ high-risk movement/combat tables mentioned in the migration plan.
     counts remain consistent.
   - Record the maximum `end_time` migrated and block new actions until all movements with an
     `end_time` ≤ that value have been processed in the destination environment.
+- Laravel migration reference: [`database/migrations/2025_10_26_223424_create_movements_table.php`](../database/migrations/2025_10_26_223424_create_movements_table.php) provisions the `movements` table with the required foreign keys, enum-backed mission `type`, JSON `payload`, nullable `processed_at`, and a compound index on `eta` and `type` so processors can efficiently fetch imminent arrivals.
 
 ## enforcement — Stationed Reinforcements
 - Holds friendly troops stationed in a foreign village. Rows reference both origin (`kid`) and
@@ -55,6 +56,17 @@ high-risk movement/combat tables mentioned in the migration plan.
   - Recalculate resource upkeep after import if the target system stores upkeep in derived
     caches.
 
+## troops — Normalized Village Troop Counts
+- Replaces the legacy `units` home garrison table with an explicit `troops` relation in the
+  Laravel schema, storing one row per village and troop type combination together with the
+  aggregated `amount` value.【F:database/migrations/2025_10_26_223405_create_troops_table.php†L17-L36】
+- Migration strategy:
+  - During cutover, fan out each legacy `units` row into multiple `troops` rows keyed by the
+    normalized troop type identifier so the Laravel services can query by foreign keys instead
+    of hard-coded column offsets.
+  - Enforce the uniqueness of `(village_id, troop_type_id)` pairs while importing so later
+    reconciliation with reinforcements and movements continues to conserve unit totals.
+
 ## send — Resource Shipments
 - Contains ongoing resource transfers between villages, recording the payload per resource
   type, travel mode, and arrival time.【F:main_script/include/schema/T4.4.sql†L1291-L1309】
@@ -62,6 +74,16 @@ high-risk movement/combat tables mentioned in the migration plan.
   - Freeze marketplace actions before export so merchants launched mid-migration are not lost.
   - After import, validate that the `end_time` aligns with merchant travel speeds in the new
     world configuration (especially if speed multipliers changed).
+- Laravel decomposes the shipment into the JSON `payload` column and village foreign keys in
+  the `trades` table so each dispatch remains traceable even when payload composition grows.【F:database/migrations/2025_03_01_000080_create_trades_table.php†L13-L24】
+
+## market — Marketplace Offers
+- Legacy marketplace offers capture both the requested and offered resource packages alongside
+  maximum travel time and alliance ownership data.【F:main_script/include/schema/T4.4.sql†L869-L892】
+- Marketplace flows rely on `MarketModel` helpers to count merchants on the way, fetch offers,
+  and insert new listings with precomputed rate and coordinates.【F:_travian/main_script/include/Model/MarketModel.php†L17-L121】
+- The Laravel migration stores the normalized offer payloads in JSON via the `market_offers`
+  table so each listing links directly to the owning village while persisting merchant counts.【F:database/migrations/2025_03_01_000070_create_market_offers_table.php†L13-L22】
 
 ## Post-Migration Integrity Checklist
 1. Choose a cutoff time, pause world actions, and export `a2b`, `movement`, `enforcement`,
