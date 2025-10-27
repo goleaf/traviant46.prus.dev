@@ -56,6 +56,17 @@ high-risk movement/combat tables mentioned in the migration plan.
   - Recalculate resource upkeep after import if the target system stores upkeep in derived
     caches.
 
+## troops — Normalized Village Troop Counts
+- Replaces the legacy `units` home garrison table with an explicit `troops` relation in the
+  Laravel schema, storing one row per village and troop type combination together with the
+  aggregated `amount` value.【F:database/migrations/2025_10_26_223405_create_troops_table.php†L17-L36】
+- Migration strategy:
+  - During cutover, fan out each legacy `units` row into multiple `troops` rows keyed by the
+    normalized troop type identifier so the Laravel services can query by foreign keys instead
+    of hard-coded column offsets.
+  - Enforce the uniqueness of `(village_id, troop_type_id)` pairs while importing so later
+    reconciliation with reinforcements and movements continues to conserve unit totals.
+
 ## send — Resource Shipments
 - Contains ongoing resource transfers between villages, recording the payload per resource
   type, travel mode, and arrival time.【F:main_script/include/schema/T4.4.sql†L1291-L1309】
