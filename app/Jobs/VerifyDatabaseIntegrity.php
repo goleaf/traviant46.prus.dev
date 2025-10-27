@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Connection;
@@ -17,6 +18,7 @@ class VerifyDatabaseIntegrity implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -24,8 +26,13 @@ class VerifyDatabaseIntegrity implements ShouldQueue
 
     public int $timeout = 600;
 
-    public function __construct(private readonly ?string $connection = null)
+    /**
+     * @param string|null $connection Optional connection name and shard scope.
+     * @param int         $shard      Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(private readonly ?string $connection = null, int $shard = 0)
     {
+        $this->initializeShardPartitioning($shard);
         $this->onQueue('automation');
     }
 

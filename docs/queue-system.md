@@ -26,7 +26,10 @@ Each background task is implemented as a dedicated job class stored in
 `app/Jobs`.  Jobs encapsulate the work that needs to be executed, keep the
 `handle()` method small, and expose any dependencies through constructor
 injection.  Create a new class with `php artisan make:job ExampleJob` and move
-existing logic from legacy scripts into the job's `handle()` method.
+existing logic from legacy scripts into the job's `handle()` method.  Every job
+should implement the `InteractsWithShardResolver` concern so that passing a
+shard index (`village_id % config('game.shards')`) automatically scopes queries
+to the correct partition.
 
 To dispatch work, call the job's static `dispatch()` helper from controllers,
 commands, or services:

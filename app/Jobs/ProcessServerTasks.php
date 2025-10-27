@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\Game\ServerTaskStatus;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\ServerTask;
 use App\Services\ServerTasks\ServerTaskProcessor;
 use Illuminate\Bus\Queueable;
@@ -20,6 +21,7 @@ class ProcessServerTasks implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -29,7 +31,14 @@ class ProcessServerTasks implements ShouldQueue
 
     public string $queue = 'automation';
 
-    public function __construct(private readonly int $chunkSize = 25) {}
+    /**
+     * @param int $chunkSize Number of tasks to process per execution.
+     * @param int $shard     Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(private readonly int $chunkSize = 25, int $shard = 0)
+    {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(ServerTaskProcessor $processor): void
     {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Events\DelegationRevoked;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\SitterDelegation;
 use App\Notifications\SitterDelegationExpired;
 use Illuminate\Bus\Queueable;
@@ -18,6 +19,7 @@ class ExpireSitterDelegations implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -25,9 +27,14 @@ class ExpireSitterDelegations implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct()
+    public string $queue = 'automation';
+
+    /**
+     * @param int $shard Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(int $shard = 0)
     {
-        $this->queue = 'automation';
+        $this->initializeShardPartitioning($shard);
     }
 
     public function handle(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Enums\AccountDeletionRequestStatus;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\AccountDeletionRequest;
 use App\Services\Security\AuditLogger;
 use Illuminate\Bus\Queueable;
@@ -18,12 +19,20 @@ use Throwable;
 class ProcessAccountDeletionRequest implements ShouldQueue
 {
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
+    /**
+     * @param int $requestId Identifier for the deletion request being processed.
+     * @param int $shard     Allows the scheduler to scope the job to a shard.
+     */
     public function __construct(
         protected int $requestId,
-    ) {}
+        int $shard = 0,
+    ) {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(AuditLogger $auditLogger): void
     {

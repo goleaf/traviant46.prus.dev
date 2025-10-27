@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,6 +16,7 @@ class PruneExpiredSessions implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -22,8 +24,12 @@ class PruneExpiredSessions implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct()
+    /**
+     * @param int $shard Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(int $shard = 0)
     {
+        $this->initializeShardPartitioning($shard);
         $this->onQueue('automation');
     }
 

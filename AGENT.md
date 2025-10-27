@@ -7,6 +7,9 @@
 - Frontend Angular assets in `angularIndex/` and accompanying static entry points (`index.php`, `docs/`, `resources/`).
 - Database assets defined in `database/`, `main.sql`, and incremental migrations under `scripts/` and `sections/`.
 - Infrastructure and automation scripts within `main_script`, `main_script_dev`, and `scripts/`.
+- Queue jobs must remain shard-aware by routing queries through `App\\Support\\ShardResolver`
+  (`village_id % config('game.shards')`) using the `InteractsWithShardResolver`
+  concern.
 
 ## Project Overview
 

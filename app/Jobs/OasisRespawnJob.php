@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\WorldOasis;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,6 +20,7 @@ class OasisRespawnJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -57,13 +59,15 @@ class OasisRespawnJob implements ShouldQueue
     public function __construct(
         private readonly int $chunkSize = 50,
         private readonly int $respawnIntervalMinutes = self::DEFAULT_RESPAWN_INTERVAL_MINUTES,
+        int $shard = 0,
     ) {
+        $this->initializeShardPartitioning($shard);
         $this->onQueue('automation');
     }
 
     public function handle(): void
     {
-        WorldOasis::query()
+        $this->constrainToShard(WorldOasis::query(), 'id')
             ->dueForRespawn()
             ->orderBy('respawn_at')
             ->limit($this->chunkSize)
