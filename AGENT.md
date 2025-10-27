@@ -618,3 +618,7 @@ Configure Supervisor to run:
 | `main_script/copyable/public/` | `public/` | Assets |
 | `main_script/include/schema/T4.4.sql` | `database/migrations/*` | Migrations |
 | Old Travian files | `/_travian/` | Archive |
+
+### Database Modernisation Snapshot
+
+- `reports` now lands as a dedicated Laravel table (`id`, `world_id`, `kind`, `for_user_id`, `data`, `created_at`) that mirrors the future Livewire inbox contract while documentation in `docs/database/communication-tables.md` tracks how it supersedes legacy `ndata` payloads. Keep future report-related migrations aligned with this minimal schema and document any additional columns alongside the docs update.
