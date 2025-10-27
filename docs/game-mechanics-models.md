@@ -48,3 +48,8 @@ confirmation step.【F:main_script/include/schema/T4.4.sql†L1-L23】
   self-contained (currently the origin is inferred from session state during confirmation).【F:main_script/include/Controller/RallyPoint/sendTroops.php†L336-L420】【F:main_script/include/Controller/RallyPoint/sendTroops.php†L709-L999】
 - Record timestamps (`created_at`, `expires_at`) rather than relying on cron-driven deletion so future Laravel jobs can expire
   cached payloads predictably.【F:main_script/include/Core/Automation.php†L399-L410】
+
+## Troop type catalogue seed
+
+- Base combat stats, travel speed, carry capacity, and training costs per troop are now stored in `database/data/troop_types.json`. The JSON structure mirrors the five playable tribes and feeds directly into `Database\Seeders\TroopTypeSeeder`, which maps the nested `base_stats` and `training_costs` arrays into the relational `troop_types` table during seeding.
+- The shared JSON file ensures battle calculators, UI previews, and future Livewire components can reuse the same data source without duplicating PHP arrays. Update the JSON first when balancing units; the seeder will automatically propagate the changes on the next `php artisan db:seed` run.

@@ -6,6 +6,7 @@
 - Backend PHP services located under `app/`, `_travian/`, `services/`, and `TaskWorker/` (legacy Laravel code previously stored in `backend/` now lives in the root `app/` directory).
 - Frontend Angular assets in `angularIndex/` and accompanying static entry points (`index.php`, `docs/`, `resources/`).
 - Database assets defined in `database/`, `main.sql`, and incremental migrations under `scripts/` and `sections/`.
+- Shared gameplay reference data (e.g., troop base stats and training costs) is stored as JSON under `database/data/` so seeders and Livewire calculators stay in sync.
 - Infrastructure and automation scripts within `main_script`, `main_script_dev`, and `scripts/`.
 
 ## Project Overview
