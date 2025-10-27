@@ -79,10 +79,18 @@ Each background task has been migrated to its own Laravel job class located in
 `app/Jobs`. Every job encapsulates a single unit of work and can be dispatched
 from controllers, command bus handlers, or the scheduler. Jobs implement the
 `handle()` method which wraps the previous background scripts and ensures they
-can be retried safely. When creating new jobs, follow these conventions:
+can be retried safely. All jobs now accept an optional shard index that is fed
+into `App\Support\ShardResolver`; the resolver applies `village_id %
+config('game.shards')` filtering so the scheduler can fan work out across
+multiple queue workers without double-processing records.
+
+When creating new jobs, follow these conventions:
 
 - Keep the constructor focused on gathering the data needed to process the job;
-  do not execute queries or long-running logic inside `__construct`.
+  do not execute queries or long-running logic inside `__construct`. Inject the
+  shard index as the final argument and call
+  `$this->initializeShardPartitioning($shard);` via the
+  `InteractsWithShardResolver` concern so work is automatically partitioned.
 - Explicitly define the queue name via the `$queue` property when the job should
   target a non-default queue (for example, `$queue = 'high'`).
 - Apply middleware such as `WithoutOverlapping`, `RateLimited`, or

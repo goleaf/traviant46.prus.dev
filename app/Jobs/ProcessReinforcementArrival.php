@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -14,6 +15,7 @@ class ProcessReinforcementArrival implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -22,6 +24,14 @@ class ProcessReinforcementArrival implements ShouldQueue
     public int $timeout = 120;
 
     public string $queue = 'automation';
+
+    /**
+     * @param int $shard Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(int $shard = 0)
+    {
+        $this->initializeShardPartitioning($shard);
+    }
 
     public function handle(): void
     {

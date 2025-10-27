@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\Provisioning;
 
 use App\Enums\Game\ServerTaskStatus;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\ServerTask;
 use App\Services\Provisioning\ServerProvisioningService;
 use Illuminate\Bus\Queueable;
@@ -20,6 +21,7 @@ class StopEngineJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -29,8 +31,13 @@ class StopEngineJob implements ShouldQueue
 
     public string $queue;
 
-    public function __construct(public readonly int $taskId)
+    /**
+     * @param int $taskId Identifier for the provisioning task.
+     * @param int $shard  Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(public readonly int $taskId, int $shard = 0)
     {
+        $this->initializeShardPartitioning($shard);
         $this->queue = config('provisioning.queue', 'provisioning');
     }
 

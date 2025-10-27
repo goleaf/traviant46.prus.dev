@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\Game\ApplyStarvationAction;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Village;
 use App\Notifications\Game\VillageStarvationNotification;
 use DateTimeInterface;
@@ -26,6 +27,7 @@ class CropStarvationJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -33,16 +35,21 @@ class CropStarvationJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct()
+    public string $queue = 'automation';
+
+    /**
+     * @param int $shard Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(int $shard = 0)
     {
-        $this->queue = 'automation';
+        $this->initializeShardPartitioning($shard);
     }
 
     public function handle(ApplyStarvationAction $applyStarvation): void
     {
         $now = Carbon::now();
 
-        Village::query()
+        $this->constrainToShard(Village::query())
             ->where('resource_balances->crop', '<', 0)
             ->chunkById(100, function (Collection $villages) use ($applyStarvation, $now): void {
                 $this->processChunk($villages, $applyStarvation, $now);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\UserDataExport;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,12 +20,20 @@ use Throwable;
 class GenerateUserDataExport implements ShouldQueue
 {
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
+    /**
+     * @param int $exportId Export record identifier handled by the job.
+     * @param int $shard    Allows the scheduler to scope the job to a shard.
+     */
     public function __construct(
         protected int $exportId,
-    ) {}
+        int $shard = 0,
+    ) {
+        $this->initializeShardPartitioning($shard);
+    }
 
     /**
      * @throws JsonException

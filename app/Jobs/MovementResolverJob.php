@@ -9,6 +9,7 @@ use App\Enums\Game\MovementOrderStatus;
 use App\Events\Game\CombatResolved;
 use App\Events\Game\TroopsArrived;
 use App\Models\Game\MovementOrder;
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,6 +24,7 @@ class MovementResolverJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -30,14 +32,19 @@ class MovementResolverJob implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(private readonly int $chunkSize = 100)
+    /**
+     * @param int $chunkSize Number of movement rows to inspect per run.
+     * @param int $shard     Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(private readonly int $chunkSize = 100, int $shard = 0)
     {
+        $this->initializeShardPartitioning($shard);
         $this->onQueue('automation');
     }
 
     public function handle(ResolveCombatAction $resolveCombat): void
     {
-        MovementOrder::query()
+        $this->constrainToShard(MovementOrder::query(), 'target_village_id')
             ->due()
             ->orderBy('arrive_at')
             ->limit($this->chunkSize)

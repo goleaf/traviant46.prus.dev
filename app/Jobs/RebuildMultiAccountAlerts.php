@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\LoginActivity;
 use App\Services\Security\MultiAccountDetector;
 use Illuminate\Bus\Queueable;
@@ -17,6 +18,7 @@ class RebuildMultiAccountAlerts implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use InteractsWithShardResolver;
     use Queueable;
     use SerializesModels;
 
@@ -24,8 +26,13 @@ class RebuildMultiAccountAlerts implements ShouldQueue
 
     public int $timeout = 900;
 
-    public function __construct(private readonly int $chunkSize = 500)
+    /**
+     * @param int $chunkSize Number of activities to process per batch.
+     * @param int $shard     Allows the scheduler to scope the job to a shard.
+     */
+    public function __construct(private readonly int $chunkSize = 500, int $shard = 0)
     {
+        $this->initializeShardPartitioning($shard);
         $this->onQueue('automation');
     }
 
