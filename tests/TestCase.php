@@ -18,6 +18,7 @@ abstract class TestCase extends BaseTestCase
         config()->set('travian.runtime.cache_store', 'array');
         config()->set('database.default', env('DB_CONNECTION', 'sqlite'));
         config()->set('queue.default', 'sync');
+        config()->set('hashing.driver', 'bcrypt');
 
         if (! $this->app->bound('session')) {
             config()->set('session.driver', 'array');
