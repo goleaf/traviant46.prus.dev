@@ -34,6 +34,9 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Application Structure & Architecture
 - Stick to existing directory structure - don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- Crop starvation processing flows through `app/Jobs/CropStarvationJob.php` and
+  `App\\Actions\\Game\\ApplyStarvationAction`; keep queue wiring and
+  notifications aligned with the documented behaviour in `docs/background-jobs.md`.
 
 ## Frontend Bundling
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.

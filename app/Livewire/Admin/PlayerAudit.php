@@ -142,7 +142,7 @@ class PlayerAudit extends Component
         $this->sessions = $this->loadSessions($user, $timezone);
         $loginActivities = $this->loadLoginActivities($user, $timezone);
         $this->loginActivity = $loginActivities;
-        $this->ipAddresses = $this->summarizeIpAddresses($loginActivities);
+        $this->ipAddresses = $this->summarizeIpAddresses($loginActivities, $this->sessions);
         $this->movements = $this->loadMovements($user, $timezone);
         $this->matches = [];
         $this->statusMessage = __('Audit generated for :player.', ['player' => $user->username]);
@@ -250,6 +250,8 @@ class PlayerAudit extends Component
                 'user_agent' => $session->user_agent,
                 'last_activity' => $lastActivity?->toDayDateTimeString(),
                 'last_activity_diff' => $lastActivity?->diffForHumans(null, Carbon::DIFF_ABSOLUTE, true, 1),
+                // Preserve a timestamp value so IP grouping can compare recency.
+                'last_activity_timestamp' => $lastActivity?->timestamp ?? 0,
                 'expires_at' => $expiresAt?->toDayDateTimeString(),
             ];
         })->all();
@@ -312,11 +314,29 @@ class PlayerAudit extends Component
 
     /**
      * @param list<array<string, mixed>> $loginActivities
+     * @param list<array<string, mixed>> $sessions
      * @return list<array<string, mixed>>
      */
-    protected function summarizeIpAddresses(array $loginActivities): array
+    protected function summarizeIpAddresses(array $loginActivities, array $sessions): array
     {
+        // Merge login activity IPs with currently active session IPs so that the
+        // audit always surfaces the latest entry even when login retention has
+        // expired. Sessions are treated as virtual login rows during grouping.
+        $sessionActivity = collect($sessions)
+            ->filter(static fn (array $session): bool => filled($session['ip_address'] ?? null))
+            ->map(static function (array $session): array {
+                return [
+                    'ip_address' => $session['ip_address'],
+                    'ip_address_hash' => null,
+                    'via_sitter' => false,
+                    'logged_at' => $session['last_activity'] ?? null,
+                    'logged_at_diff' => $session['last_activity_diff'] ?? null,
+                    'logged_at_timestamp' => $session['last_activity_timestamp'] ?? 0,
+                ];
+            });
+
         return collect($loginActivities)
+            ->concat($sessionActivity)
             ->groupBy(function (array $activity): string {
                 if ($activity['ip_address'] !== null && $activity['ip_address'] !== '') {
                     return 'ip:'.$activity['ip_address'];

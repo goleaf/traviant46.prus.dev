@@ -19,6 +19,9 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 4. Deployment and rollback runbooks updated to reflect new infrastructure.
 5. Stakeholder-approved Laravel 12 migration plan (see `travian-to.plan.md`).
 
+### Recent Updates
+- `App\\Actions\\Game\\ResolveCombatAction` now executes the full combat resolution loop including casualty calculation, structural damage processing, report creation, and garrison persistence so future movement processing jobs can rely on concrete behaviour.
+
 **Key Statistics:**
 
 - **Old Codebase:** 90 database tables, 45 models, 80+ controllers, 200+ templates, custom MVC framework
@@ -66,9 +69,11 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 3. **Economy Service**: Manages resource production, storage, and trades with ledger integration.
 4. **Warfare Service**: Processes troop movements, battles, and generates battle reports.
 5. **Communication Service**: Manages messaging, notifications, and event subscriptions.
+   - Laravel direct messages table now uses `from_user_id`, `to_user_id`, `subject`, `body`, and `read_at` columns for streamlined player-to-player communication tracking.
 6. **Alliance Service**: Coordinates alliance formation, membership, and governance.
 7. **Event Processor**: Consumes `event_queue` to orchestrate asynchronous game events.
 8. **Data Sync Service**: Handles ETL flows to analytics and data warehouse targets.
+9. **Admin Alerts Dashboard**: Livewire component `App\Livewire\Admin\Alerts` surfaces multi-account alerts from the auth service, supports severity filtering, and persists resolve/dismiss audit notes. Tests live in `tests/Feature/Admin/AdminAlertsComponentTest.pest.php`.
 
 ### 1.5 Create AGENT.md
 
@@ -111,6 +116,7 @@ For EACH table:
 - Add proper foreign key constraints
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
+- Establish normalized oasis storage with `2025_03_01_000070_create_oases_table` and `2025_03_01_000080_create_oasis_ownerships_table` so conquest logic can target explicit world coordinates and village relationships.
 
 **Priority Redesigns:**
 
@@ -497,6 +503,7 @@ Create `app/Console/Commands/MigrateOldDataCommand.php`:
 - Insert into new tables in chunks
 - Validate data integrity
 - Handle special cases
+- **resource_fields** migration created (`database/migrations/2025_10_26_223333_create_resource_fields_table.php`) storing each village slot's resource kind, level, and cached production with a unique `(village_id, kind, slot_number)` index. Update factories and tests whenever the schema evolves.
 
 ### 9.2 Critical Tables (special handling)
 
@@ -585,7 +592,11 @@ Configure Supervisor to run:
 - 3-5 general queue workers
 - 1 dedicated movement processor (high priority)
 - 1 resource tick processor
+- 1 shard-aligned QueueCompleterJob runner on the `automation` queue per shard
 - Laravel scheduler (cron)
+- Ensure the scheduler triggers the `game:tick` artisan command every minute so
+  shard-aware jobs (resource ticks, queue completion, movement resolution,
+  oasis respawns, crop starvation) continue to execute reliably.
 
 ### 12.3 Cutover Plan
 
@@ -605,6 +616,16 @@ Configure Supervisor to run:
 - All tests passing (100+ tests)
 - Zero critical errors in first 48 hours
 
+## Game Configuration
+
+- `config/game.php` centralises the Travian world defaults. Ensure future updates preserve:
+  - `world_id_default` (nullable env-driven default world identifier).
+  - `speed` options (`1`, `3`, `5`, `10`).
+  - `features` list (`hospital`, `artifacts`, `hero`).
+  - `tick_interval_seconds` fixed at `60` seconds.
+  - `shards` cast to an integer from `GAME_SHARD_COUNT`.
+- The same file continues to expose maintenance bypass rules, communication pagination defaults, and movement cancel windows inherited from the legacy configuration.
+
 ## File Mapping Reference
 
 | Old Path | New Path | Type |
@@ -618,3 +639,7 @@ Configure Supervisor to run:
 | `main_script/copyable/public/` | `public/` | Assets |
 | `main_script/include/schema/T4.4.sql` | `database/migrations/*` | Migrations |
 | Old Travian files | `/_travian/` | Archive |
+
+### Database Modernisation Snapshot
+
+- `reports` now lands as a dedicated Laravel table (`id`, `world_id`, `kind`, `for_user_id`, `data`, `created_at`) that mirrors the future Livewire inbox contract while documentation in `docs/database/communication-tables.md` tracks how it supersedes legacy `ndata` payloads. Keep future report-related migrations aligned with this minimal schema and document any additional columns alongside the docs update.

@@ -36,10 +36,14 @@
                     }),
                     startedAtMs: Date.now(),
                     intervalHandle: null,
+                    // Track the most recent server payload signature so Alpine only rehydrates when data truly changes.
+                    stateSignature: null,
                     display: {},
                     queueState: {},
                     init() {
                         this.cleanup();
+                        // Apply the initial payload immediately so counters display without waiting for the first interval tick.
+                        this.applyServerState(config);
                         this.startedAtMs = Date.now();
                         this.recalculate();
                         this.intervalHandle = setInterval(() => this.recalculate(), 1000);
@@ -49,6 +53,41 @@
                             clearInterval(this.intervalHandle);
                             this.intervalHandle = null;
                         }
+                    },
+                    // Refresh local caches from the server snapshot while guarding against redundant work with a signature check.
+                    applyServerState(state) {
+                        const signature = JSON.stringify({
+                            balances: state.balances || {},
+                            production: state.production || {},
+                            storage: state.storage || {},
+                            lastTickAt: state.lastTickAt || null,
+                            snapshotGeneratedAt: state.snapshotGeneratedAt || null,
+                            queue: (state.queue || []).map((entry) => ({
+                                id: entry.id,
+                                remaining_seconds: entry.remaining_seconds,
+                                updated_at: entry.updated_at || null,
+                                status: entry.status || null,
+                                queue_position: entry.queue_position || null,
+                                target_level: entry.target_level || null,
+                            })),
+                        });
+
+                        if (signature === this.stateSignature) {
+                            return;
+                        }
+
+                        this.stateSignature = signature;
+                        this.balances = Object.assign({}, state.balances || {});
+                        this.production = Object.assign({}, state.production || {});
+                        this.storage = Object.assign({}, state.storage || {});
+                        this.lastTickAt = state.lastTickAt || null;
+                        this.snapshotGeneratedAt = state.snapshotGeneratedAt || null;
+                        this.queueEntries = (state.queue || []).map((entry) => Object.assign({}, entry, {
+                            initialRemaining: Number(entry.remaining_seconds || 0),
+                        }));
+                        // Reset loop timers so countdowns stay aligned with the latest broadcast payload.
+                        this.startedAtMs = Date.now();
+                        this.recalculate();
                     },
                     recalculate() {
                         const nowMs = Date.now();
@@ -160,6 +199,14 @@
     x-init="init()"
     x-on:beforeunload.window="cleanup()"
     x-on:livewire:navigating.window="cleanup()"
+    x-effect="applyServerState({
+        balances: @js($balances),
+        production: @js($production),
+        storage: @js($storage),
+        lastTickAt: @js($lastTickAt),
+        snapshotGeneratedAt: @js($snapshotGeneratedAt),
+        queue: @js($queueEntries),
+    })"
     class="space-y-8"
 >
     <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_40px_120px_-60px_rgba(124,58,237,0.45)] backdrop-blur dark:bg-slate-950/70">
