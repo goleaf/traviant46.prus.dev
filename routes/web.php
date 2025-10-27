@@ -18,6 +18,7 @@ use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\PlayerAudit as AdminPlayerAudit;
 use App\Livewire\Game\Market as GameMarket;
 use App\Livewire\Game\Messages as GameMessages;
+use App\Livewire\Game\QuestLog as GameQuestLog;
 use App\Livewire\Game\RallyPoint as GameRallyPoint;
 use App\Livewire\Game\Reports as GameReports;
 use App\Livewire\Game\Send as GameSend;
@@ -85,6 +86,11 @@ Route::middleware(["auth:{$playerGuard}"])->group(function (): void {
         Route::get('/villages/{village}/market', GameMarket::class)
             ->middleware('can:viewResources,village')
             ->name('game.villages.market');
+        /**
+         * Expose the quest log so players can review tutorial and daily objectives with reward details.
+         */
+        Route::get('/quests', GameQuestLog::class)
+            ->name('game.quests.log');
         Route::get('/villages/{village}/buildings', \App\Livewire\Game\Buildings::class)
             ->middleware('can:viewInfrastructure,village')
             ->name('game.villages.buildings');

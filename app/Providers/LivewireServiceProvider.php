@@ -30,6 +30,14 @@ final class LivewireServiceProvider extends ServiceProvider
     {
         View::addNamespace('game', resource_path('views/livewire/game'));
 
-        Livewire::componentNamespace('App\\Livewire\\Game', 'game');
+        /** @var object|null $manager */
+        $manager = Livewire::getFacadeRoot();
+
+        if ($manager !== null && method_exists($manager, 'componentNamespace')) {
+            /**
+             * Older Livewire versions expose componentNamespace(), so call it when available to preserve legacy aliases.
+             */
+            $manager->componentNamespace('App\\Livewire\\Game', 'game');
+        }
     }
 }

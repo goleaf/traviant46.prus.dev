@@ -50,6 +50,7 @@ This inventory maps every actionable screen under `/_travian/main_script/include
 | `PermissionDeniedCtrl` | Permission denied view | `App\Http\Controllers\Fallback\ForbiddenController` **(planned)** |
 | `PositionDetailsCtrl` | Tile detail overlay | `App\Livewire\Map\TileDetails` **(planned)** |
 | `ProductionCtrl` | Resource production detail | `App\Livewire\Village\Production` **(planned)** |
+| `Quest.php` + `Ajax/questachievements.php` | Quest master overlay showing tutorial/daily quest progress and rewards | `App\Livewire\Game\QuestLog` |
 | `PublicMsgCtrl` | World broadcast modal | `App\Livewire\System\PublicMessage` **(planned)** |
 | `RecaptchaCtrl` | CAPTCHA verification | `App\Livewire\Account\RecaptchaChallenge` **(planned)** |
 | `SpielerCtrl` | Player profile | `App\Livewire\Players\Profile` **(planned)** |

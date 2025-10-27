@@ -48,6 +48,7 @@ flowchart LR
   - `GET /home` renders `resources/views/dashboard.blade.php` (`home`).
   - Sitter API: `GET /sitters` (`sitters.index`), `POST /sitters` (`sitters.store`), `DELETE /sitters/{sitter}` (`sitters.destroy`).
   - `admin/campaign-customer-segments` resource (except `show`) handled by `Admin\CampaignCustomerSegmentController`, plus `POST /admin/campaign-customer-segments/{id}/recalculate`.
+  - `GET /quests` → `App\Livewire\Game\QuestLog` (`game.quests.log`).
 
 ## Class Inventory
 

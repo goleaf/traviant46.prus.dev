@@ -523,6 +523,7 @@ Update `routes/web.php`:
 
 - Keep backend auth routes (login, register, logout, verification)
 - Add game routes (ALL using Livewire components, NO controllers)
+- Register a dedicated quest log route pointing to `App\\Livewire\\Game\\QuestLog` so tutorial and daily objectives surface in the modern UI.
 - Middleware: auth, verified, game.running, ban.check
 
 ### 10.2 Middleware

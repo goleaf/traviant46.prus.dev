@@ -21,6 +21,10 @@
                         </div>
 
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            {{-- Provide a shortcut to the Livewire quest log experience. --}}
+                            <flux:button as="a" href="{{ route('game.quests.log') }}" icon="sparkles" variant="ghost" class="w-full sm:w-auto text-slate-200 hover:text-white">
+                                {{ __('View quest log') }}
+                            </flux:button>
                             <flux:button as="a" href="{{ route('sitters.index') }}" icon="users" variant="primary" color="sky" class="w-full sm:w-auto">
                                 {{ __('Manage sitters') }}
                             </flux:button>
