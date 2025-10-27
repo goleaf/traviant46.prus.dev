@@ -2,8 +2,10 @@
     <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(14,116,144,0.08),_transparent_55%)]"></div>
     <div class="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[120%] -translate-x-1/2 bg-[radial-gradient(circle,_rgba(8,47,73,0.12),_transparent_65%)]"></div>
 
+    {{-- Main container for the reports surface --}}
     <flux:container class="w-full py-16">
         <div class="space-y-10">
+            {{-- Header and filter controls --}}
             <div class="rounded-3xl border border-white/10 bg-slate-900/50 p-8 shadow-[0_45px_140px_-60px_rgba(56,189,248,0.55)] backdrop-blur">
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div class="space-y-2">
@@ -27,12 +29,14 @@
                 </div>
             </div>
 
+            {{-- Reports list and detail split layout --}}
             <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
                 <div class="rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur">
                     <div class="divide-y divide-white/5">
                         @forelse ($reports as $report)
                             @php($isSelected = $selectedReport?->is($report) ?? false)
 
+                            {{-- Each report row toggles the detail panel --}}
                             <button
                                 type="button"
                                 class="group block w-full text-left transition"

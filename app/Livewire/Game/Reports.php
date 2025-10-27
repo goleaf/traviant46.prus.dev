@@ -18,6 +18,11 @@ class Reports extends Component
 {
     use WithPagination;
 
+    /**
+     * Available report kinds surfaced to the filter select.
+     *
+     * @var array<string, string>
+     */
     private const KIND_OPTIONS = [
         'all' => 'All kinds',
         'combat' => 'Combat',
@@ -38,17 +43,26 @@ class Reports extends Component
 
     public ?int $selectedReportId = null;
 
+    /**
+     * Reset pagination and the detail panel whenever the filter changes.
+     */
     public function updatingKind(): void
     {
         $this->resetPage();
         $this->selectedReportId = null;
     }
 
+    /**
+     * Reset the detail panel when the player switches pages.
+     */
     public function updatingPage(): void
     {
         $this->selectedReportId = null;
     }
 
+    /**
+     * Load the requested report into the detail panel when it belongs to the user.
+     */
     public function selectReport(int $reportId): void
     {
         $user = Auth::user();
@@ -69,12 +83,18 @@ class Reports extends Component
         $this->selectedReportId = $reportId;
     }
 
+    /**
+     * Clear the report selection to collapse the detail panel.
+     */
     public function clearSelection(): void
     {
         $this->selectedReportId = null;
     }
 
     #[Computed]
+    /**
+     * Fetch the paginated list of reports for the authenticated user.
+     */
     public function reports(): LengthAwarePaginator
     {
         $user = Auth::user();
@@ -96,12 +116,20 @@ class Reports extends Component
     }
 
     #[Computed]
+    /**
+     * Expose filter options for the reports list.
+     *
+     * @return array<string, string>
+     */
     public function availableKinds(): array
     {
         return self::KIND_OPTIONS;
     }
 
     #[Computed]
+    /**
+     * Resolve the currently selected report for the detail panel.
+     */
     public function selectedReport(): ?Report
     {
         if ($this->selectedReportId === null) {
@@ -120,6 +148,9 @@ class Reports extends Component
             ->first();
     }
 
+    /**
+     * Render the reports inbox surface.
+     */
     public function render(): View
     {
         return view('livewire.game.reports', [
