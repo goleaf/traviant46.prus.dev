@@ -187,7 +187,10 @@ class Send extends Component
                 'unit_speeds' => $this->previewData->unitSpeeds,
                 'wrap_around' => $this->previewData->wrapAround,
             ],
+            // Surface schedule timestamps so the action can persist accurate departure/arrival times.
             'depart_at' => $departAt,
+            'arrive_at' => $arriveAt,
+            'return_at' => $this->previewData->returnAt,
             'metadata' => [
                 'preview' => $this->preview,
                 'mission_code' => $this->resolveMissionEnum($this->mission)->value,

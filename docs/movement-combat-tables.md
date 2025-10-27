@@ -27,6 +27,9 @@ high-risk movement/combat tables mentioned in the migration plan.
     counts remain consistent.
   - Record the maximum `end_time` migrated and block new actions until all movements with an
     `end_time` ≤ that value have been processed in the destination environment.
+  - The modern Laravel flow queues new rows through `CreateMovementAction`, which calls
+    `MovementRepository::createMovement()` after deducting units via the Livewire rally point
+    component.
 
 ## enforcement — Stationed Reinforcements
 - Holds friendly troops stationed in a foreign village. Rows reference both origin (`kid`) and

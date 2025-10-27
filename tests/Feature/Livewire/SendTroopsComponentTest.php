@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Game\CreateMovementAction;
 use App\Livewire\Game\Send as SendComponent;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
@@ -10,7 +11,6 @@ use App\Models\User;
 use App\ValueObjects\Travian\MapSize;
 use Database\Seeders\TroopTypeSeeder;
 use Livewire\Livewire;
-use Mockery;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -22,6 +22,7 @@ beforeEach(function (): void {
         ],
     ]);
     config()->set('quests.definitions', []);
+    config()->set('hashing.driver', 'bcrypt');
 
     app()->singleton(MapSize::class, fn () => new MapSize(400));
 
@@ -74,7 +75,7 @@ it('queues a movement through the action and surfaces confirmation text', functi
 
     $this->actingAs($user);
 
-    $actionMock = Mockery::mock(CreateMovementAction::class);
+    $actionMock = \Mockery::mock(CreateMovementAction::class);
     $actionMock->shouldReceive('execute')->once()->andReturn($movement);
     $this->app->instance(CreateMovementAction::class, $actionMock);
 
