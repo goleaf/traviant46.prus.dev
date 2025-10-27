@@ -369,7 +369,8 @@ class Buildings extends Component
         $capacity = $catalog->storage_capacity_per_level[$nextLevel] ?? null;
 
         if (is_numeric($capacity)) {
-            $segments[] = __('Storage capacity: :value', ['value' => number_format((int) $capacity)]);
+            // Surface the absolute storage increase so players understand how many resources the next level can hold.
+            $segments[] = __('Storage capacity: :value resources', ['value' => number_format((int) $capacity)]);
         }
 
         if ($segments === []) {
