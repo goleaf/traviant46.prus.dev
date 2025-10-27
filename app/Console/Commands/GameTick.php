@@ -9,40 +9,45 @@ use App\Jobs\MovementResolverJob;
 use App\Jobs\OasisRespawnJob;
 use App\Jobs\ResourceTickJob;
 use App\Jobs\Shard\QueueCompleterJob;
+use App\Support\ShardResolver;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Console\Command;
 
+/**
+ * Coordinate the Travian minute tick by dispatching all shard-aware jobs.
+ */
 class GameTick extends Command
 {
     protected $signature = 'game:tick {--sync : Run the shard jobs synchronously instead of queueing them}';
 
     protected $description = 'Dispatch the shard jobs that drive the minute-based game tick.';
 
-    public function handle(): int
+    public function handle(ShardResolver $shardResolver): int
     {
         $dispatchSync = (bool) $this->option('sync');
 
-        $this->dispatchJob($dispatchSync, ResourceTickJob::class);
-        $this->dispatchJob($dispatchSync, QueueCompleterJob::class);
-        $this->dispatchJob($dispatchSync, MovementResolverJob::class);
-        $this->dispatchJob($dispatchSync, OasisRespawnJob::class);
-        $this->dispatchJob($dispatchSync, CropStarvationJob::class);
+        foreach ($shardResolver->shards() as $shard) {
+            $this->dispatchJob($dispatchSync, new ResourceTickJob(shard: $shard));
+            $this->dispatchJob($dispatchSync, new QueueCompleterJob(shard: $shard));
+        }
+
+        $this->dispatchJob($dispatchSync, new MovementResolverJob());
+        $this->dispatchJob($dispatchSync, new OasisRespawnJob());
+        $this->dispatchJob($dispatchSync, new CropStarvationJob());
 
         $this->components->info('Shard jobs dispatched successfully.');
 
         return self::SUCCESS;
     }
 
-    /**
-     * @param class-string $job
-     */
-    private function dispatchJob(bool $sync, string $job): void
+    private function dispatchJob(bool $sync, ShouldQueue $job): void
     {
         if ($sync) {
-            $job::dispatchSync();
+            dispatch_sync($job);
 
             return;
         }
 
-        $job::dispatch();
+        dispatch($job);
     }
 }
