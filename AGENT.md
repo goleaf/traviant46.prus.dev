@@ -116,6 +116,7 @@ For EACH table:
 - Add proper foreign key constraints
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
+- Baseline `villages` schema now lives in `database/migrations/2025_12_05_000100_create_villages_table.php` (id, world_id, user_id, x, y, is_capital, population, loyalty, culture_points) with enforced FK links to `worlds` and `users`.
 - Establish normalized oasis storage with `2025_03_01_000070_create_oases_table` and `2025_03_01_000080_create_oasis_ownerships_table` so conquest logic can target explicit world coordinates and village relationships.
 
 **Status note (2025-12-15):** The normalized `map_tiles` table now exists via migration `2025_12_15_000000_create_map_tiles_table.php`, enforcing `(world_id, x, y)` uniqueness and indexes for `world_id`, `tile_type`, and `oasis_type`.

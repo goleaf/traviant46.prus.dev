@@ -3,6 +3,10 @@
 This document captures the legacy Travian T4.4 schema for village-centric tables to aid the Laravel 12 migration.
 Each section summarizes purpose, notable columns, and indexing straight from the original `main_script/include/schema/T4.4.sql` DDL.
 
+## Laravel migration counterpart
+- The canonical Laravel table lives in `2025_12_05_000100_create_villages_table.php` and codifies the new normalized schema with strict foreign keys to `worlds` and `users`. 【F:database/migrations/2025_12_05_000100_create_villages_table.php†L1-L47】
+- Columns `x` and `y` store Cartesian coordinates (replacing legacy `kid` arithmetic) while `is_capital`, `population`, `loyalty`, and `culture_points` provide the baseline progress metrics required by downstream migrations. 【F:database/migrations/2025_12_05_000100_create_villages_table.php†L29-L42】
+
 ## `vdata`
 - Stores one row per village keyed by `kid`, tracking ownership (`owner`), basic metadata (`name`, `fieldtype`, `capital`, `type`), and population/culture points. 【F:main_script/include/schema/T4.4.sql†L1593-L1606】
 - Contains live resource stock (`wood`, `clay`, `iron`, `crop`), production rates (`woodp`, `clayp`, `ironp`, `cropp`), and storage caps (`maxstore`, `extraMaxstore`, `maxcrop`, `extraMaxcrop`) used for hourly resource calculations. 【F:main_script/include/schema/T4.4.sql†L1605-L1616】
