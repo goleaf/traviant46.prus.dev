@@ -586,6 +586,9 @@ Configure Supervisor to run:
 - 1 dedicated movement processor (high priority)
 - 1 resource tick processor
 - Laravel scheduler (cron)
+- Ensure the scheduler triggers the `game:tick` artisan command every minute so
+  shard-aware jobs (resource ticks, queue completion, movement resolution,
+  oasis respawns, crop starvation) continue to execute reliably.
 
 ### 12.3 Cutover Plan
 

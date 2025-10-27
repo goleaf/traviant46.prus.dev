@@ -56,6 +56,16 @@ protected function schedule(Schedule $schedule): void
 }
 ```
 
+### Minute game tick
+
+The Travian minute tick is coordinated by the `game:tick` artisan command
+(`app/Console/Commands/GameTick.php`).  The scheduler dispatches this command
+once per minute, and the command in turn queues the shard-aware jobs that power
+resource production, build queue completion, movement resolution, oasis
+respawns, and crop starvation enforcement.  Each job is pushed onto the
+`automation` queue so the worker pool can process them independently without
+blocking the scheduler thread.
+
 Register any custom artisan commands under `app/Console/Kernel.php` so they are
 discoverable by the scheduler.
 
