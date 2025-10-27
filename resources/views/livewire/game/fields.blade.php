@@ -56,74 +56,27 @@
                     </flux:callout>
                 @endif
 
-                <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                {{-- Render each resource field as a condensed textual row to match the Travian overlay specification. --}}
+                <div class="mt-6 space-y-3">
                     @foreach ($fields as $field)
                         @php
                             $isLocked = (bool) data_get($field, 'is_locked');
-                            $queuedLevel = data_get($field, 'queued_level');
                             $queueStatus = data_get($field, 'queue_status');
-                            $statusColor = $isLocked ? 'rose' : ($queueStatus ? 'amber' : 'emerald');
-                            $statusLabel = $isLocked
-                                ? __('Locked')
-                                : ($queueStatus ? __('Queued to Lv :level', ['level' => $queuedLevel]) : __('Ready'));
                             $duration = data_get($field, 'duration_formatted');
                             $disableUpgrade = $isLocked || ! empty($queueStatus);
                         @endphp
 
                         <div
-                            wire:key="field-card-{{ data_get($field, 'id') }}"
-                            class="relative flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-sky-400 hover:shadow-[0_16px_40px_-35px_rgba(56,189,248,0.9)] dark:bg-slate-900/70"
+                            wire:key="field-row-{{ data_get($field, 'id') }}"
+                            class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 shadow-sm transition hover:border-sky-400 dark:bg-slate-900/70"
                         >
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span class="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-slate-950/70 text-lg font-semibold text-white">
-                                        {{ str_pad((string) data_get($field, 'slot'), 2, '0', STR_PAD_LEFT) }}
-                                    </span>
-                                    <div>
-                                        <div class="text-sm font-semibold text-white">
-                                            {{ data_get($field, 'name') }}
-                                        </div>
-                                        <div class="text-xs uppercase tracking-wide text-slate-400">
-                                            {{ __('Level :level', ['level' => data_get($field, 'level')]) }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <flux:badge variant="subtle" color="{{ $statusColor }}">
-                                    {{ $statusLabel }}
-                                </flux:badge>
-                            </div>
-
-                            <div class="space-y-3 text-sm text-slate-300">
-                                <div class="flex items-center justify-between">
-                                    <span>{{ __('Production /h') }}</span>
-                                    <span class="font-mono text-white">
-                                        {{ number_format((int) data_get($field, 'production_per_hour')) }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span>{{ __('Next level') }}</span>
-                                    <span class="font-mono text-emerald-300">
-                                        {{ data_get($field, 'next_level') }}
-                                    </span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span>{{ __('Upgrade time') }}</span>
-                                    <span class="font-mono text-slate-200">
-                                        {{ $duration ?? '—' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="text-xs uppercase tracking-wide text-slate-400">
-                                    @if ($queueStatus)
-                                        {{ __('Queue status: :status', ['status' => ucfirst($queueStatus)]) }}
-                                    @else
-                                        {{ __('No queue entry') }}
-                                    @endif
-                                </div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="font-semibold text-white">
+                                    {{ data_get($field, 'name') }} {{ __('L:level', ['level' => data_get($field, 'level')]) }}
+                                </span>
+                                <span class="text-slate-400">&rarr;</span>
                                 <flux:button
-                                    size="sm"
+                                    size="xs"
                                     color="emerald"
                                     variant="primary"
                                     wire:click="enqueueUpgrade({{ data_get($field, 'id') }})"
@@ -131,19 +84,31 @@
                                     wire:loading.attr="disabled"
                                     :disabled="$disableUpgrade"
                                 >
-                                    {{ __('Upgrade') }}
+                                    {{ __('[Upgrade]') }}
                                 </flux:button>
+                                <span class="font-mono text-xs text-slate-300">
+                                    {{ $duration ? "({$duration})" : __('(—)') }}
+                                </span>
+                            </div>
+
+                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-300">
+                                @if ($queueStatus)
+                                    <span>{{ __('Queue: :status', ['status' => ucfirst($queueStatus)]) }}</span>
+                                @else
+                                    <span>{{ __('Ready to enqueue') }}</span>
+                                @endif
+                                <span class="text-slate-500">{{ __('Slot #:slot', ['slot' => data_get($field, 'slot')]) }}</span>
+                                <span class="text-emerald-300">{{ __('Next → :next', ['next' => data_get($field, 'next_level')]) }}</span>
+                                <span class="text-sky-300">{{ __('Production/h :amount', ['amount' => number_format((int) data_get($field, 'production_per_hour'))]) }}</span>
                             </div>
 
                             @if ($isLocked)
-                                <div class="space-y-2 text-xs text-rose-300">
+                                {{-- When a field is locked we surface the translated reasons to mirror legacy Travian behaviour. --}}
+                                <ul class="mt-2 space-y-1 text-xs text-rose-300">
                                     @foreach (data_get($field, 'locked_reasons', []) as $reason)
-                                        <div class="flex items-start gap-2">
-                                            <flux:icon name="no-symbol" class="mt-0.5 size-4 text-rose-300" />
-                                            <span>{{ $reason }}</span>
-                                        </div>
+                                        <li>{{ $reason }}</li>
                                     @endforeach
-                                </div>
+                                </ul>
                             @endif
                         </div>
                     @endforeach
@@ -186,7 +151,7 @@
                         </li>
                     @empty
                         <li class="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-center text-xs uppercase tracking-wide text-slate-400">
-                            {{ __('Nothing queued — enqueue upgrades from the field cards.') }}
+                            {{ __('Nothing queued — enqueue upgrades from the field rows.') }}
                         </li>
                     @endforelse
                 </ul>

@@ -70,6 +70,7 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 6. **Alliance Service**: Coordinates alliance formation, membership, and governance.
 7. **Event Processor**: Consumes `event_queue` to orchestrate asynchronous game events.
 8. **Data Sync Service**: Handles ETL flows to analytics and data warehouse targets.
+9. **Resource Field Overlay**: Livewire component `game.fields` renders each slot as a textual row (`Woodcutter L5 → [Upgrade] (00:12:40)`) with lock reasons surfaced inline, relying on `EnqueueBuildAction` for upgrades.
 
 ### 1.5 Create AGENT.md
 
