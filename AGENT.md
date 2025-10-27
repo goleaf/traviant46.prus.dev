@@ -66,6 +66,7 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 3. **Economy Service**: Manages resource production, storage, and trades with ledger integration.
 4. **Warfare Service**: Processes troop movements, battles, and generates battle reports.
 5. **Communication Service**: Manages messaging, notifications, and event subscriptions.
+   - Laravel direct messages table now uses `from_user_id`, `to_user_id`, `subject`, `body`, and `read_at` columns for streamlined player-to-player communication tracking.
 6. **Alliance Service**: Coordinates alliance formation, membership, and governance.
 7. **Event Processor**: Consumes `event_queue` to orchestrate asynchronous game events.
 8. **Data Sync Service**: Handles ETL flows to analytics and data warehouse targets.
