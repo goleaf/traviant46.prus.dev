@@ -7,6 +7,7 @@ use App\Models\Game\Report;
 use App\Models\Game\World;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Sequence;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 
 use function Pest\Laravel\artisan;
@@ -28,8 +29,14 @@ beforeEach(function (): void {
         ],
         '--force' => true,
     ]);
+
+    // Use bcrypt hashing during tests because Argon extensions are unavailable in CI.
+    Config::set('hashing.driver', 'bcrypt');
 });
 
+/**
+ * Ensure the paginated list renders and filters records for the signed-in player.
+ */
 it('filters reports by kind for the signed-in player', function (): void {
     $user = User::factory()->create();
     $world = World::factory()->create();
@@ -86,6 +93,9 @@ it('filters reports by kind for the signed-in player', function (): void {
         ->assertSee('Wall: 2', false);
 });
 
+/**
+ * Confirm the detail drawer resets when navigating between pagination pages.
+ */
 it('clears the selection when the page changes', function (): void {
     $user = User::factory()->create();
     $world = World::factory()->create();

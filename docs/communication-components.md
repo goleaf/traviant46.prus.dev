@@ -22,6 +22,11 @@ This document summarizes the responsibilities and data flows covered by the lega
 - Fetches paginated report data, optionally constrained by loss percentage, and builds table rows through `reportOverviewLayout`.【F:_travian/main_script_dev/include/Controller/BerichteCtrl.php†L1263-L1299】【F:_travian/main_script_dev/include/Controller/BerichteCtrl.php†L1391-L1400】
 - Provides navigation metadata (page number, recursive flag, filter state) required for rebuilding the list on interaction.【F:_travian/main_script_dev/include/Controller/BerichteCtrl.php†L1258-L1297】
 
+### `App\\Livewire\\Game\\Reports`
+- Surfaces a paginated, filterable list of reports for the authenticated player with Livewire-powered selection and pagination state stored in the query string.【F:app/Livewire/Game/Reports.php†L19-L115】
+- Renders the casualties, bounty, and damages sections as plain text summaries derived from the JSON `data` payload to match the legacy overview tables while remaining safe for HTML output.【F:app/Models/Game/Report.php†L34-L71】【F:resources/views/livewire/game/reports.blade.php†L1-L90】
+- Clears the selected report when the filter or page changes to mirror the legacy "back to list" behavior and reduce confusion when browsing multiple report pages.【F:app/Livewire/Game/Reports.php†L43-L64】
+
 ### `App\\Livewire\\Reports\\BattleReport`
 - Determines available actions (forward, archive, repeat attack, add to farm list) based on ownership, report type, and premium features.【F:_travian/main_script_dev/include/Controller/BerichteCtrl.php†L200-L262】
 - Builds context-specific payloads for diverse report types such as caged animals, new villages, trade deliveries, reinforcements, and adventures.【F:_travian/main_script_dev/include/Controller/BerichteCtrl.php†L270-L360】

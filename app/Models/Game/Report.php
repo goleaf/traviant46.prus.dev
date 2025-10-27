@@ -61,6 +61,9 @@ class Report extends Model
         return $this->formatDataValue($this->data['damages'] ?? null);
     }
 
+    /**
+     * Produce a display-ready string for the provided report section.
+     */
     private function formatDataValue(mixed $value): string
     {
         $text = $this->stringifyData($value);
@@ -68,6 +71,9 @@ class Report extends Model
         return $text !== '' ? $text : 'None recorded';
     }
 
+    /**
+     * Flatten nested report payloads into comma-separated plain text strings.
+     */
     private function stringifyData(mixed $value): string
     {
         if (is_array($value)) {
