@@ -580,6 +580,12 @@ Create custom middleware:
 - Session management
 - Multi-account detection
 
+## Starter Village Specification
+
+- New player registration must always create exactly one starter village at coordinates `(0, 0)`.
+- The starter village needs 18 resource fields following the 0/1 level split (crop fields at level 1, all others at level 0).
+- Ensure Main Building, Warehouse, Granary, and Rally Point spawn at level 1 when seeding starter infrastructure.
+
 ## Phase 12: Deployment & Cutover
 
 ### 12.1 Environment Setup

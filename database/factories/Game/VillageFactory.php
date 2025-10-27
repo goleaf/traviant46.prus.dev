@@ -99,6 +99,7 @@ class VillageFactory extends Factory
                 'is_wonder_village' => false,
             ];
         })->afterCreating(function (Village $village): void {
+            // Seed the starter blueprint structures so every new account meets the Travian spawn contract.
             $this->createStarterResourceFields($village);
             $this->createStarterInfrastructure($village);
         });
@@ -125,6 +126,11 @@ class VillageFactory extends Factory
                 'updated_at' => $now,
             ])
             ->all();
+
+        // Ensure the starter blueprint always yields the expected 18 resource tiles.
+        if (count($entries) !== 18) {
+            throw new \RuntimeException('Starter resource blueprint must define exactly 18 fields.');
+        }
 
         DB::table('resource_fields')->upsert(
             $entries,
@@ -155,7 +161,8 @@ class VillageFactory extends Factory
                     'building_type' => $structure['gid'],
                     'buildable_type' => $buildingType?->getMorphClass(),
                     'buildable_id' => $buildingType?->getKey(),
-                    'level' => 1,
+                    // Persist the target level from the blueprint so the spawn matches the Travian defaults.
+                    'level' => $structure['level'],
                     'created_at' => $now,
                     'updated_at' => $now,
                 ],

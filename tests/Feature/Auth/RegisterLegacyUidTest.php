@@ -80,6 +80,9 @@ it('creates a starter village for new players', function (): void {
 
     $village = Village::query()->where('user_id', $user->getKey())->firstOrFail();
 
+    // Registration should only yield a single starter settlement for the account.
+    expect(Village::query()->count())->toBe(1);
+
     expect($village->x_coordinate)->toBe(0)
         ->and($village->y_coordinate)->toBe(0)
         ->and((bool) $village->is_capital)->toBeTrue()

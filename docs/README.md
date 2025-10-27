@@ -34,6 +34,7 @@ flowchart LR
 - **Role specific guards** for the special administrator (`legacy_uid = 0`) and multihunter (`legacy_uid = 2`) accounts.
 - **Email verification** and password recovery flows with lightweight Blade views.
 - **Multi-account detection** via IP logging, automatic alerts, and Redis sessions for continuity with the existing infrastructure.
+- **Starter village automation** that spawns a capital at coordinates `(0,0)` with 18 resource fields (level 0/1 split) and level 1 Main Building, Warehouse, Granary, and Rally Point for every newly registered account.
 
 ## Route Inventory
 
