@@ -589,6 +589,7 @@ Configure Supervisor to run:
 - 3-5 general queue workers
 - 1 dedicated movement processor (high priority)
 - 1 resource tick processor
+- 1 shard-aligned QueueCompleterJob runner on the `automation` queue per shard
 - Laravel scheduler (cron)
 - Ensure the scheduler triggers the `game:tick` artisan command every minute so
   shard-aware jobs (resource ticks, queue completion, movement resolution,
