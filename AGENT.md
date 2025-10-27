@@ -112,6 +112,7 @@ For EACH table:
 - Add proper foreign key constraints
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
+- Establish normalized oasis storage with `2025_03_01_000070_create_oases_table` and `2025_03_01_000080_create_oasis_ownerships_table` so conquest logic can target explicit world coordinates and village relationships.
 
 **Priority Redesigns:**
 
