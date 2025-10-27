@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Events\Game\BuildCompleted;
-use App\Events\Game\BuildQueued;
-use App\Events\Game\CombatResolved;
-use App\Events\Game\MovementCreated;
-use App\Events\Game\ReportCreated;
-use App\Events\Game\ResourcesProduced;
+use App\Domain\Game\Building\Events\BuildCompleted;
+use App\Domain\Game\Building\Events\BuildQueued;
+use App\Domain\Game\Combat\Events\CombatResolved;
+use App\Domain\Game\Economy\Events\ResourcesProduced;
+use App\Domain\Game\Report\Events\ReportCreated;
+use App\Domain\Game\Troop\Events\MovementCreated;
+use App\Domain\Game\Troop\Events\TroopsArrived;
+use App\Domain\Game\Troop\Events\TroopsTrained;
 use App\Events\Game\ResourceStorageWarning;
-use App\Events\Game\TroopsArrived;
-use App\Events\Game\TroopsTrained;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 

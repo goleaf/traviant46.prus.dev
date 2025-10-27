@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs\Shard;
 
 use App\Enums\Game\BuildQueueState;
-use App\Events\Game\BuildCompleted;
-use App\Events\Game\TroopsTrained;
+use App\Domain\Game\Building\Events\BuildCompleted;
+use App\Domain\Game\Troop\Events\TroopsTrained;
 use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\BuildQueue;
 use App\Models\Game\TrainingQueue;

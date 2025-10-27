@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Game;
 
+use App\Domain\Game\Troop\Events\MovementCreated;
+use App\Domain\Game\Troop\Events\TroopsArrived;
 use App\Enums\Game\MovementOrderStatus;
-use App\Events\Game\MovementCreated;
-use App\Events\Game\TroopsArrived;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
 use Illuminate\Contracts\View\View;

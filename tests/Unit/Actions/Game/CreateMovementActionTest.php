@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Actions\Game\CreateMovementAction;
+use App\Domain\Game\Troop\Events\MovementCreated;
 use App\Enums\Game\MovementOrderStatus;
-use App\Events\Game\MovementCreated;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;
 use App\Models\User;

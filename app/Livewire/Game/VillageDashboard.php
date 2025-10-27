@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Game;
 
-use App\Events\Game\BuildCompleted;
-use App\Events\Game\ResourcesProduced;
+use App\Domain\Game\Building\Events\BuildCompleted;
+use App\Domain\Game\Economy\Events\ResourcesProduced;
 use App\Models\Game\Village;
 use App\Models\User;
 use App\Services\Game\VillageQueueService;

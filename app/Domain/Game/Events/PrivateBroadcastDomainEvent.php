@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Events\Game;
+namespace App\Domain\Game\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -10,24 +10,30 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MovementCreated implements ShouldBroadcast
+/**
+ * Base class for broadcastable domain events targeting private game channels.
+ *
+ * @phpstan-type BroadcastPayload array<string, mixed>
+ */
+abstract class PrivateBroadcastDomainEvent implements ShouldBroadcast
 {
     use Dispatchable;
     use SerializesModels;
 
-    public const EVENT = 'movement-created';
-
     /**
-     * @param array<string, mixed> $payload
+     * @param BroadcastPayload $payload
      */
     public function __construct(
         public readonly string $channelName,
         public readonly array $payload = [],
-    ) {}
+    ) {
+    }
+
+    abstract public static function eventName(): string;
 
     public function broadcastAs(): string
     {
-        return self::EVENT;
+        return static::eventName();
     }
 
     public function broadcastOn(): Channel
@@ -36,7 +42,7 @@ class MovementCreated implements ShouldBroadcast
     }
 
     /**
-     * @return array<string, mixed>
+     * @return BroadcastPayload
      */
     public function broadcastWith(): array
     {

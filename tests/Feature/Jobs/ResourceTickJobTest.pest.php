@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Events\Game\ResourcesProduced;
+use App\Domain\Game\Economy\Events\ResourcesProduced;
 use App\Jobs\ResourceTickJob;
 use App\Models\Game\Village;
 use App\Models\Game\VillageResource;

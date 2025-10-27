@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Game\Building\Events\BuildCompleted;
+use App\Domain\Game\Troop\Events\TroopsTrained;
 use App\Enums\Game\BuildQueueState;
-use App\Events\Game\BuildCompleted;
-use App\Events\Game\TroopsTrained;
 use App\Jobs\Shard\QueueCompleterJob;
 use App\Models\Game\BuildQueue;
 use App\Models\Game\TrainingQueue;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Events\Game\ResourcesProduced;
+use App\Domain\Game\Economy\Events\ResourcesProduced;
 use App\Events\Game\ResourceStorageWarning;
 use App\Jobs\Concerns\InteractsWithShardResolver;
 use App\Models\Game\Village;

@@ -89,6 +89,21 @@ can be retried safely. When creating new jobs, follow these conventions:
   `ThrottlesExceptions` to protect downstream services.
 - Set `$timeout` or `$tries` on long-running jobs to avoid worker starvation.
 
+### Broadcast notifications emitted by jobs
+
+- **`App\Jobs\ResourceTickJob`** publishes minimal resource updates through the
+  domain event `App\Domain\Game\Economy\Events\ResourcesProduced`. The event
+  shares only the village channel identifier and a compact payload so Livewire
+  dashboards can refresh without replaying heavy calculations.
+- **`App\Jobs\Shard\QueueCompleterJob`** surfaces queue completions with
+  `App\Domain\Game\Building\Events\BuildCompleted` and
+  `App\Domain\Game\Troop\Events\TroopsTrained`, allowing village dashboards to
+  reflect training/building changes in real time.
+- **`App\Jobs\MovementResolverJob`** announces troop arrivals and battle
+  outcomes using `App\Domain\Game\Troop\Events\TroopsArrived` and
+  `App\Domain\Game\Combat\Events\CombatResolved`, enabling the rally point UI
+  to stay synchronised with backend resolutions.
+
 For long-running scripts, consider adding rate limiting and explicit timeout
 configuration via job middleware. This keeps the queue responsive and prevents a
 single failure from blocking subsequent work. If a job depends on external

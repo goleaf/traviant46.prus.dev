@@ -6,8 +6,8 @@ namespace App\Jobs;
 
 use App\Actions\Game\ResolveCombatAction;
 use App\Enums\Game\MovementOrderStatus;
-use App\Events\Game\CombatResolved;
-use App\Events\Game\TroopsArrived;
+use App\Domain\Game\Combat\Events\CombatResolved;
+use App\Domain\Game\Troop\Events\TroopsArrived;
 use App\Models\Game\MovementOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

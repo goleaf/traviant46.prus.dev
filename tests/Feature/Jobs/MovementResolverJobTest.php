@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Actions\Game\ResolveCombatAction;
+use App\Domain\Game\Combat\Events\CombatResolved;
+use App\Domain\Game\Troop\Events\TroopsArrived;
 use App\Enums\Game\MovementOrderStatus;
-use App\Events\Game\CombatResolved;
-use App\Events\Game\TroopsArrived;
 use App\Jobs\MovementResolverJob;
 use App\Models\Game\MovementOrder;
 use App\Models\Game\Village;

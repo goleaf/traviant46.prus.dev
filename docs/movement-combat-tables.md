@@ -27,6 +27,10 @@ high-risk movement/combat tables mentioned in the migration plan.
     counts remain consistent.
   - Record the maximum `end_time` migrated and block new actions until all movements with an
     `end_time` ≤ that value have been processed in the destination environment.
+  - The Laravel job `App\Jobs\MovementResolverJob` now emits
+    `App\Domain\Game\Troop\Events\TroopsArrived` and
+    `App\Domain\Game\Combat\Events\CombatResolved` after processing so the rally point UI
+    synchronises instantly—ensure queues remain enabled for broadcasting post-migration.
 
 ## enforcement — Stationed Reinforcements
 - Holds friendly troops stationed in a foreign village. Rows reference both origin (`kid`) and
