@@ -6,6 +6,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Migration for creating the resource_fields table that stores per-slot resource production metadata.
+ */
 return new class extends Migration
 {
     public function up(): void
@@ -19,7 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('production_per_hour_cached')->default(0);
             $table->timestamps();
 
-            $table->unique(['village_id', 'slot_number']);
+            $table->unique(['village_id', 'kind', 'slot_number']);
         });
     }
 

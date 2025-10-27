@@ -16,11 +16,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
+/**
+ * Handle finishing queued build and troop training actions for a specific shard.
+ */
 class QueueCompleterJob implements ShouldQueue
 {
     use Dispatchable;
@@ -33,6 +35,10 @@ class QueueCompleterJob implements ShouldQueue
 
     public int $timeout = 120;
 
+    /**
+     * @param int $chunkSize The maximum number of queue records to process in a single run.
+     * @param int $shard The shard index supplied by the scheduler.
+     */
     public function __construct(
         private readonly int $chunkSize = 100,
         int $shard = 0,
@@ -41,45 +47,54 @@ class QueueCompleterJob implements ShouldQueue
         $this->onQueue('automation');
     }
 
+    /**
+     * Execute the queued job by completing all due build and training queues.
+     */
     public function handle(): void
     {
         $this->processBuildQueues();
         $this->processTrainingQueues();
     }
 
+    /**
+     * Complete pending build queues for the current shard.
+     */
     private function processBuildQueues(): void
     {
-        $builder = BuildQueue::query()
-            ->where('state', BuildQueueState::Pending)
-            ->where('finishes_at', '<=', Carbon::now());
-
-        $builder = $this->constrainToShard($builder);
+        $builder = $this->constrainToShard(
+            BuildQueue::query()->due(),
+        );
 
         $builder
             ->orderBy('finishes_at')
-            ->limit($this->chunkSize)
+            ->limit(max(1, $this->chunkSize))
             ->get()
             ->each(function (BuildQueue $queue): void {
                 $this->completeBuild($queue);
             });
     }
 
+    /**
+     * Complete pending training queues for the current shard.
+     */
     private function processTrainingQueues(): void
     {
-        $builder = TrainingQueue::query()
-            ->where('finishes_at', '<=', Carbon::now());
-
-        $builder = $this->constrainToShard($builder);
+        $builder = $this->constrainToShard(
+            TrainingQueue::query()->due(),
+        );
 
         $builder
             ->orderBy('finishes_at')
-            ->limit($this->chunkSize)
+            ->limit(max(1, $this->chunkSize))
             ->get()
             ->each(function (TrainingQueue $queue): void {
                 $this->completeTraining($queue);
             });
     }
 
+    /**
+     * Persist the results of a completed build queue and broadcast the event.
+     */
     private function completeBuild(BuildQueue $queue): void
     {
         try {
@@ -151,6 +166,9 @@ class QueueCompleterJob implements ShouldQueue
         }
     }
 
+    /**
+     * Persist the results of a completed training queue and broadcast the event.
+     */
     private function completeTraining(TrainingQueue $queue): void
     {
         try {
@@ -213,6 +231,9 @@ class QueueCompleterJob implements ShouldQueue
         }
     }
 
+    /**
+     * Derive the private broadcast channel for the supplied village.
+     */
     private function villageChannel(int $villageId): string
     {
         return sprintf('game.villages.%d', $villageId);

@@ -12,14 +12,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Historically duplicated migration retained for forward compatibility checks.
+     * Create the pivot table linking villages to the oases they control.
      */
     public function up(): void
     {
-        if (Schema::hasTable('oasis_ownerships')) {
-            return;
-        }
-
         Schema::create('oasis_ownerships', function (Blueprint $table) {
             /**
              * Foreign keys ensure the relationship stays synchronized with core village and oasis records.

@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create the trades table storing active merchant shipments.
+     */
     public function up(): void
     {
         Schema::create('trades', function (Blueprint $table): void {
@@ -22,6 +25,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Drop the trades table.
+     */
     public function down(): void
     {
         Schema::dropIfExists('trades');

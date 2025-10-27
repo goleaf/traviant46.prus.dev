@@ -22,6 +22,9 @@ selected components should be configured and used together.
   keys for internal relations.
 - Mirror existing Travian worlds through a multi-database configuration when
   necessary (e.g., `mysql_world1`, `mysql_world2`).
+- Store world metadata in the dedicated `worlds` table created by
+  `2025_10_20_000000_create_worlds_table.php`; seed `World #1` at 1x speed via
+  `Database\Seeders\WorldSeeder` for local development parity.
 
 ## Authentication & Authorisation
 
@@ -34,6 +37,11 @@ selected components should be configured and used together.
 - **Spatie laravel-permission** handles role/permission assignment.  Model
   alliance, sitter, and staff roles with dedicated permission groups.  Expose a
   policy layer so controllers and jobs authorise sensitive operations.
+- **Village policy guard** ensures only the owning player or an authorised
+  sitter with the required delegation permission can interact with a village.
+  Register `App\\Policies\\VillagePolicy` in the `AuthServiceProvider` so that
+  Livewire components and controllers consistently deny access for every other
+  actor.
 
 ## Background Processing
 
