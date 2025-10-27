@@ -71,7 +71,7 @@ flowchart LR
 
 Core authentication & commerce: `Activation`, `AccountDeletionRequest`, `AuthEvent`, `AuditLog`, `CampaignCustomerSegment`, `CoreCatalog`, `Customer`, `LegalDocument`, `LoginActivity`, `LoginIpLog`, `Order`, `Product`, `Setting`, `SitterAssignment`, `SitterDelegation`, `TrustedDevice`, `User`, `UserDataExport`, `UserSession`.
 
-Game domain snapshot: `Alliance`, `AllianceForum`, `AllianceMember`, `AlliancePost`, `AllianceTopic`, `Game\{Adventure, AttackDispatch, Building, BuildingType, CapturedUnit, DailyQuestProgress, Enforcement, GameSummaryMetric, MapTile, Movement, MovementOrder, Oasis, ReinforcementGarrison, ServerTask, Trapped, UnitTrainingBatch, Village, VillageBuildingUpgrade, VillageResource, VillageUnit, WorldCasualtySnapshot}`, `Message`, `MessageRecipient`, `Report`, `ReportRecipient`.
+Game domain snapshot: `Alliance`, `AllianceForum`, `AllianceMember`, `AlliancePost`, `AllianceTopic`, `Game\{Adventure, AttackDispatch, Building, BuildingType, CapturedUnit, DailyQuestProgress, Enforcement, GameSummaryMetric, MapTile, Movement, MovementOrder, Oasis, Quest, QuestProgress, ReinforcementGarrison, ServerTask, Trapped, UnitTrainingBatch, Village, VillageBuildingUpgrade, VillageResource, VillageUnit, WorldCasualtySnapshot}`, `Message`, `MessageRecipient`, `Report`, `ReportRecipient`.
 
 ### Jobs
 
