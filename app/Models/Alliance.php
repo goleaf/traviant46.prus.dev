@@ -37,6 +37,14 @@ class Alliance extends Model
         return $this->hasMany(AllianceMember::class)->with('user');
     }
 
+    /**
+     * @return HasMany<AllianceRole>
+     */
+    public function roles(): HasMany
+    {
+        return $this->hasMany(AllianceRole::class);
+    }
+
     public function forums(): HasMany
     {
         return $this->hasMany(AllianceForum::class)->orderBy('position');

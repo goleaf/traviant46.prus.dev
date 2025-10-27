@@ -88,6 +88,7 @@ Extract complete schema from `/_travian/schema/T4.4.sql` covering:
 - **Auth/User (6 tables):** users, activation, login_handshake, activation_progress, deleting, newproc
 - **Villages (11 tables):** vdata, fdata, wdata, available_villages, odata, building_upgrade, demolition, smithy, tdata, research, traderoutes
 - **Alliances (16 tables):** alidata, alistats, allimedal, ali_invite, ali_log, diplomacy, alliance_notification, alliance_bonus_upgrade_queue, forum_*
+- **Alliances core migration:** Laravel tables `alliances`, `alliance_members`, and `alliance_roles` (with JSON permissions) are now defined for roster/permission management; keep future work aligned with these schemas.
 - **Combat/Movement (8 tables):** movement, a2b, enforcement, trapped, units, send
 - **Hero (6 tables):** hero, face, items, inventory, adventure, accounting
 - **Artifacts (3 tables):** artefacts, artlog

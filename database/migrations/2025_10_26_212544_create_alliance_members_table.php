@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Alliance;
+use App\Models\AllianceRole;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Create alliance role and membership tables that back roster management.
      */
     public function up(): void
     {
@@ -29,7 +30,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Alliance::class, 'alliance_id')->constrained('alliances')->cascadeOnDelete();
             $table->foreignIdFor(User::class, 'user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('alliance_role_id')->nullable()->constrained('alliance_roles')->nullOnDelete();
+            $table->foreignIdFor(AllianceRole::class, 'alliance_role_id')->nullable()->constrained('alliance_roles')->nullOnDelete();
+            $table->string('role', 50)->default('member');
             $table->timestamp('joined_at')->nullable();
             $table->timestamps();
 

@@ -55,6 +55,7 @@ it('creates the alliance members table with expected columns', function () {
         'alliance_id',
         'user_id',
         'alliance_role_id',
+        'role',
         'joined_at',
         'created_at',
         'updated_at',

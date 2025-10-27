@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\AllianceRole;
+use App\Enums\AllianceRole as AllianceRoleEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +19,7 @@ class AllianceMember extends Model
     protected $fillable = [
         'alliance_id',
         'user_id',
+        'alliance_role_id',
         'role',
         'joined_at',
     ];
@@ -30,7 +31,7 @@ class AllianceMember extends Model
     {
         return [
             'joined_at' => 'datetime',
-            'role' => AllianceRole::class,
+            'role' => AllianceRoleEnum::class,
         ];
     }
 
@@ -51,6 +52,14 @@ class AllianceMember extends Model
         return $this->belongsTo(Alliance::class);
     }
 
+    /**
+     * Resolve the configurable alliance role assigned to the member, if any.
+     */
+    public function allianceRole(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\AllianceRole::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -58,36 +67,52 @@ class AllianceMember extends Model
 
     public function badgeColor(): string
     {
-        $role = $this->role instanceof AllianceRole ? $this->role : AllianceRole::Member;
+        $role = $this->role instanceof AllianceRoleEnum ? $this->role : AllianceRoleEnum::Member;
 
         return $role->badgeColor();
     }
 
     public function badgeLabel(): string
     {
-        $role = $this->role instanceof AllianceRole ? $this->role : AllianceRole::Member;
+        $role = $this->role instanceof AllianceRoleEnum ? $this->role : AllianceRoleEnum::Member;
 
         return $role->label();
     }
 
     public function canManageProfile(): bool
     {
-        return $this->role instanceof AllianceRole && $this->role->canManageProfile();
+        if ($this->hasPermission('manage_profile')) {
+            return true;
+        }
+
+        return $this->role instanceof AllianceRoleEnum && $this->role->canManageProfile();
     }
 
     public function canManageMembers(): bool
     {
-        return $this->role instanceof AllianceRole && $this->role->canManageMembers();
+        if ($this->hasPermission('manage_members')) {
+            return true;
+        }
+
+        return $this->role instanceof AllianceRoleEnum && $this->role->canManageMembers();
     }
 
     public function canManageDiplomacy(): bool
     {
-        return $this->role instanceof AllianceRole && $this->role->canManageDiplomacy();
+        if ($this->hasPermission('manage_diplomacy')) {
+            return true;
+        }
+
+        return $this->role instanceof AllianceRoleEnum && $this->role->canManageDiplomacy();
     }
 
     public function canModerateForums(): bool
     {
-        return $this->role instanceof AllianceRole && $this->role->canModerateForums();
+        if ($this->hasPermission('moderate_forums')) {
+            return true;
+        }
+
+        return $this->role instanceof AllianceRoleEnum && $this->role->canModerateForums();
     }
 
     public function scopeForUser(Builder $query, User $user): Builder
@@ -119,5 +144,25 @@ class AllianceMember extends Model
         if ((int) $user->current_alliance_id === (int) $this->alliance_id) {
             $user->forceFill(['current_alliance_id' => null])->saveQuietly();
         }
+    }
+
+    /**
+     * Determine whether the attached configurable role grants a permission key.
+     */
+    private function hasPermission(string $permission): bool
+    {
+        $role = $this->allianceRole;
+
+        if (! $role instanceof \App\Models\AllianceRole) {
+            return false;
+        }
+
+        $permissions = $role->permissions;
+
+        if (! is_array($permissions)) {
+            return false;
+        }
+
+        return in_array($permission, $permissions, true);
     }
 }
