@@ -34,6 +34,11 @@ selected components should be configured and used together.
 - **Spatie laravel-permission** handles role/permission assignment.  Model
   alliance, sitter, and staff roles with dedicated permission groups.  Expose a
   policy layer so controllers and jobs authorise sensitive operations.
+- **Village policy guard** ensures only the owning player or an authorised
+  sitter with the required delegation permission can interact with a village.
+  Register `App\\Policies\\VillagePolicy` in the `AuthServiceProvider` so that
+  Livewire components and controllers consistently deny access for every other
+  actor.
 
 ## Background Processing
 
