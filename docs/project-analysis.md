@@ -9,6 +9,7 @@
 ## Current Status Snapshot
 - **Authentication & User Management:** Feature complete per README, including seeded roles, sitter delegation, and multi-account logging with Redis session support.【F:docs/README.md†L5-L53】
 - **Background Workloads:** Database or Redis queue drivers are configured, with rate-limiting, prioritisation, and scheduler pairing guidance defined to keep automation reliable.【F:docs/background-jobs.md†L1-L112】【F:docs/queue-system.md†L1-L75】
+- **Village Construction Queue:** `EnqueueBuildAction` now validates building prerequisites, consumes resources, and schedules queue entries based on world speed and Main Building levels instead of remaining a stub.【F:app/Actions/Game/EnqueueBuildAction.php†L32-L231】
 - **Data Model Documentation:** Legacy schemas for communication, villages, and combat have been catalogued in the dedicated database references for messaging and settlement tables, guiding Laravel migration scripts and validating relationships before cutover.【F:docs/database/communication-tables.md†L1-L34】【F:docs/database/village-tables.md†L1-L41】【F:docs/movement-combat-tables.md†L1-L49】
 
 ## Outstanding Risks
