@@ -80,7 +80,7 @@ flowchart LR
 - Automation: `BackupDatabase`, `CheckGameFinish`, `CleanupInactivePlayers`, `ProcessAdventures`, `ProcessAllianceBonus`, `ProcessArtifacts`, `ProcessAttackArrival`, `ProcessAuctions`, `ProcessBuildingCompletion`, `ProcessDailyQuests`, `ProcessFakeUsers`, `ProcessMedals`, `ProcessNatarVillages`, `ProcessReinforcementArrival`, `ProcessResearchCompletion`, `ProcessReturnMovement`, `ProcessServerTasks`, `ProcessTroopTraining`, `ScheduleDailyQuestReset`, `ScheduleMedalDistribution`.
 
 ### Actions
-- Game orchestration stubs located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `CreateMovementAction`, `ResolveCombatAction`, and `ApplyStarvationAction`. Each class currently exposes a constructor-injected repository set and a placeholder `execute()` method ready for future implementation work.
+- Game orchestration stubs located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `ResolveCombatAction`, and `ApplyStarvationAction`. `CreateMovementAction` now orchestrates wrapped distance calculations, travel time estimation, persistence, and broadcasting for new troop dispatches while the remaining actions still expose constructor-injected repositories and placeholder `execute()` methods awaiting future implementation work.
 
 ### Events & Observers
 - No dedicated event or observer classes are registered yet; listener coverage lives under `App\Listeners`.
