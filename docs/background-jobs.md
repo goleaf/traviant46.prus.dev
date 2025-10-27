@@ -118,3 +118,12 @@ job fails repeatedly.
 
 Following these steps will keep the new queue-based background system operating
 reliably in every environment.
+
+### CropStarvationJob
+
+`CropStarvationJob` scans the `villages` table for entries whose crop balance is
+negative and whose stored granary empty ETA has elapsed. When it finds an
+eligible village the job triggers `ApplyStarvationAction` to deduct the starving
+troops and immediately notifies both the village owner and watcher via a queued
+`VillageStarvationNotification`. The job runs on the `automation` queue and is
+dispatched every game tick through the `game:tick` console command.
