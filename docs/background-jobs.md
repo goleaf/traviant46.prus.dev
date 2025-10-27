@@ -81,6 +81,10 @@ from controllers, command bus handlers, or the scheduler. Jobs implement the
 `handle()` method which wraps the previous background scripts and ensures they
 can be retried safely. When creating new jobs, follow these conventions:
 
+- `MovementResolverJob` demonstrates the pattern by fetching due
+  `MovementOrder` records, resolving combat through `ResolveCombatAction`, and
+  emitting `TroopsArrived` / `CombatResolved` events after the database updates.
+
 - Keep the constructor focused on gathering the data needed to process the job;
   do not execute queries or long-running logic inside `__construct`.
 - Explicitly define the queue name via the `$queue` property when the job should
