@@ -75,3 +75,15 @@ high-risk movement/combat tables mentioned in the migration plan.
      counts match available slots.
 3. Only reopen the world when reconciliation passes and the maximum migrated `end_time` has
    elapsed or been re-queued inside the destination environment.
+
+## Laravel rally point movements UI
+- The `App\Livewire\Game\RallyPoint` component now publishes both outgoing and incoming
+  movement collections with machine-readable countdown metadata, including the
+  `remaining_seconds` integer and a pre-formatted `remaining_label` string for accessibility
+  and testing scenarios.
+- Its Blade template (`resources/views/livewire/game/rally-point.blade.php`) renders the
+  countdown text and keeps it live via Alpine.js while `wire:poll.keep-alive.5s` and Echo
+  broadcasts trigger refreshes whenever new movements are created or resolved.
+- Cancellation remains restricted to eligible marching orders only; the server clamps return
+  timers and merges cancellation metadata so movement history stays auditable when the
+  countdown reaches zero.

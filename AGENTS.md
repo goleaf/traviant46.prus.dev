@@ -323,6 +323,11 @@ it('is true', function () {
 - To filter on a particular test name: `php artisan test --filter=testName` (recommended after making a change to a related file).
 - When the tests relating to your changes are passing, ask the user if they would like to run the entire test suite to ensure everything is still passing.
 
+## Recent Implementation Notes
+- The rally point Livewire component (`App\\Livewire\\Game\\RallyPoint`) exposes both `remaining_seconds` and
+  `remaining_label` countdown metadata and refreshes via Echo broadcasts plus a `wire:poll.keep-alive.5s` loop.
+  Preserve those fields when extending the movements UI so accessibility and tests stay reliable.
+
 ### Pest Assertions
 - When asserting status codes on a response, use the specific method like `assertForbidden` and `assertNotFound` instead of using `assertStatus(403)` or similar, e.g.:
 <code-snippet name="Pest Example Asserting postJson Response" lang="php">

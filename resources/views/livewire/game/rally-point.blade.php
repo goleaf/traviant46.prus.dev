@@ -4,7 +4,7 @@
 
 <div
     wire:key="game-rally-point"
-    wire:poll.keep-alive.7s="refreshMovements"
+    wire:poll.keep-alive.5s="refreshMovements"
     class="space-y-10"
 >
     <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_35px_110px_-60px_rgba(56,189,248,0.65)] backdrop-blur dark:bg-slate-950/70">
@@ -136,58 +136,63 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-end gap-2 text-right text-xs text-slate-300">
-                            @if ($remainingSeconds !== null)
-                                <div
-                                    x-data="{
-                                        seconds: {{ $remainingSeconds }},
-                                        display: '',
-                                        timer: null,
-                                        arrivedLabel: @js(__('Arrived')),
-                                        start() {
-                                            this.stop();
-                                            this.tick();
-                                            this.timer = setInterval(() => this.tick(), 1000);
-                                        },
-                                        stop() {
-                                            if (this.timer) {
-                                                clearInterval(this.timer);
-                                                this.timer = null;
-                                            }
-                                        },
-                                        tick() {
-                                            if (this.seconds <= 0) {
-                                                this.display = this.arrivedLabel;
+                        <div class="flex flex-col items-end gap-3 text-right text-xs text-slate-300">
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="uppercase tracking-wide text-slate-400">{{ __('Time left') }}:</span>
+
+                                @if ($remainingSeconds !== null)
+                                    {{-- Countdown timer uses Alpine.js to keep the label in sync client-side. --}}
+                                    <div
+                                        x-data="{
+                                            seconds: {{ $remainingSeconds }},
+                                            display: @js($movement['remaining_label']),
+                                            timer: null,
+                                            arrivedLabel: @js(__('Arrived')),
+                                            start() {
                                                 this.stop();
-                                                return;
+                                                this.tick();
+                                                this.timer = setInterval(() => this.tick(), 1000);
+                                            },
+                                            stop() {
+                                                if (this.timer) {
+                                                    clearInterval(this.timer);
+                                                    this.timer = null;
+                                                }
+                                            },
+                                            tick() {
+                                                if (this.seconds <= 0) {
+                                                    this.display = this.arrivedLabel;
+                                                    this.stop();
+                                                    return;
+                                                }
+
+                                                this.display = this.format(this.seconds);
+                                                this.seconds = Math.max(0, this.seconds - 1);
+                                            },
+                                            format(value) {
+                                                const total = Math.max(0, Math.floor(value));
+                                                const hours = Math.floor(total / 3600);
+                                                const minutes = Math.floor((total % 3600) / 60);
+                                                const seconds = total % 60;
+
+                                                if (hours > 0) {
+                                                    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                                                }
+
+                                                return `${minutes}:${String(seconds).padStart(2, '0')}`;
                                             }
-
-                                            this.display = this.format(this.seconds);
-                                            this.seconds = Math.max(0, this.seconds - 1);
-                                        },
-                                        format(value) {
-                                            const total = Math.max(0, Math.floor(value));
-                                            const hours = Math.floor(total / 3600);
-                                            const minutes = Math.floor((total % 3600) / 60);
-                                            const seconds = total % 60;
-
-                                            if (hours > 0) {
-                                                return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                                            }
-
-                                            return `${minutes}:${String(seconds).padStart(2, '0')}`;
-                                        }
-                                    }"
-                                    x-init="start()"
-                                    x-on:beforeunload.window="stop()"
-                                    x-on:livewire:navigating.window="stop()"
-                                    class="font-mono text-base text-amber-200"
-                                >
-                                    <span x-text="display"></span>
-                                </div>
-                            @else
-                                <span class="font-mono text-base text-slate-500">—</span>
-                            @endif
+                                        }"
+                                        x-init="start()"
+                                        x-on:beforeunload.window="stop()"
+                                        x-on:livewire:navigating.window="stop()"
+                                        class="font-mono text-base text-amber-200"
+                                    >
+                                        <span x-text="display"></span>
+                                    </div>
+                                @else
+                                    <span class="font-mono text-base text-slate-500">—</span>
+                                @endif
+                            </div>
 
                             @if ($arrivalAt)
                                 <div>
@@ -292,58 +297,63 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-end gap-2 text-right text-xs text-slate-300">
-                            @if ($remainingSeconds !== null)
-                                <div
-                                    x-data="{
-                                        seconds: {{ $remainingSeconds }},
-                                        display: '',
-                                        timer: null,
-                                        arrivedLabel: @js(__('Arrived')),
-                                        start() {
-                                            this.stop();
-                                            this.tick();
-                                            this.timer = setInterval(() => this.tick(), 1000);
-                                        },
-                                        stop() {
-                                            if (this.timer) {
-                                                clearInterval(this.timer);
-                                                this.timer = null;
-                                            }
-                                        },
-                                        tick() {
-                                            if (this.seconds <= 0) {
-                                                this.display = this.arrivedLabel;
+                        <div class="flex flex-col items-end gap-3 text-right text-xs text-slate-300">
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="uppercase tracking-wide text-slate-400">{{ __('Time left') }}:</span>
+
+                                @if ($remainingSeconds !== null)
+                                    {{-- Countdown timer uses Alpine.js to keep the label in sync client-side. --}}
+                                    <div
+                                        x-data="{
+                                            seconds: {{ $remainingSeconds }},
+                                            display: @js($movement['remaining_label']),
+                                            timer: null,
+                                            arrivedLabel: @js(__('Arrived')),
+                                            start() {
                                                 this.stop();
-                                                return;
+                                                this.tick();
+                                                this.timer = setInterval(() => this.tick(), 1000);
+                                            },
+                                            stop() {
+                                                if (this.timer) {
+                                                    clearInterval(this.timer);
+                                                    this.timer = null;
+                                                }
+                                            },
+                                            tick() {
+                                                if (this.seconds <= 0) {
+                                                    this.display = this.arrivedLabel;
+                                                    this.stop();
+                                                    return;
+                                                }
+
+                                                this.display = this.format(this.seconds);
+                                                this.seconds = Math.max(0, this.seconds - 1);
+                                            },
+                                            format(value) {
+                                                const total = Math.max(0, Math.floor(value));
+                                                const hours = Math.floor(total / 3600);
+                                                const minutes = Math.floor((total % 3600) / 60);
+                                                const seconds = total % 60;
+
+                                                if (hours > 0) {
+                                                    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                                                }
+
+                                                return `${minutes}:${String(seconds).padStart(2, '0')}`;
                                             }
-
-                                            this.display = this.format(this.seconds);
-                                            this.seconds = Math.max(0, this.seconds - 1);
-                                        },
-                                        format(value) {
-                                            const total = Math.max(0, Math.floor(value));
-                                            const hours = Math.floor(total / 3600);
-                                            const minutes = Math.floor((total % 3600) / 60);
-                                            const seconds = total % 60;
-
-                                            if (hours > 0) {
-                                                return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                                            }
-
-                                            return `${minutes}:${String(seconds).padStart(2, '0')}`;
-                                        }
-                                    }"
-                                    x-init="start()"
-                                    x-on:beforeunload.window="stop()"
-                                    x-on:livewire:navigating.window="stop()"
-                                    class="font-mono text-base text-rose-200"
-                                >
-                                    <span x-text="display"></span>
-                                </div>
-                            @else
-                                <span class="font-mono text-base text-slate-500">—</span>
-                            @endif
+                                        }"
+                                        x-init="start()"
+                                        x-on:beforeunload.window="stop()"
+                                        x-on:livewire:navigating.window="stop()"
+                                        class="font-mono text-base text-rose-200"
+                                    >
+                                        <span x-text="display"></span>
+                                    </div>
+                                @else
+                                    <span class="font-mono text-base text-slate-500">—</span>
+                                @endif
+                            </div>
 
                             @if ($arrivalAt)
                                 <div>

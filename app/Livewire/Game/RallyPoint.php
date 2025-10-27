@@ -361,6 +361,7 @@ class RallyPoint extends Component
             'arrive_at' => $movement->arrive_at?->toIso8601String(),
             'return_at' => $movement->return_at?->toIso8601String(),
             'remaining_seconds' => $remainingSeconds,
+            'remaining_label' => $this->formatRemainingLabel($remainingSeconds),
             'village_name' => $outgoing
                 ? $movement->targetVillage?->name
                 : $movement->originVillage?->name,
@@ -485,5 +486,28 @@ class RallyPoint extends Component
         $status = $movement->status;
 
         return $status instanceof MovementOrderStatus ? $status->value : (string) $status;
+    }
+
+    /**
+     * Provide a textual countdown for the UI so tests and accessibility tools can read the timer.
+     */
+    private function formatRemainingLabel(?int $remainingSeconds): ?string
+    {
+        if ($remainingSeconds === null) {
+            return null;
+        }
+
+        // Always clamp to a non-negative value so the string never shows negative times.
+        $seconds = max(0, $remainingSeconds);
+
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainder = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%d:%02d:%02d', $hours, $minutes, $remainder);
+        }
+
+        return sprintf('%d:%02d', $minutes, $remainder);
     }
 }
