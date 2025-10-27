@@ -25,13 +25,25 @@ This runbook guides moderators through lifting a ban on a TravianT account while
 3. **Lift the ban**
    - In Tinker (production environment requires SSH + `php artisan tinker` with read-only guard disabled):
      ```php
+     $ticketId = 'INC-1234'; // Replace with the active incident identifier.
      $user->forceFill([
          'is_banned' => false,
          'ban_reason' => null,
          'ban_issued_at' => null,
          'ban_expires_at' => null,
      ])->save();
-     ```
+
+      App\Models\Ban::query()
+          ->where('user_id', $user->getKey())
+          ->whereNull('lifted_at')
+          ->latest('issued_at')
+          ->first()?->forceFill([
+              'lifted_at' => now(),
+              'lifted_by_user_id' => auth()->id(),
+              'lifted_reason' => 'Unblocked per ticket '.$ticketId,
+              'updated_by' => auth()->id(),
+          ])->save();
+      ```
    - Confirm the change:
      ```php
      $user->fresh()->is_banned; // false
@@ -39,6 +51,7 @@ This runbook guides moderators through lifting a ban on a TravianT account while
 
 4. **Document the action**
    - Add a moderation note citing the ticket ID, staff member, and timestamp.
+   - Verify a matching record exists in `bans` with `lifted_at`, `lifted_reason`, `lifted_by_user_id`, and `updated_by` populated for the audit trail.
    - Update the incident ticket with confirmation and any follow-up instructions for the player.
 
 5. **Verification**

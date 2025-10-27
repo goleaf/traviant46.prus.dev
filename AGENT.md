@@ -97,6 +97,7 @@ Extract complete schema from `/_travian/schema/T4.4.sql` covering:
 - **Quests/Medals (3 tables):** daily_quest, medal, allimedal
 - **Farmlist (3 tables):** farmlist, raidlist, farmlist_last_reports
 - **Admin/Logs (9 tables):** general_log, admin_log, log_ip, transfer_gold_log, banHistory, banQueue, multiaccount_log, multiaccount_users
+- **Moderation (new Laravel tables):** bans, mutes, multihunter_actions — all include `created_by`/`updated_by` audit metadata and link to the users table for staff attribution.
 - **Config (4 tables):** config, summary, casualties, autoExtend
 - **Misc (11 tables):** links, infobox, infobox_read, infobox_delete, ignoreList, friendlist, changeEmail, notificationQueue, voting_reward_queue, buyGoldMessages, player_references
 

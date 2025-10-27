@@ -158,6 +158,54 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LoginIpLog::class);
     }
 
+    /**
+     * @return HasMany<Ban>
+     */
+    public function bans(): HasMany
+    {
+        return $this->hasMany(Ban::class);
+    }
+
+    /**
+     * @return HasMany<Ban>
+     */
+    public function issuedBans(): HasMany
+    {
+        return $this->hasMany(Ban::class, 'issued_by_user_id');
+    }
+
+    /**
+     * @return HasMany<Mute>
+     */
+    public function mutes(): HasMany
+    {
+        return $this->hasMany(Mute::class);
+    }
+
+    /**
+     * @return HasMany<Mute>
+     */
+    public function issuedMutes(): HasMany
+    {
+        return $this->hasMany(Mute::class, 'muted_by_user_id');
+    }
+
+    /**
+     * @return HasMany<MultihunterAction>
+     */
+    public function multihunterActions(): HasMany
+    {
+        return $this->hasMany(MultihunterAction::class, 'multihunter_id');
+    }
+
+    /**
+     * @return HasMany<MultihunterAction>
+     */
+    public function multihunterActionsTargeting(): HasMany
+    {
+        return $this->hasMany(MultihunterAction::class, 'target_user_id');
+    }
+
     public function dataExports(): HasMany
     {
         return $this->hasMany(UserDataExport::class);

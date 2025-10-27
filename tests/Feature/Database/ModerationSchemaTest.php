@@ -11,6 +11,7 @@ beforeEach(function (): void {
 
     (require database_path('migrations/0001_01_01_000000_create_users_table.php'))->up();
     (require database_path('migrations/2025_10_26_222210_create_map_tiles_table.php'))->up();
+    (require database_path('migrations/2025_10_26_222220_create_moderation_tables.php'))->up();
 });
 
 it('creates bans table with audit metadata', function (): void {
