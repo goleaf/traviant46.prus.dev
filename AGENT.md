@@ -19,6 +19,9 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 4. Deployment and rollback runbooks updated to reflect new infrastructure.
 5. Stakeholder-approved Laravel 12 migration plan (see `travian-to.plan.md`).
 
+### Recent Updates
+- `App\\Actions\\Game\\ResolveCombatAction` now executes the full combat resolution loop including casualty calculation, structural damage processing, report creation, and garrison persistence so future movement processing jobs can rely on concrete behaviour.
+
 **Key Statistics:**
 
 - **Old Codebase:** 90 database tables, 45 models, 80+ controllers, 200+ templates, custom MVC framework
