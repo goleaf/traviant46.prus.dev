@@ -23,7 +23,7 @@ beforeEach(function (): void {
             'database/migrations/2025_10_26_225936_add_beginner_protection_until_to_users_table.php',
             'database/migrations/2025_10_26_230625_add_sitter_permission_matrix_to_users_table.php',
             'database/migrations/2025_10_26_230900_add_race_column_to_users_table.php',
-            'database/migrations/2025_10_26_222231_create_worlds_table.php',
+            'database/migrations/2025_10_20_000000_create_worlds_table.php',
             'database/migrations/2025_10_26_212645_create_reports_table.php',
         ],
         '--force' => true,

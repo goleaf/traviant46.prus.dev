@@ -27,6 +27,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 - Game action classes under `app/Actions/Game` are currently lightweight stubs exposing constructor-injected repositories and a public `execute()` method awaiting full implementations.
+- Keep the `worlds` schema defined in `database/migrations/2025_10_20_000000_create_worlds_table.php` aligned with model expectations and ensure `Database\Seeders\WorldSeeder` continues seeding `World #1` at 1x speed for fixtures.
 
 ## Verification Scripts
 - Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.

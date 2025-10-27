@@ -22,7 +22,7 @@ beforeEach(function (): void {
     foreach ([
         '2025_03_01_000000_create_villages_table.php',
         '2025_10_26_212609_update_villages_table_structure.php',
-        '2025_10_26_222231_create_worlds_table.php',
+        '2025_10_20_000000_create_worlds_table.php',
         '2025_10_26_223658_create_oases_table.php',
         '2025_10_26_223706_create_oasis_ownerships_table.php',
     ] as $migration) {

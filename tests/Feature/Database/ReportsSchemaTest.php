@@ -39,7 +39,7 @@ it('creates reports table with expected schema', function (): void {
         };
 
         $runMigration('database/migrations/0001_01_01_000000_create_users_table.php');
-        $runMigration('database/migrations/2025_10_26_222231_create_worlds_table.php');
+        $runMigration('database/migrations/2025_10_20_000000_create_worlds_table.php');
         $runMigration('database/migrations/2025_10_26_212645_create_reports_table.php');
 
         expect(Schema::connection($connection)->hasTable('reports'))->toBeTrue();

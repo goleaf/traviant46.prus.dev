@@ -22,6 +22,9 @@ selected components should be configured and used together.
   keys for internal relations.
 - Mirror existing Travian worlds through a multi-database configuration when
   necessary (e.g., `mysql_world1`, `mysql_world2`).
+- Store world metadata in the dedicated `worlds` table created by
+  `2025_10_20_000000_create_worlds_table.php`; seed `World #1` at 1x speed via
+  `Database\Seeders\WorldSeeder` for local development parity.
 
 ## Authentication & Authorisation
 
