@@ -63,6 +63,8 @@ class CreateNewUser implements CreatesNewUsers
                 ->create([
                     'user_id' => $user->getKey(),
                     'name' => $villageName,
+                    // Explicitly rely on the starter blueprint so the first village spawns at (0,0)
+                    // with the Travian-standard resource fields and level 1 infrastructure.
                 ]);
 
             return $user;
