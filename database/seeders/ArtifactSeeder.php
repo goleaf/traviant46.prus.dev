@@ -511,6 +511,7 @@ class ArtifactSeeder extends Seeder
                 return [
                     'code' => $definition['code'],
                     'name' => $definition['name'],
+                    'size' => $definition['size'],
                     'scope' => $definition['scope'],
                     'treasury_level_req' => $definition['treasury_level_req'],
                     'effect' => json_encode($effect, JSON_THROW_ON_ERROR),
@@ -524,7 +525,7 @@ class ArtifactSeeder extends Seeder
         DB::table('artifacts')->upsert(
             $records,
             ['code'],
-            ['name', 'scope', 'treasury_level_req', 'effect', 'updated_at'],
+            ['name', 'size', 'scope', 'treasury_level_req', 'effect', 'updated_at'],
         );
     }
 }

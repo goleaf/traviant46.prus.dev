@@ -30,6 +30,8 @@ it('seeds artifacts with expected scopes and effects', function (): void {
 
     $architect = DB::table('artifacts')->where('code', 'architects-secret-small')->first();
     expect($architect)->not->toBeNull();
+    // Ensure the persisted row retains the enumerated size for downstream logic.
+    expect($architect->size)->toBe('small');
     $architectEffect = json_decode($architect->effect, true, 512, JSON_THROW_ON_ERROR);
     expect($architectEffect)->toMatchArray([
         'category' => 'architects-secret',

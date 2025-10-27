@@ -73,7 +73,7 @@ flowchart LR
 - `App\Models\Setting`
 - `App\Models\SitterDelegation`
 - `App\Models\User`
-- Domain (`App\Models\Game\*`): `Adventure`, `AttackDispatch`, `Building`, `BuildingType`, `DailyQuestProgress`, `Enforcement`, `GameSummaryMetric`, `MapTile`, `Movement`, `MovementOrder`, `Oasis`, `ServerTask`, `Trapped`, `UnitTrainingBatch`, `Village`, `VillageBuildingUpgrade`, `VillageResource`, `VillageUnit`, `WorldCasualtySnapshot`.
+- Domain (`App\Models\Game\*`): `Adventure`, `Artifact`, `ArtifactOwnership`, `AttackDispatch`, `Building`, `BuildingType`, `DailyQuestProgress`, `Enforcement`, `GameSummaryMetric`, `MapTile`, `Movement`, `MovementOrder`, `Oasis`, `ServerTask`, `Trapped`, `UnitTrainingBatch`, `Village`, `VillageBuildingUpgrade`, `VillageResource`, `VillageUnit`, `WorldCasualtySnapshot`.
 
 ### Jobs
 - Provisioning: `FlushLoginTokensJob`, `InstallGameWorldJob`, `RestartEngineJob`, `StartEngineJob`, `StopEngineJob`, `UninstallGameWorldJob`.

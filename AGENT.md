@@ -112,6 +112,10 @@ For EACH table:
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
 
+**Progress Notes:**
+
+- `artifacts` and `artifact_ownerships` migrations are now defined with explicit scope enums, JSON effect payload storage, and ownership constraints to support the seeder rollout.
+
 **Priority Redesigns:**
 
 1. **users table:** Merge with backend/migrations users, add Fortify columns (email_verified_at, remember_token, two_factor_secret), alliance relationships, gold/silver balances
