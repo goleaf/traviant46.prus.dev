@@ -5,6 +5,11 @@ without downtime requires understanding how each table contributes to an attack'
 The following notes document the critical fields, relationships, and validation steps for the
 high-risk movement/combat tables mentioned in the migration plan.
 
+## troop_types — canonical unit catalogue
+- Stores a single immutable record for every unit across all tribes, including nature (4) and natars (5), to preserve their combat statistics in the modern schema. 【F:database/migrations/2025_10_26_223855_create_troop_types_table.php†L12-L24】
+- Columns cover base attack/defence values, movement speed, carry capacity, upkeep, and a JSON `train_cost` payload mirroring the unit's resource requirements. 【F:database/migrations/2025_10_26_223855_create_troop_types_table.php†L17-L24】
+- Seeded through `TroopTypeSeeder`, which now enumerates all nature predators and Natar forces so battle calculators can resolve mixed engagements deterministically. 【F:database/seeders/TroopTypeSeeder.php†L343-L493】【F:database/seeders/TroopTypeSeeder.php†L496-L625】
+
 ## a2b — Pending Attack Payloads
 - Stores the initial payload that a player submits when launching an attack, before it is
   converted into an active movement. Each row captures the destination `to_kid`, unit counts,
