@@ -7,6 +7,7 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 /**
@@ -30,6 +31,23 @@ final class LivewireServiceProvider extends ServiceProvider
     {
         View::addNamespace('game', resource_path('views/livewire/game'));
 
-        Livewire::componentNamespace('App\\Livewire\\Game', 'game');
+        Livewire::resolveMissingComponent(
+            /**
+             * Map `game.*` component aliases onto the Livewire game namespace while
+             * remaining compatible with Livewire v3 where componentNamespace was removed.
+             */
+            static function (string $alias): ?string {
+                if (! str_starts_with($alias, 'game.')) {
+                    return null;
+                }
+
+                $segments = explode('.', Str::after($alias, 'game.'));
+                $class = 'App\\Livewire\\Game\\'.collect($segments)
+                    ->map(static fn (string $segment): string => Str::studly($segment))
+                    ->implode('\\');
+
+                return class_exists($class) ? $class : null;
+            },
+        );
     }
 }

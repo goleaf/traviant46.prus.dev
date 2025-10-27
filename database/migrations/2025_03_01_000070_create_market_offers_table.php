@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create the market_offers table capturing outbound offers per village.
+     */
     public function up(): void
     {
         Schema::create('market_offers', function (Blueprint $table): void {
@@ -20,6 +23,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Drop the market_offers table.
+     */
     public function down(): void
     {
         Schema::dropIfExists('market_offers');

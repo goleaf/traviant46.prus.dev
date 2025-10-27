@@ -42,6 +42,11 @@ use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
+    /**
+     * Map models to their corresponding policy classes.
+     *
+     * @var array<class-string, class-string>
+     */
     protected $policies = [
         Product::class => ProductPolicy::class,
         CoreCatalog::class => CoreCatalogPolicy::class,

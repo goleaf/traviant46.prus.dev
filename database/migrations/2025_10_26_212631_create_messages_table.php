@@ -2,35 +2,43 @@
 
 declare(strict_types=1);
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Create the messages table for direct communications between users.
+ */
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('messages', function (Blueprint $table): void {
+            // Auto-incrementing identifier for the message record.
             $table->id();
-            $table->unsignedBigInteger('legacy_message_id')->nullable()->unique();
-            $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->unsignedBigInteger('alliance_id')->nullable();
-            $table->string('subject', 120);
+
+            // Link the sender of the message to the users table.
+            $table->foreignIdFor(User::class, 'from_user_id')->constrained('users')->cascadeOnDelete();
+
+            // Link the recipient of the message to the users table.
+            $table->foreignIdFor(User::class, 'to_user_id')->constrained('users')->cascadeOnDelete();
+
+            // Store the subject and body content of the message.
+            $table->string('subject', 255);
             $table->text('body');
-            $table->string('message_type', 32)->default('player');
-            $table->string('delivery_scope', 32)->default('individual');
-            $table->boolean('is_system_generated')->default(false);
-            $table->boolean('is_broadcast')->default(false);
-            $table->string('checksum', 32)->nullable();
-            $table->timestamp('sent_at')->nullable()->index();
-            $table->timestamp('delivered_at')->nullable();
-            $table->json('metadata')->nullable()->comment('Spam heuristics, sitter allowances, or alliance payload.');
-            $table->timestamps();
-            $table->index('sender_id');
-            $table->index('alliance_id');
+
+            // Track when a recipient reads the message.
+            $table->timestamp('read_at')->nullable();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('messages');

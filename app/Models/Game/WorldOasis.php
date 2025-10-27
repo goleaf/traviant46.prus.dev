@@ -7,6 +7,7 @@ namespace App\Models\Game;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 class WorldOasis extends Model
@@ -39,6 +40,14 @@ class WorldOasis extends Model
             'nature_garrison' => 'array',
             'respawn_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Retrieve the world that owns the oasis.
+     */
+    public function world(): BelongsTo
+    {
+        return $this->belongsTo(World::class, 'world_id');
     }
 
     public function scopeDueForRespawn(Builder $query): Builder
