@@ -34,6 +34,7 @@ flowchart LR
 - **Role specific guards** for the special administrator (`legacy_uid = 0`) and multihunter (`legacy_uid = 2`) accounts.
 - **Email verification** and password recovery flows with lightweight Blade views.
 - **Multi-account detection** via IP logging, automatic alerts, and Redis sessions for continuity with the existing infrastructure.
+- **Per-user rate limiting** on Fortify login, marketplace, rally-point send, and messaging routes with JSON wait metadata surfaced when throttled.
 
 ## Route Inventory
 
