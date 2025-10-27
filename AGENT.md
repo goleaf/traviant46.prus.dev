@@ -91,6 +91,7 @@ Extract complete schema from `/_travian/schema/T4.4.sql` covering:
 - **Combat/Movement (8 tables):** movement, a2b, enforcement, trapped, units, send
 - **Hero (6 tables):** hero, face, items, inventory, adventure, accounting
 - **Artifacts (3 tables):** artefacts, artlog
+  - Laravel migration stores `size` (`small`, `large`, `unique`) and `text_effects` JSON columns alongside the structured `effect` payload to mirror seeded metadata.
 - **Communication (4 tables):** mdata, ndata, messages_report, notes
 - **Market (4 tables):** market, auction, bids, traderoutes, raidlist
 - **Map (7 tables):** map_block, map_mark, mapflag, marks, blocks, surrounding

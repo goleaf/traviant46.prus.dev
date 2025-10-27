@@ -160,6 +160,12 @@ php artisan travian:health-check      # Validates bootstrap, DB, storage, routes
 php artisan travian:create-test-user  # Generates a named test account
 ```
 
+### Artifact seeds
+
+- Artifact definitions are persisted in the `artifacts` table with explicit `size` values (`small`, `large`, `unique`) alongside the existing `scope` metadata.
+- Each record carries a `treasury_level_req` integer and a `text_effects` JSON column so UI surfaces can display bullet lists describing bonuses and required treasury levels.
+- The bundled `ArtifactSeeder` keeps the text effects aligned with the numeric modifiers, appending a standard line such as `Requires treasury level 10 to capture and activate this small artifact.` for downstream rendering.
+
 ## Sitter management API
 
 All sitter routes require an authenticated and verified session.
