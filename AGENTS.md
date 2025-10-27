@@ -27,6 +27,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 - Game action classes under `app/Actions/Game` are currently lightweight stubs exposing constructor-injected repositories and a public `execute()` method awaiting full implementations.
+- Keep the `worlds` schema defined in `database/migrations/2025_10_20_000000_create_worlds_table.php` aligned with model expectations and ensure `Database\Seeders\WorldSeeder` continues seeding `World #1` at 1x speed for fixtures.
 
 ## Verification Scripts
 - Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
@@ -34,6 +35,11 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Application Structure & Architecture
 - Stick to existing directory structure - don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- Oasis respawn tuning lives in `config/oasis.php`; ensure queue jobs and seeders
+  remain aligned with those presets when making gameplay changes.
+- Crop starvation processing flows through `app/Jobs/CropStarvationJob.php` and
+  `App\\Actions\\Game\\ApplyStarvationAction`; keep queue wiring and
+  notifications aligned with the documented behaviour in `docs/background-jobs.md`.
 
 ## Frontend Bundling
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.

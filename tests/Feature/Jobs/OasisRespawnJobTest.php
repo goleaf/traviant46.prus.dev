@@ -18,6 +18,24 @@ beforeEach(function (): void {
         'foreign_key_constraints' => true,
     ]);
     config()->set('cache.default', 'array');
+    config()->set('oasis', [
+        'default_respawn_minutes' => 360,
+        'presets' => [
+            1 => [
+                'respawn_minutes' => 180,
+                'garrison' => [
+                    'rat' => 12,
+                    'spider' => 6,
+                ],
+            ],
+            2 => [
+                'respawn_minutes' => 240,
+                'garrison' => [
+                    'rat' => 10,
+                ],
+            ],
+        ],
+    ]);
 
     $databasePath = database_path('testing.sqlite');
     if (! file_exists($databasePath)) {
@@ -62,7 +80,7 @@ it('repopulates due oases and schedules the next respawn window', function (): v
 
     $worldId = DB::table('worlds')->insertGetId([
         'name' => 'World #1',
-        'speed' => 1.0,
+        'speed' => 2.0,
         'features' => json_encode([]),
         'starts_at' => $now->copy()->subDay(),
         'status' => 'active',
@@ -98,14 +116,14 @@ it('repopulates due oases and schedules the next respawn window', function (): v
     ]);
 
     $respawnInterval = 180;
-    $job = new OasisRespawnJob(chunkSize: 10, respawnIntervalMinutes: $respawnInterval);
+    $job = new OasisRespawnJob(chunkSize: 10, fallbackRespawnMinutes: $respawnInterval);
     $job->handle();
 
-    $expectedGarrison = OasisRespawnJob::NATURE_GARRISON_PRESETS[1] ?? [];
+    $expectedGarrison = config('oasis.presets.1.garrison');
 
     $dueOasis->refresh();
     expect($dueOasis->nature_garrison)->toEqual($expectedGarrison)
-        ->and($dueOasis->respawn_at?->equalTo($now->copy()->addMinutes($respawnInterval)))->toBeTrue();
+        ->and($dueOasis->respawn_at?->equalTo($now->copy()->addMinutes((int) ceil(180 / 2))))->toBeTrue();
 
     $futureOasis->refresh();
     expect($futureOasis->nature_garrison)->toEqual(['existing' => 3])

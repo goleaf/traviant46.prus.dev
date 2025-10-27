@@ -8,9 +8,18 @@ This document catalogs the two legacy Travian T4.4 communication tables that pow
 - Spam mitigation throttles high-volume senders by counting recent inserts, hashing message bodies, and redirecting offenders, while administrators receive notifications for new support tickets generated via low `uid` special accounts.【F:main_script/include/Model/MessageModel.php†L229-L358】【F:main_script/include/Controller/NachrichtenCtrl.php†L220-L335】
 - Automated maintenance jobs purge viewed messages older than two days, underscoring the need for archival policies or soft deletes when porting the feature to Laravel.【F:main_script/include/Core/Automation.php†L400-L427】
 
+## Laravel `messages` table
+- The new Laravel-native table normalizes direct messages between players by linking each row to a sender (`from_user_id`) and a single recipient (`to_user_id`) through foreign keys back to the `users` table.
+- Each message captures a concise subject line and the full body content, mirroring the legacy message form while trimming unused broadcast and alliance fields from `mdata`.
+- A nullable `read_at` timestamp records when the recipient opens the message, providing a lightweight read receipt without requiring auxiliary status tables.
+
 ## `ndata` – combat, trade, and system reports
 - Aggregates every report the game emits, linking rows to owners (`uid`), alliances (`aid`), source/destination villages (`kid`, `to_kid`), and storing serialized payloads (`data`) plus resource haul snapshots (`bounty`). Boolean flags track enforcement status, archival state, deletion, and non-deletable system notices, while secondary indexes power filtered lists by type, losses, and view state.【F:main_script/include/schema/T4.4.sql†L1148-L1176】
 - `BerichteModel` manages per-user lifecycle actions—mark read/unread, archive, recover, delete—and provides filtered pagination that mirrors the legacy tabbed UI and recursive views used across the reports controller.【F:main_script/include/Model/BerichteModel.php†L11-L133】
 - The `BerichteCtrl` controller wires those model calls into the UI, enforcing sitter permissions, Gold Club features, and multi-tab filters while paginating and rendering overview rows with localized icons, timestamps, and aggregate statistics.【F:main_script/include/Controller/BerichteCtrl.php†L1200-L1400】
 - `NoticeHelper` centralizes report insertion by serializing structured payloads, generating private share keys, updating farm list references, and writing into `ndata`, which future migrations should replace with explicit JSON fields or related tables.【F:main_script/include/Game/NoticeHelper.php†L90-L126】
 - Nightly automation trims the table by deleting user-owned reports after configurable retention windows and optionally removing low-loss battle reports, highlighting the requirement for deliberate retention strategies in the redesigned schema.【F:main_script/include/Core/Automation.php†L400-L425】
+
+## `reports` – Laravel-native replacement
+- Stores compact report envelopes keyed by `world_id`, report `kind` (`combat`, `scout`, `trade`, `system`), and the destination player (`for_user_id`). Each row captures the structured JSON payload and creation timestamp used to rebuild Livewire inbox listings. 【F:database/migrations/2025_10_26_212645_create_reports_table.php†L13-L24】
+- Drops legacy state flags in favour of lightweight per-user projections, keeping the schema focused on immutable report bodies while auxiliary tables (for example `report_recipients`) record viewing state. Future iterations can layer analytics or archival policies without mutating the core record.【F:database/migrations/2025_10_26_212645_create_reports_table.php†L19-L24】【F:database/migrations/2025_10_26_212651_create_report_recipients_table.php†L13-L24】

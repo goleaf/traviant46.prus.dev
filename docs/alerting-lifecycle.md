@@ -33,6 +33,13 @@ Moderation tooling layers a **resolution state** on top of alerts inside the sta
    - Dismiss the alert when behaviour is legitimate.
 4. **Resolution** — The action is captured as a moderation event (close / uphold). Future logins on the same IP automatically generate a new alert (fresh `alert_id`) so that repeat offenders resurface in the queue even after prior dismissal.
 
+### Admin Dashboard Component
+
+- The Livewire component `App\Livewire\Admin\Alerts` powers the `/admin/multi-account-alerts` view. It queries the existing authentication service tables directly via Eloquent and paginates the latest alerts.
+- Staff can filter by severity, status, world, source type, IP, device hash, or a fuzzy search term. Filter state persists in the query string so investigations can be shared via URL.
+- Resolve and dismiss actions call `MultiAccountAlertsService` to update the alert status and capture an audit note tied to the acting administrator. Notes are trimmed, validated (1,000 characters max), and surfaced alongside the alert history.
+- Successful actions broadcast an `admin.alerts:refresh` event so collaborating moderators see state changes immediately.
+
 ## 4. Auto-Remediation & Cleanup
 
 - **Stale Alerts:** A nightly job flags alerts older than 90 days without activity; the moderation UI hides them unless explicitly searched.

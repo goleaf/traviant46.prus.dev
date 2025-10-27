@@ -73,14 +73,14 @@ flowchart LR
 - `App\Models\Setting`
 - `App\Models\SitterDelegation`
 - `App\Models\User`
-- Domain (`App\Models\Game\*`): `Adventure`, `AttackDispatch`, `Building`, `BuildingType`, `DailyQuestProgress`, `Enforcement`, `GameSummaryMetric`, `MapTile`, `Movement`, `MovementOrder`, `Oasis`, `ServerTask`, `Trapped`, `UnitTrainingBatch`, `Village`, `VillageBuildingUpgrade`, `VillageResource`, `VillageUnit`, `WorldCasualtySnapshot`.
+- Domain (`App\Models\Game\*`): `Adventure`, `AttackDispatch`, `Building`, `BuildingType`, `DailyQuestProgress`, `Enforcement`, `GameSummaryMetric`, `MapTile`, `Movement`, `MovementOrder`, `Oasis`, `Quest`, `QuestProgress`, `ServerTask`, `Trapped`, `UnitTrainingBatch`, `Village`, `VillageBuildingUpgrade`, `VillageResource`, `VillageUnit`, `WorldCasualtySnapshot`.
 
 ### Jobs
 - Provisioning: `FlushLoginTokensJob`, `InstallGameWorldJob`, `RestartEngineJob`, `StartEngineJob`, `StopEngineJob`, `UninstallGameWorldJob`.
-- Automation: `BackupDatabase`, `CheckGameFinish`, `CleanupInactivePlayers`, `ProcessAdventures`, `ProcessAllianceBonus`, `ProcessArtifacts`, `ProcessAttackArrival`, `ProcessAuctions`, `ProcessBuildingCompletion`, `ProcessDailyQuests`, `ProcessFakeUsers`, `ProcessMedals`, `ProcessNatarVillages`, `ProcessReinforcementArrival`, `ProcessResearchCompletion`, `ProcessReturnMovement`, `ProcessServerTasks`, `ProcessTroopTraining`, `ScheduleDailyQuestReset`, `ScheduleMedalDistribution`.
+- Automation: `BackupDatabase`, `CheckGameFinish`, `CleanupInactivePlayers`, `MovementResolverJob`, `ProcessAdventures`, `ProcessAllianceBonus`, `ProcessArtifacts`, `ProcessAttackArrival`, `ProcessAuctions`, `ProcessBuildingCompletion`, `ProcessDailyQuests`, `ProcessFakeUsers`, `ProcessMedals`, `ProcessNatarVillages`, `ProcessReinforcementArrival`, `ProcessResearchCompletion`, `ProcessReturnMovement`, `ProcessServerTasks`, `ProcessTroopTraining`, `ScheduleDailyQuestReset`, `ScheduleMedalDistribution`.
 
 ### Actions
-- Game orchestration stubs located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `CreateMovementAction`, `ResolveCombatAction`, and `ApplyStarvationAction`. Each class currently exposes a constructor-injected repository set and a placeholder `execute()` method ready for future implementation work.
+- Game orchestration stubs located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `CreateMovementAction`, and `ApplyStarvationAction`. `ResolveCombatAction` now orchestrates full battle resolution with combat calculations, report generation, garrison updates, and structural damage handling.
 
 ### Events & Observers
 - No dedicated event or observer classes are registered yet; listener coverage lives under `App\Listeners`.
@@ -175,6 +175,12 @@ Requests accept optional `permissions` arrays and `expires_at` timestamps (ISO86
 ## Multi-account monitoring
 
 Successful logins write to the `login_activities` table (Redis sessions remain active). The `MultiAccountDetector` keeps a running set of `multi_account_alerts` whenever multiple accounts appear from the same IP, mirroring the behaviour of the legacy PHP stack.
+
+## Admin player audit console
+
+- Located at `/admin/player-audit` as a Livewire surface restricted to the administrator guard.
+- Supports fuzzy search by username, numeric UID, or email before generating a consolidated text report.
+- The report now merges login history with active session IPs so that escalations always receive village rosters, session summaries, recent IP fingerprints, and troop movement activity in a copy-ready format.
 
 ## Environments & Release Channels
 
