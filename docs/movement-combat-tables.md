@@ -27,6 +27,7 @@ high-risk movement/combat tables mentioned in the migration plan.
     counts remain consistent.
   - Record the maximum `end_time` migrated and block new actions until all movements with an
     `end_time` ≤ that value have been processed in the destination environment.
+- Laravel migration reference: [`database/migrations/2025_10_26_223424_create_movements_table.php`](../database/migrations/2025_10_26_223424_create_movements_table.php) provisions the `movements` table with the required foreign keys, enum-backed mission `type`, JSON `payload`, nullable `processed_at`, and a compound index on `eta` and `type` so processors can efficiently fetch imminent arrivals.
 
 ## enforcement — Stationed Reinforcements
 - Holds friendly troops stationed in a foreign village. Rows reference both origin (`kid`) and
