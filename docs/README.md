@@ -80,7 +80,7 @@ flowchart LR
 - Automation: `BackupDatabase`, `CheckGameFinish`, `CleanupInactivePlayers`, `ProcessAdventures`, `ProcessAllianceBonus`, `ProcessArtifacts`, `ProcessAttackArrival`, `ProcessAuctions`, `ProcessBuildingCompletion`, `ProcessDailyQuests`, `ProcessFakeUsers`, `ProcessMedals`, `ProcessNatarVillages`, `ProcessReinforcementArrival`, `ProcessResearchCompletion`, `ProcessReturnMovement`, `ProcessServerTasks`, `ProcessTroopTraining`, `ScheduleDailyQuestReset`, `ScheduleMedalDistribution`.
 
 ### Actions
-- Game orchestration stubs located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `CreateMovementAction`, `ResolveCombatAction`, and `ApplyStarvationAction`. Each class currently exposes a constructor-injected repository set and a placeholder `execute()` method ready for future implementation work.
+- Game orchestration actions located under `App\Actions\Game` including `CreateVillageAction`, `EnqueueBuildAction`, `TrainTroopsAction`, `CreateMovementAction`, `ResolveCombatAction`, and `ApplyStarvationAction`. Starvation handling is now live — `ApplyStarvationAction` resolves sustained crop deficits by prioritising foreign reinforcements, then local support, home garrisons, and finally outbound movements while emitting a system starvation report for the village. The remaining actions continue to expose constructor-injected repositories and placeholder `execute()` methods ready for future implementation work.
 
 ### Events & Observers
 - No dedicated event or observer classes are registered yet; listener coverage lives under `App\Listeners`.
