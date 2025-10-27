@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Livewire\LivewireManager;
 
 /**
  * Service provider responsible for configuring Livewire defaults and shared namespaces.
@@ -30,6 +31,12 @@ final class LivewireServiceProvider extends ServiceProvider
     {
         View::addNamespace('game', resource_path('views/livewire/game'));
 
-        Livewire::componentNamespace('App\\Livewire\\Game', 'game');
+        /** @var LivewireManager|null $manager */
+        $manager = Livewire::getFacadeRoot();
+
+        // Preserve legacy namespace registration when the Livewire manager still exposes the helper.
+        if ($manager instanceof LivewireManager && method_exists($manager, 'componentNamespace')) {
+            $manager->componentNamespace('App\\Livewire\\Game', 'game');
+        }
     }
 }
