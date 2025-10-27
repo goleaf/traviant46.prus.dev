@@ -1,29 +1,69 @@
+{{-- Shared text-only layout for Travian game surfaces. --}}
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="antialiased">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        @php($cspNonce = app()->has('csp.nonce') ? app('csp.nonce') : null)
+        @php
+            /** @var string $title */
+            $resolvedTitle = $title ?? trim($__env->yieldContent('title'));
+        @endphp
+        <title>{{ $resolvedTitle !== '' ? $resolvedTitle : __('Game Console') . ' • ' . config('app.name', 'Travian T4.6') }}</title>
+        <style @if($cspNonce) nonce="{{ $cspNonce }}" @endif>
+            :root {
+                color-scheme: light dark;
+            }
 
-    @php($cspNonce = app()->has('csp.nonce') ? app('csp.nonce') : null)
+            body {
+                margin: 0;
+                padding: 1.5rem;
+                font-family: "Fira Mono", "Source Code Pro", Menlo, Monaco, Consolas, "Courier New", monospace;
+                background-color: #0f172a;
+                color: #e2e8f0;
+                line-height: 1.6;
+            }
 
-    <title>@yield('title', __('Game Console') . ' • ' . config('app.name', 'Travian T4.6'))</title>
+            a {
+                color: inherit;
+                text-decoration: underline;
+            }
 
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600&display=swap" rel="stylesheet" />
+            main {
+                display: block;
+                max-width: 64rem;
+            }
 
-    @livewireStyles(['nonce' => $cspNonce])
-    @livewireScriptConfig(['nonce' => $cspNonce])
+            header,
+            footer {
+                margin-bottom: 1rem;
+            }
 
-    @include('layouts.partials.vite-assets', ['cspNonce' => $cspNonce])
+            pre,
+            code {
+                font-family: inherit;
+            }
+        </style>
 
-    @stack('head')
-</head>
-<body class="min-h-screen bg-slate-950 text-slate-100 font-mono">
-    <main class="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-12">
-        {{ $slot }}
-    </main>
+        @livewireStyles(['nonce' => $cspNonce])
+        @livewireScriptConfig(['nonce' => $cspNonce])
 
-    @livewireScripts(['nonce' => $cspNonce])
-    @stack('scripts')
-</body>
+        @stack('head')
+    </head>
+    <body>
+        <header>
+            {{ $header ?? '' }}
+        </header>
+
+        <main>
+            {{ $slot }}
+        </main>
+
+        <footer>
+            {{ $footer ?? '' }}
+        </footer>
+
+        @livewireScripts(['nonce' => $cspNonce])
+        @stack('scripts')
+    </body>
 </html>

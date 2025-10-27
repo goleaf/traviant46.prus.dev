@@ -7,7 +7,6 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 /**
@@ -15,34 +14,22 @@ use Livewire\Livewire;
  */
 final class LivewireServiceProvider extends ServiceProvider
 {
+    /**
+     * Register the base Livewire configuration so components resolve consistently.
+     */
     public function register(): void
     {
         Config::set('livewire.class_namespace', 'App\\Livewire');
         Config::set('livewire.view_path', resource_path('views/livewire'));
     }
 
+    /**
+     * Bootstrap Livewire by wiring the game namespace and shared view folder.
+     */
     public function boot(): void
     {
         View::addNamespace('game', resource_path('views/livewire/game'));
 
-        Livewire::resolveMissingComponent(function (string $name): ?string {
-            if (! Str::startsWith($name, 'game::')) {
-                return null;
-            }
-
-            $component = Str::of($name)
-                ->after('game::')
-                ->explode('.')
-                ->map(fn (string $segment): string => Str::studly($segment))
-                ->implode('\\');
-
-            if ($component === '') {
-                return null;
-            }
-
-            $class = 'App\\Livewire\\Game\\'.$component;
-
-            return class_exists($class) ? $class : null;
-        });
+        Livewire::componentNamespace('App\\Livewire\\Game', 'game');
     }
 }
