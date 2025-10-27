@@ -74,6 +74,16 @@ high-risk movement/combat tables mentioned in the migration plan.
   - Freeze marketplace actions before export so merchants launched mid-migration are not lost.
   - After import, validate that the `end_time` aligns with merchant travel speeds in the new
     world configuration (especially if speed multipliers changed).
+- Laravel decomposes the shipment into the JSON `payload` column and village foreign keys in
+  the `trades` table so each dispatch remains traceable even when payload composition grows.【F:database/migrations/2025_03_01_000080_create_trades_table.php†L13-L24】
+
+## market — Marketplace Offers
+- Legacy marketplace offers capture both the requested and offered resource packages alongside
+  maximum travel time and alliance ownership data.【F:main_script/include/schema/T4.4.sql†L869-L892】
+- Marketplace flows rely on `MarketModel` helpers to count merchants on the way, fetch offers,
+  and insert new listings with precomputed rate and coordinates.【F:_travian/main_script/include/Model/MarketModel.php†L17-L121】
+- The Laravel migration stores the normalized offer payloads in JSON via the `market_offers`
+  table so each listing links directly to the owning village while persisting merchant counts.【F:database/migrations/2025_03_01_000070_create_market_offers_table.php†L13-L22】
 
 ## Post-Migration Integrity Checklist
 1. Choose a cutoff time, pause world actions, and export `a2b`, `movement`, `enforcement`,
