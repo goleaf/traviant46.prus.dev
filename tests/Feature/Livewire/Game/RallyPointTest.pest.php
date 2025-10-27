@@ -69,7 +69,9 @@ it('exposes outgoing and incoming movements with countdown metadata', function (
         ->assertSet('outgoing.0.id', $outgoing->getKey())
         ->assertSet('incoming.0.id', $incoming->getKey())
         ->assertSet('outgoing.0.remaining_seconds', 600)
+        ->assertSet('outgoing.0.remaining_label', '10:00')
         ->assertSet('incoming.0.remaining_seconds', 300)
+        ->assertSet('incoming.0.remaining_label', '5:00')
         ->assertSee($targetVillage->name)
         ->assertSee($foreignOriginVillage->name);
 
@@ -113,7 +115,8 @@ it('cancels eligible outgoing movements within the configured window', function 
     $component
         ->call('cancelMovement', $movement->getKey())
         ->assertSet('outgoing.0.status', 'cancelled')
-        ->assertSet('outgoing.0.remaining_seconds', 20);
+        ->assertSet('outgoing.0.remaining_seconds', 20)
+        ->assertSet('outgoing.0.remaining_label', '0:20');
 
     $movement->refresh();
     $originVillage->refresh();
