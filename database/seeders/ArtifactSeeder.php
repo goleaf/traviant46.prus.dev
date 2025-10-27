@@ -508,12 +508,18 @@ class ArtifactSeeder extends Seeder
                     'scope' => $definition['scope'],
                 ];
 
+                // Compose the presentation strings that power UI bullet lists.
+                $textEffects = $definition['text_effects'] ?? [$definition['effect']['summary']];
+                $textEffects[] = self::formatTreasuryRequirement($definition['size'], $definition['treasury_level_req']);
+
                 return [
                     'code' => $definition['code'],
                     'name' => $definition['name'],
+                    'size' => $definition['size'],
                     'scope' => $definition['scope'],
                     'treasury_level_req' => $definition['treasury_level_req'],
                     'effect' => json_encode($effect, JSON_THROW_ON_ERROR),
+                    'text_effects' => json_encode(array_values($textEffects), JSON_THROW_ON_ERROR),
                     'created_at' => $timestamp,
                     'updated_at' => $timestamp,
                 ];
@@ -524,7 +530,19 @@ class ArtifactSeeder extends Seeder
         DB::table('artifacts')->upsert(
             $records,
             ['code'],
-            ['name', 'scope', 'treasury_level_req', 'effect', 'updated_at'],
+            ['name', 'size', 'scope', 'treasury_level_req', 'effect', 'text_effects', 'updated_at'],
+        );
+    }
+
+    /**
+     * Build a consistent treasury requirement line for the artifact tooltips.
+     */
+    private static function formatTreasuryRequirement(string $size, int $treasuryLevel): string
+    {
+        return sprintf(
+            'Requires treasury level %d to capture and activate this %s artifact.',
+            $treasuryLevel,
+            $size,
         );
     }
 }
