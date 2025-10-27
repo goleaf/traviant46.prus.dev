@@ -12,14 +12,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Historically duplicated migration retained for forward compatibility checks.
+     * Create the oases table to store world tiles that can host nature garrisons.
      */
     public function up(): void
     {
-        if (Schema::hasTable('oases')) {
-            return;
-        }
-
         Schema::create('oases', function (Blueprint $table) {
             /**
              * Primary metadata describing the oasis location and world relationship.

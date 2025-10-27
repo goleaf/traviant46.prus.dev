@@ -53,3 +53,7 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 
 ## Migration considerations
 - These tables rely heavily on implicit foreign keys (`owner`, `kid`, `did`) that need explicit relationships when ported to Laravel's schema. Capturing these dependencies up front helps design normalized replacements like `villages`, `village_buildings`, `map_tiles`, and `oases`. 【F:main_script/include/schema/T4.4.sql†L1215-L1229】【F:main_script/include/schema/T4.4.sql†L1595-L1636】
+
+## Laravel replacements
+- The new `oases` table anchors every conquerable oasis to a world row and coordinate pair while persisting respawn scheduling metadata and serialized nature garrisons. 【F:database/migrations/2025_03_01_000070_create_oases_table.php†L17-L40】
+- The `oasis_ownerships` pivot keeps the village-to-oasis relationship normalized with cascading deletes when a village is removed, mirroring the legacy `odata.did` behavior with explicit foreign keys. 【F:database/migrations/2025_03_01_000080_create_oasis_ownerships_table.php†L17-L27】
