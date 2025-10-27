@@ -176,6 +176,12 @@ Requests accept optional `permissions` arrays and `expires_at` timestamps (ISO86
 
 Successful logins write to the `login_activities` table (Redis sessions remain active). The `MultiAccountDetector` keeps a running set of `multi_account_alerts` whenever multiple accounts appear from the same IP, mirroring the behaviour of the legacy PHP stack.
 
+## Moderation records
+
+- Account bans are tracked in the `bans` table with `created_by`/`updated_by` audit columns, ensuring reversals are attributable to specific staff accounts.
+- Communication mutes land in the `mutes` table using the same audit metadata so temporary chat restrictions remain reviewable.
+- Multihunter interventions are appended to `multihunter_actions`, capturing actor, optional target, IP metadata, and structured notes for follow-up investigations.
+
 ## Environments & Release Channels
 
 - **Local:** Docker/Sail or native setups using SQLite or MySQL, Redis, and mailhog. Feature branches merge through pull requests with passing Pest suites and Pint formatting.
