@@ -111,6 +111,7 @@ For EACH table:
 - Add proper foreign key constraints
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
+- Baseline `villages` schema now lives in `database/migrations/2025_12_05_000100_create_villages_table.php` (id, world_id, user_id, x, y, is_capital, population, loyalty, culture_points) with enforced FK links to `worlds` and `users`.
 
 **Priority Redesigns:**
 
