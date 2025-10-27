@@ -95,6 +95,20 @@ single failure from blocking subsequent work. If a job depends on external
 services, wrap the calls in retryable HTTP/database clients so that transient
 failures do not cause a cascade of retries.
 
+### QueueCompleterJob
+
+`app/Jobs/Shard/QueueCompleterJob` replaces the legacy build and training queue
+cron scripts. The job accepts a shard identifier and walks both `build_queues`
+and `training_queues` tables for due entries, processing up to the configured
+chunk size per execution. Build queues level up the matching record in the
+`buildings` table and transition the queue row through the
+`pending → working → done` states. Training queues increment the owning
+`village_units` row (creating it when necessary) and delete the finished queue
+record. Both flows broadcast `BuildCompleted` and `TroopsTrained` events on the
+`game.villages.{id}` private channel so Livewire dashboards update in real time.
+Run the job for each shard on a frequent schedule (for example, once per minute)
+to keep gameplay responsive.
+
 ### Handling failures
 
 The queue system stores failed jobs in the `failed_jobs` table when you run the

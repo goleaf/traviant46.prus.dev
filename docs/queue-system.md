@@ -37,6 +37,17 @@ ExampleJob::dispatch($payload)->onQueue('high');
 
 Use queue names to separate critical work from low-priority tasks.
 
+### QueueCompleterJob
+
+The shard-aware `QueueCompleterJob` (see `app/Jobs/Shard/QueueCompleterJob`) is
+now the canonical path for finishing due build and training queues. The
+scheduler runs one instance per shard, allowing each worker to pull only the
+records it owns while keeping contention low. Build completions upgrade the
+target building level and broadcast a `BuildCompleted` event, whereas training
+completions increment village troop counts and broadcast `TroopsTrained`. This
+job replaces the legacy PHP scripts that previously iterated over the same
+tables without sharding.
+
 ## Scheduled tasks
 
 All recurring background work should be defined in `app/Console/Kernel.php`'s

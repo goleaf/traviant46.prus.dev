@@ -585,6 +585,7 @@ Configure Supervisor to run:
 - 3-5 general queue workers
 - 1 dedicated movement processor (high priority)
 - 1 resource tick processor
+- 1 shard-aligned QueueCompleterJob runner on the `automation` queue per shard
 - Laravel scheduler (cron)
 
 ### 12.3 Cutover Plan
