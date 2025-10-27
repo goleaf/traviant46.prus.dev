@@ -69,6 +69,7 @@ Migrate the legacy TravianT4.6 browser game from a custom PHP 7.3-7.4 framework 
 6. **Alliance Service**: Coordinates alliance formation, membership, and governance.
 7. **Event Processor**: Consumes `event_queue` to orchestrate asynchronous game events.
 8. **Data Sync Service**: Handles ETL flows to analytics and data warehouse targets.
+9. **Admin Alerts Dashboard**: Livewire component `App\Livewire\Admin\Alerts` surfaces multi-account alerts from the auth service, supports severity filtering, and persists resolve/dismiss audit notes. Tests live in `tests/Feature/Admin/AdminAlertsComponentTest.pest.php`.
 
 ### 1.5 Create AGENT.md
 
