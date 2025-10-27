@@ -78,7 +78,10 @@ it('displays garrison summaries and training queue details', function (): void {
         ->assertSee(number_format(180))
         ->assertSee('Praetorian')
         ->assertSee('Processing')
-        ->assertSet('queue.entries.0.quantity', 25);
+        ->assertSet('queue.entries.0.quantity', 25)
+        ->assertSee('Queued units: 25')
+        ->assertSee('Active batches: 1')
+        ->assertSee('Train');
 
     Carbon::setTestNow();
 });
@@ -124,7 +127,11 @@ it('queues new training batches through the action', function (): void {
     expect($batch?->quantity)->toBe(30);
     expect($batch?->unit_type_id)->toBe($troopType->getKey());
 
-    $component->assertSet('queue.entries.0.quantity', 30);
+    $component
+        ->assertSet('queue.entries.0.quantity', 30)
+        ->assertSee('Queued units: 30')
+        ->assertSee('Active batches: 1')
+        ->assertSee('Train');
 
     Carbon::setTestNow();
 });

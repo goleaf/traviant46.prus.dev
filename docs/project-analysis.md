@@ -10,6 +10,7 @@
 - **Authentication & User Management:** Feature complete per README, including seeded roles, sitter delegation, and multi-account logging with Redis session support.【F:docs/README.md†L5-L53】
 - **Background Workloads:** Database or Redis queue drivers are configured, with rate-limiting, prioritisation, and scheduler pairing guidance defined to keep automation reliable.【F:docs/background-jobs.md†L1-L112】【F:docs/queue-system.md†L1-L75】
 - **Data Model Documentation:** Legacy schemas for communication, villages, and combat have been catalogued in the dedicated database references for messaging and settlement tables, guiding Laravel migration scripts and validating relationships before cutover.【F:docs/database/communication-tables.md†L1-L34】【F:docs/database/village-tables.md†L1-L41】【F:docs/movement-combat-tables.md†L1-L49】
+- **Troop Management:** The Livewire `App\\Livewire\\Game\\Troops` surface now mirrors the legacy `Build\\TroopBuilding` interface by summarising garrison totals, reinforcements, and training queues with sub-minute polling so timers remain fresh for commanders.【F:resources/views/livewire/game/troops.blade.php†L1-L221】【F:docs/legacy-controller-mapping.md†L68-L78】
 
 ## Outstanding Risks
 - **Gameplay Feature Parity:** Alliance and messaging experiences still rely on legacy controllers; Livewire implementations must uphold sitter restrictions, moderation flows, and forum tooling detailed in the component references to avoid regressions.【F:docs/alliance-livewire-components.md†L1-L94】【F:docs/communication-components.md†L1-L120】

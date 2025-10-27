@@ -14,6 +14,21 @@
     $nextCompletion = data_get($queue, 'next_completion_at');
     $userTimezone = optional(auth()->user())->timezone ?? config('app.timezone');
     $canTrain = ! empty($availableUnits);
+    /**
+     * Calculate queue summary figures so the UI can highlight totals alongside
+     * the live timers without recalculating them in the template body.
+     */
+    $totalQueuedUnits = 0;
+    $activeQueueBatches = 0;
+
+    foreach ($queueEntries as $queueEntry) {
+        $queuedQuantity = (int) data_get($queueEntry, 'quantity', 0);
+        $totalQueuedUnits += $queuedQuantity;
+
+        if (! empty(data_get($queueEntry, 'is_active'))) {
+            $activeQueueBatches++;
+        }
+    }
     $overviewUrl = \Illuminate\Support\Facades\Route::has('game.villages.overview')
         ? route('game.villages.overview', $village)
         : null;
@@ -223,8 +238,8 @@
         </div>
     </section>
 
-    <section wire:poll.2s="refreshQueue" class="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_25px_70px_-50px_rgba(236,72,153,0.55)] backdrop-blur dark:bg-slate-950/70">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section wire:poll.1500ms.keep-alive="refreshQueue" class="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_25px_70px_-50px_rgba(236,72,153,0.55)] backdrop-blur dark:bg-slate-950/70">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <flux:heading size="lg" class="text-white">
                     {{ __('Training queue') }}
@@ -234,14 +249,23 @@
                 </flux:description>
             </div>
 
-            @if ($nextCompletion)
-                <div class="text-xs text-slate-300">
-                    {{ __('Next completion:') }}
-                    <span class="font-mono text-sky-200">
-                        {{ Carbon::parse($nextCompletion)->timezone($userTimezone)->toDayDateTimeString() }}
-                    </span>
+            <div class="flex flex-col items-start gap-2 text-xs text-slate-300 sm:items-end sm:text-right">
+                <div class="font-mono text-slate-200">
+                    {{ __('Queued units: :count', ['count' => number_format($totalQueuedUnits)]) }}
                 </div>
-            @endif
+                <div class="text-slate-400">
+                    {{ __('Active batches: :count', ['count' => number_format($activeQueueBatches)]) }}
+                </div>
+
+                @if ($nextCompletion)
+                    <div>
+                        {{ __('Next completion:') }}
+                        <span class="font-mono text-sky-200">
+                            {{ Carbon::parse($nextCompletion)->timezone($userTimezone)->toDayDateTimeString() }}
+                        </span>
+                    </div>
+                @endif
+            </div>
         </div>
 
         @if ($queueEntries === [])
@@ -368,7 +392,7 @@
                 </p>
 
                 <flux:button type="submit" icon="plus-circle" variant="primary" color="emerald" class="w-full sm:w-auto" :disabled="! $canTrain" wire:loading.attr="disabled">
-                    {{ __('Queue training') }}
+                    {{ __('Train') }}
                 </flux:button>
             </div>
         </form>

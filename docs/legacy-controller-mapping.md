@@ -65,6 +65,7 @@ This inventory maps every actionable screen under `/_travian/main_script/include
 
 | Legacy class | Laravel target |
 | --- | --- |
+| `Build\TroopBuilding.php` | `App\Livewire\Game\Troops` |
 | `Build\Academy.php` | `App\Livewire\Buildings\Academy` **(planned)** |
 | `Build\Armory.php` | `App\Livewire\Buildings\Armory` **(planned)** |
 | `Build\Barracks.php` | `App\Livewire\Buildings\Barracks` **(planned)** |

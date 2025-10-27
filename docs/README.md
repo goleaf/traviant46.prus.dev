@@ -89,7 +89,7 @@ flowchart LR
 
 - **Primary surface:** Authenticated web routes rendered through Fortify + Livewire. No public JSON API is exposed yet.
 - **REST usage:** JSON endpoints exist only for sitter management; new APIs should prefer RESTful controllers under `/api` with token or session auth.
-- **Front-end scope:** Beyond Fortify scaffolding, only the dashboard, sitter management, and storefront order screens are officially supported. Additional views remain in the legacy `_travian` tree until their Livewire equivalents ship.
+- **Front-end scope:** Beyond Fortify scaffolding, only the dashboard, sitter management, storefront order screens, and the new `App\Livewire\Game\Troops` garrison and training queue view are officially supported. Additional views remain in the legacy `_travian` tree until their Livewire equivalents ship.
 
 ## Documentation hub
 

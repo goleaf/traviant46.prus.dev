@@ -92,6 +92,7 @@ class Troops extends Component
     }
 
     #[On('troops:queue:refresh')]
+    #[On('troops:queueUpdated')]
     public function refreshQueue(): void
     {
         $this->authorize('manageTroops', $this->village);
