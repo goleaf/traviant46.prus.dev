@@ -22,11 +22,13 @@ it('renders resource fields for the village', function (): void {
 
     $this->actingAs($user);
 
+    // Verify the condensed row presentation renders the expected glyph and action labels.
     Livewire::test(\App\Livewire\Game\Fields::class, ['village' => $village])
         ->assertStatus(200)
         ->assertSee('Resource fields')
-        ->assertSee('Woodcutter')
-        ->assertSee('Upgrade');
+        ->assertSee('Woodcutter L1')
+        ->assertSee('→')
+        ->assertSee('[Upgrade]');
 });
 
 it('shows capital lock reasons when attempting to exceed non-capital limits', function (): void {

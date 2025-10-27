@@ -89,7 +89,7 @@ flowchart LR
 
 - **Primary surface:** Authenticated web routes rendered through Fortify + Livewire. No public JSON API is exposed yet.
 - **REST usage:** JSON endpoints exist only for sitter management; new APIs should prefer RESTful controllers under `/api` with token or session auth.
-- **Front-end scope:** Beyond Fortify scaffolding, only the dashboard, sitter management, and storefront order screens are officially supported. Additional views remain in the legacy `_travian` tree until their Livewire equivalents ship.
+- **Front-end scope:** Beyond Fortify scaffolding, only the dashboard, sitter management, and storefront order screens are officially supported. Additional views remain in the legacy `_travian` tree until their Livewire equivalents ship. The resource field Livewire overlay now renders each slot as a textual row (`Woodcutter L5 → [Upgrade] (00:12:40)`) to match the gameplay specification for queued upgrades.
 
 ## Documentation hub
 
