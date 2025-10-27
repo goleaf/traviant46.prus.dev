@@ -514,6 +514,7 @@ Create `app/Console/Commands/MigrateOldDataCommand.php`:
 **villages:** Preserve village IDs, coordinates, update relationships
 **movements:** In-flight attacks/reinforcements must continue
 **building_upgrade:** Active building queues
+**build_queues:** New normalized build queue schedule powering Laravel workers
 **training:** Active troop training
 **hero/inventory:** Preserve hero stats and items
 **alliances:** Preserve alliance IDs and relationships

@@ -35,6 +35,10 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 - Active upgrade queue per village storing slot (`building_field`), master builder flag (`isMaster`), and timing fields (`start_time`, `commence`). 【F:main_script/include/schema/T4.4.sql†L448-L455】
 - Indexed by slot/master/timing combination to pop the next upgrade efficiently. 【F:main_script/include/schema/T4.4.sql†L456-L458】
 
+## `build_queues`
+- Laravel-native table that tracks queued building upgrades per village with foreign keys, enum state machine (`pending`, `working`, `done`), and indexed completion timestamps.
+- Replaces the legacy `building_upgrade` timing logic with explicit queue metadata stored in `database/migrations/2025_10_26_223347_create_build_queues_table.php`. 【F:database/migrations/2025_10_26_223347_create_build_queues_table.php†L1-L53】
+- Integrates with `App\Models\Game\BuildQueue` and the queue processing jobs to shard workload by village ID.
 ## `resource_fields`
 - New normalized table replacing the legacy `f1`–`f18` resource slots, associating each slot number with a resource `kind` (enum of wood, clay, iron, crop), a current `level`, and cached hourly production for fast lookups.
 - Enforces a unique combination of `village_id`, `kind`, and `slot_number` so that migrations cannot create duplicate resource entries for a specific slot, while still allowing multiple fields of the same kind across different slots.
