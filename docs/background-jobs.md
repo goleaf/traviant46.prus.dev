@@ -81,6 +81,12 @@ from controllers, command bus handlers, or the scheduler. Jobs implement the
 `handle()` method which wraps the previous background scripts and ensures they
 can be retried safely. When creating new jobs, follow these conventions:
 
+- **OasisRespawnJob** keeps the neutral wildlife seeded on every oasis tile in
+  sync with the world data. The job now draws its troop composition and
+  respawn cadence from `App\Support\Game\OasisPresetRepository`, meaning higher
+  tier oases repopulate more slowly than low-tier oases and always spawn the
+  correct animal mix.
+
 - Keep the constructor focused on gathering the data needed to process the job;
   do not execute queries or long-running logic inside `__construct`.
 - Explicitly define the queue name via the `$queue` property when the job should

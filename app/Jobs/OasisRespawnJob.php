@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Models\Game\WorldOasis;
+use App\Support\Game\OasisPresetRepository;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -24,43 +25,19 @@ class OasisRespawnJob implements ShouldQueue
 
     public const DEFAULT_RESPAWN_INTERVAL_MINUTES = 360;
 
-    /**
-     * @var array<int, array<string, int>>
-     */
-    public const NATURE_GARRISON_PRESETS = [
-        1 => [
-            'rat' => 12,
-            'spider' => 8,
-            'wild_boar' => 4,
-        ],
-        2 => [
-            'rat' => 10,
-            'snake' => 6,
-            'wolf' => 4,
-        ],
-        3 => [
-            'rat' => 8,
-            'wolf' => 6,
-            'bear' => 3,
-        ],
-        4 => [
-            'rat' => 16,
-            'crocodile' => 5,
-            'tiger' => 2,
-        ],
-    ];
-
     public int $tries = 1;
 
     public int $timeout = 120;
 
     public function __construct(
         private readonly int $chunkSize = 50,
-        private readonly int $respawnIntervalMinutes = self::DEFAULT_RESPAWN_INTERVAL_MINUTES,
     ) {
         $this->onQueue('automation');
     }
 
+    /**
+     * Process a batch of due oases and refresh their neutral garrisons.
+     */
     public function handle(): void
     {
         WorldOasis::query()
@@ -73,12 +50,16 @@ class OasisRespawnJob implements ShouldQueue
             });
     }
 
+    /**
+     * Refresh a single oasis inside a transaction to avoid double spawns.
+     */
     private function respawnOasis(WorldOasis $oasis): void
     {
         try {
             DB::transaction(function () use ($oasis): void {
                 $lockedOasis = WorldOasis::query()
                     ->whereKey($oasis->getKey())
+                    ->with('world')
                     ->lockForUpdate()
                     ->first();
 
@@ -100,7 +81,11 @@ class OasisRespawnJob implements ShouldQueue
                     return;
                 }
 
-                $nextRespawnAt = $this->nextRespawnTimestamp();
+                $nextRespawnAt = $this->calculateNextRespawnTimestamp($lockedOasis);
+
+                if ($nextRespawnAt === null) {
+                    return;
+                }
 
                 $lockedOasis->assignNatureGarrison($garrison, $nextRespawnAt);
                 $lockedOasis->save();
@@ -120,7 +105,7 @@ class OasisRespawnJob implements ShouldQueue
      */
     private function determineNatureGarrison(int $type): array
     {
-        $preset = self::NATURE_GARRISON_PRESETS[$type] ?? [];
+        $preset = OasisPresetRepository::garrisonForType($type);
 
         if ($preset === []) {
             Log::warning('Missing nature garrison preset for oasis type.', [
@@ -128,15 +113,25 @@ class OasisRespawnJob implements ShouldQueue
             ]);
         }
 
-        foreach ($preset as $unit => $count) {
-            $preset[$unit] = (int) $count;
-        }
-
         return $preset;
     }
 
-    private function nextRespawnTimestamp(): Carbon
+    /**
+     * Determine the next respawn timestamp taking the oasis type and
+     * world speed into account so stronger oases return more slowly.
+     */
+    private function calculateNextRespawnTimestamp(WorldOasis $oasis): ?Carbon
     {
-        return now()->addMinutes($this->respawnIntervalMinutes);
+        $respawnMinutes = OasisPresetRepository::respawnMinutesForType($oasis->type);
+
+        if ($respawnMinutes === null) {
+            return null;
+        }
+
+        $worldSpeed = $oasis->world?->speed ?? 1.0;
+        $speed = $worldSpeed > 0 ? $worldSpeed : 1.0;
+        $adjustedMinutes = (int) ceil($respawnMinutes / $speed);
+
+        return now()->addMinutes($adjustedMinutes);
     }
 }

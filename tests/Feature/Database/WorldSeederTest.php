@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Game\World;
+use App\Support\Game\OasisPresetRepository;
 use Database\Seeders\WorldSeeder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
@@ -124,7 +125,7 @@ it('seeds the default world with expected attributes and map data', function ():
 
     $labelByType = [];
 
-    foreach (WorldSeeder::OASIS_PRESETS as $type => $preset) {
+    foreach (OasisPresetRepository::all() as $type => $preset) {
         $labelByType[$type] = $preset['label'];
     }
 
@@ -133,7 +134,7 @@ it('seeds the default world with expected attributes and map data', function ():
             ->toBe($map['oasis_counts']['by_type'][$label]);
     }
 
-    foreach (WorldSeeder::OASIS_PRESETS as $type => $preset) {
+    foreach (OasisPresetRepository::all() as $type => $preset) {
         $sampleOasis = DB::table('oases')
             ->where('world_id', $world->getKey())
             ->where('type', $type)
