@@ -605,6 +605,16 @@ Configure Supervisor to run:
 - All tests passing (100+ tests)
 - Zero critical errors in first 48 hours
 
+## Game Configuration
+
+- `config/game.php` centralises the Travian world defaults. Ensure future updates preserve:
+  - `world_id_default` (nullable env-driven default world identifier).
+  - `speed` options (`1`, `3`, `5`, `10`).
+  - `features` list (`hospital`, `artifacts`, `hero`).
+  - `tick_interval_seconds` fixed at `60` seconds.
+  - `shards` cast to an integer from `GAME_SHARD_COUNT`.
+- The same file continues to expose maintenance bypass rules, communication pagination defaults, and movement cancel windows inherited from the legacy configuration.
+
 ## File Mapping Reference
 
 | Old Path | New Path | Type |
