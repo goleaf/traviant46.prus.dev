@@ -37,6 +37,17 @@ ExampleJob::dispatch($payload)->onQueue('high');
 
 Use queue names to separate critical work from low-priority tasks.
 
+### QueueCompleterJob
+
+The shard-aware `QueueCompleterJob` (see `app/Jobs/Shard/QueueCompleterJob`) is
+now the canonical path for finishing due build and training queues. The
+scheduler runs one instance per shard, allowing each worker to pull only the
+records it owns while keeping contention low. Build completions upgrade the
+target building level and broadcast a `BuildCompleted` event, whereas training
+completions increment village troop counts and broadcast `TroopsTrained`. This
+job replaces the legacy PHP scripts that previously iterated over the same
+tables without sharding.
+
 ## Scheduled tasks
 
 All recurring background work should be defined in `app/Console/Kernel.php`'s
@@ -55,6 +66,16 @@ protected function schedule(Schedule $schedule): void
         ->dailyAt('01:00');
 }
 ```
+
+### Minute game tick
+
+The Travian minute tick is coordinated by the `game:tick` artisan command
+(`app/Console/Commands/GameTick.php`).  The scheduler dispatches this command
+once per minute, and the command in turn queues the shard-aware jobs that power
+resource production, build queue completion, movement resolution, oasis
+respawns, and crop starvation enforcement.  Each job is pushed onto the
+`automation` queue so the worker pool can process them independently without
+blocking the scheduler thread.
 
 Register any custom artisan commands under `app/Console/Kernel.php` so they are
 discoverable by the scheduler.

@@ -81,6 +81,10 @@ from controllers, command bus handlers, or the scheduler. Jobs implement the
 `handle()` method which wraps the previous background scripts and ensures they
 can be retried safely. When creating new jobs, follow these conventions:
 
+- `MovementResolverJob` demonstrates the pattern by fetching due
+  `MovementOrder` records, resolving combat through `ResolveCombatAction`, and
+  emitting `TroopsArrived` / `CombatResolved` events after the database updates.
+
 - Keep the constructor focused on gathering the data needed to process the job;
   do not execute queries or long-running logic inside `__construct`.
 - Explicitly define the queue name via the `$queue` property when the job should
@@ -109,6 +113,19 @@ failures do not cause a cascade of retries.
   seeder (`Database\Seeders\WorldSeeder`) and runtime job stay aligned. The job
   falls back to the `default_respawn_minutes` configuration value if a preset
   is missing.
+### QueueCompleterJob
+
+`app/Jobs/Shard/QueueCompleterJob` replaces the legacy build and training queue
+cron scripts. The job accepts a shard identifier and walks both `build_queues`
+and `training_queues` tables for due entries, processing up to the configured
+chunk size per execution. Build queues level up the matching record in the
+`buildings` table and transition the queue row through the
+`pending → working → done` states. Training queues increment the owning
+`village_units` row (creating it when necessary) and delete the finished queue
+record. Both flows broadcast `BuildCompleted` and `TroopsTrained` events on the
+`game.villages.{id}` private channel so Livewire dashboards update in real time.
+Run the job for each shard on a frequent schedule (for example, once per minute)
+to keep gameplay responsive.
 
 ### Handling failures
 
@@ -133,3 +150,12 @@ job fails repeatedly.
 
 Following these steps will keep the new queue-based background system operating
 reliably in every environment.
+
+### CropStarvationJob
+
+`CropStarvationJob` scans the `villages` table for entries whose crop balance is
+negative and whose stored granary empty ETA has elapsed. When it finds an
+eligible village the job triggers `ApplyStarvationAction` to deduct the starving
+troops and immediately notifies both the village owner and watcher via a queued
+`VillageStarvationNotification`. The job runs on the `automation` queue and is
+dispatched every game tick through the `game:tick` console command.

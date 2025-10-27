@@ -104,6 +104,9 @@ class VillageFactory extends Factory
         });
     }
 
+    /**
+     * Seed starter resource fields while aligning with the unique (village, kind, slot) constraint.
+     */
     private function createStarterResourceFields(Village $village): void
     {
         if (! Schema::hasTable('resource_fields')) {
@@ -125,8 +128,8 @@ class VillageFactory extends Factory
 
         DB::table('resource_fields')->upsert(
             $entries,
-            ['village_id', 'slot_number'],
-            ['kind', 'level', 'production_per_hour_cached', 'updated_at'],
+            ['village_id', 'kind', 'slot_number'],
+            ['level', 'production_per_hour_cached', 'updated_at'],
         );
     }
 

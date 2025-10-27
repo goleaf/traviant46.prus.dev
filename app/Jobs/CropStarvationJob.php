@@ -22,6 +22,13 @@ use Illuminate\Support\Str;
 use LogicException;
 use Throwable;
 
+/**
+ * Queue job that applies starvation to crop-deficient villages.
+ *
+ * The job scans for villages that have run out of crop and whose granary
+ * depletion timer has elapsed. Eligible villages are passed to the
+ * ApplyStarvationAction and their stakeholders receive a notification.
+ */
 class CropStarvationJob implements ShouldQueue
 {
     use Dispatchable;
@@ -38,6 +45,9 @@ class CropStarvationJob implements ShouldQueue
         $this->queue = 'automation';
     }
 
+    /**
+     * Locate eligible villages and execute the starvation logic against them.
+     */
     public function handle(ApplyStarvationAction $applyStarvation): void
     {
         $now = Carbon::now();
@@ -49,6 +59,9 @@ class CropStarvationJob implements ShouldQueue
             });
     }
 
+    /**
+     * @param Collection<int, Village> $villages
+     */
     private function processChunk(Collection $villages, ApplyStarvationAction $applyStarvation, Carbon $now): void
     {
         /** @var EloquentCollection<int, Village> $villages */
@@ -74,6 +87,9 @@ class CropStarvationJob implements ShouldQueue
         }
     }
 
+    /**
+     * Determine whether a village's stored granary depletion timer has elapsed.
+     */
     private function granaryEtaPassed(Village $village, Carbon $now): bool
     {
         $eta = $this->resolveGranaryEta($village);
@@ -81,6 +97,9 @@ class CropStarvationJob implements ShouldQueue
         return $eta !== null && $eta->lessThanOrEqualTo($now);
     }
 
+    /**
+     * Attempt to read a granary empty timestamp from the village storage payload.
+     */
     private function resolveGranaryEta(Village $village): ?Carbon
     {
         $storage = (array) ($village->storage ?? []);
@@ -103,6 +122,9 @@ class CropStarvationJob implements ShouldQueue
         return null;
     }
 
+    /**
+     * Normalise user-provided storage values into a Carbon instance when possible.
+     */
     private function normaliseEtaValue(mixed $value): ?Carbon
     {
         if ($value === null || $value === '') {
@@ -142,6 +164,9 @@ class CropStarvationJob implements ShouldQueue
         return null;
     }
 
+    /**
+     * Dispatch a starvation notification to the village owner and watcher, if any.
+     */
     private function notifyStakeholders(Village $village): void
     {
         $recipients = collect([$village->owner, $village->watcher])

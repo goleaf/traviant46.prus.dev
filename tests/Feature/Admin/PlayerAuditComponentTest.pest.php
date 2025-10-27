@@ -114,7 +114,48 @@ it('generates an audit transcript for a matching username', function (): void {
         ->toContain('audit-target')
         ->toContain('Villages (2)')
         ->toContain('Sessions (1)')
+        ->toContain('IP addresses')
         ->toContain('Recent movements');
+});
+
+it('surfaces session IPs when login activity is absent', function (): void {
+    $admin = User::factory()->create([
+        'legacy_uid' => User::LEGACY_ADMIN_UID,
+    ]);
+
+    actingAs($admin);
+    actingAs($admin, 'admin');
+
+    $player = User::factory()->create([
+        'username' => 'silent-traveller',
+        'legacy_uid' => 9911,
+    ]);
+
+    Village::factory()->create([
+        'user_id' => $player->getKey(),
+    ]);
+
+    // Simulate an active web session without a matching login row to ensure IP
+    // aggregation falls back to session activity details.
+    UserSession::query()->create([
+        'id' => 'session-no-login',
+        'user_id' => $player->getKey(),
+        'ip_address' => '192.0.2.111',
+        'user_agent' => 'Mozilla/5.0',
+        'last_activity_at' => Carbon::now()->subMinutes(3),
+        'expires_at' => Carbon::now()->addMinutes(30),
+    ]);
+
+    $component = Livewire::test(PlayerAudit::class)
+        ->set('lookup', 'silent-traveller')
+        ->call('lookupPlayer');
+
+    $ipAddresses = $component->get('ipAddresses');
+    $report = $component->get('auditReport');
+
+    expect($ipAddresses)->not->toBeEmpty();
+    expect($ipAddresses[0]['display'] ?? null)->toContain('192.0.2.111');
+    expect($report)->toContain('192.0.2.111');
 });
 
 it('requires selecting a player when multiple matches exist', function (): void {

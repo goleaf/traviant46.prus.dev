@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
+/**
+ * Process due troop movements and emit the corresponding game events.
+ */
 class MovementResolverJob implements ShouldQueue
 {
     use Dispatchable;
@@ -35,6 +38,9 @@ class MovementResolverJob implements ShouldQueue
         $this->onQueue('automation');
     }
 
+    /**
+     * Resolve every movement that has reached its arrival time.
+     */
     public function handle(ResolveCombatAction $resolveCombat): void
     {
         MovementOrder::query()
@@ -48,6 +54,9 @@ class MovementResolverJob implements ShouldQueue
             });
     }
 
+    /**
+     * Resolve a single target village worth of movements inside a transaction.
+     */
     private function resolveGroup(Collection $movements, ResolveCombatAction $resolveCombat): void
     {
         if ($movements->isEmpty()) {
@@ -78,6 +87,9 @@ class MovementResolverJob implements ShouldQueue
         }, 5);
     }
 
+    /**
+     * Execute combat resolution for all attacking movements in the group.
+     */
     private function processCombatMovements(Collection $movements, ResolveCombatAction $resolveCombat): void
     {
         $movements->each(function (MovementOrder $movement): void {
@@ -122,6 +134,9 @@ class MovementResolverJob implements ShouldQueue
         $this->dispatchCombatResolved($movements, $result);
     }
 
+    /**
+     * Apply reinforcement, trade, or returning missions that do not involve combat.
+     */
     private function processNonCombatMovement(MovementOrder $movement): void
     {
         if (! $movement->isDueForResolution()) {
@@ -228,11 +243,17 @@ class MovementResolverJob implements ShouldQueue
         );
     }
 
+    /**
+     * Determine whether the movement requires combat resolution.
+     */
     private function requiresCombat(MovementOrder $movement): bool
     {
         return in_array($movement->movement_type, ['attack', 'raid', 'scout'], true);
     }
 
+    /**
+     * Build the broadcast channel name for the target village.
+     */
     private function buildVillageChannel(int $villageId): string
     {
         return sprintf('game.village.%d', $villageId);
