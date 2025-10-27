@@ -51,5 +51,10 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 ## `building_upgrade` / `demolition` dependencies
 - Both queues depend on `kid` values present in `vdata` and building slot identifiers from `fdata`, ensuring upgrades and demolitions align with the village layout. 【F:main_script/include/schema/T4.4.sql†L448-L480】【F:main_script/include/schema/T4.4.sql†L563-L645】【F:main_script/include/schema/T4.4.sql†L1595-L1632】
 
+## `building_catalog`
+- Laravel-native lookup table that documents each constructed building type, its prerequisite structures, and any per-level bonuses that impact production or storage. 【F:database/migrations/2025_10_26_224821_create_building_catalog_table.php†L16-L30】
+- Seeded from `config/building_catalog.php`, which enumerates Sawmill, Grain Mill, Iron Foundry, Bakery, Warehouse, and Granary definitions including prerequisite levels and either production percentage gains or storage capacity curves. 【F:config/building_catalog.php†L1-L85】
+- Linked to `building_types` so the seeder can cross reference GID-aligned type records before materialising catalog rows. 【F:database/seeders/BuildingCatalogSeeder.php†L20-L37】
+
 ## Migration considerations
 - These tables rely heavily on implicit foreign keys (`owner`, `kid`, `did`) that need explicit relationships when ported to Laravel's schema. Capturing these dependencies up front helps design normalized replacements like `villages`, `village_buildings`, `map_tiles`, and `oases`. 【F:main_script/include/schema/T4.4.sql†L1215-L1229】【F:main_script/include/schema/T4.4.sql†L1595-L1636】

@@ -111,6 +111,7 @@ For EACH table:
 - Add proper foreign key constraints
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
+- Centralise shared lookup data (for example the `building_catalog` economy definitions) in configuration files like `config/building_catalog.php` so seeders can hydrate supporting tables consistently.
 
 **Priority Redesigns:**
 

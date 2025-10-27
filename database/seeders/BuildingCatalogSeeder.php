@@ -11,6 +11,9 @@ use Illuminate\Support\Collection;
 
 class BuildingCatalogSeeder extends Seeder
 {
+    /**
+     * Seed the building catalog table with configured economy structures.
+     */
     public function run(): void
     {
         $catalogDefinitions = $this->definitions();
@@ -49,86 +52,19 @@ class BuildingCatalogSeeder extends Seeder
      */
     private function definitions(): Collection
     {
-        $productionBonuses = $this->productionBonusLevels(5);
-        $storageCapacities = $this->storageCapacityLevels(20);
+        /**
+         * @var array<string, array<string, mixed>>|null $definitions
+         */
+        $definitions = config('building_catalog');
 
-        return collect([
-            'sawmill' => [
-                'name' => 'Sawmill',
-                'prerequisites' => [
-                    ['type' => 'resource-field', 'slug' => 'woodcutter', 'name' => 'Woodcutter', 'level' => 10],
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 5],
-                ],
-                'bonuses_per_level' => $productionBonuses,
-            ],
-            'grain-mill' => [
-                'name' => 'Grain Mill',
-                'prerequisites' => [
-                    ['type' => 'resource-field', 'slug' => 'cropland', 'name' => 'Cropland', 'level' => 5],
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 5],
-                ],
-                'bonuses_per_level' => $productionBonuses,
-            ],
-            'iron-foundry' => [
-                'name' => 'Iron Foundry',
-                'prerequisites' => [
-                    ['type' => 'resource-field', 'slug' => 'iron-mine', 'name' => 'Iron Mine', 'level' => 10],
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 5],
-                ],
-                'bonuses_per_level' => $productionBonuses,
-            ],
-            'bakery' => [
-                'name' => 'Bakery',
-                'prerequisites' => [
-                    ['type' => 'resource-field', 'slug' => 'cropland', 'name' => 'Cropland', 'level' => 10],
-                    ['type' => 'building', 'slug' => 'grain-mill', 'name' => 'Grain Mill', 'level' => 5],
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 5],
-                ],
-                'bonuses_per_level' => $productionBonuses,
-            ],
-            'warehouse' => [
-                'name' => 'Warehouse',
-                'prerequisites' => [
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 1],
-                ],
-                'storage_capacity_per_level' => $storageCapacities,
-            ],
-            'granary' => [
-                'name' => 'Granary',
-                'prerequisites' => [
-                    ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 1],
-                ],
-                'storage_capacity_per_level' => $storageCapacities,
-            ],
-        ]);
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function storageCapacityLevels(int $maxLevel): array
-    {
-        $capacities = [];
-
-        for ($level = 1; $level <= $maxLevel; $level++) {
-            $capacity = round(21.2 * (1.2 ** $level) - 13.2) * 100;
-            $capacities[$level] = (int) $capacity;
+        if (! is_array($definitions)) {
+            return collect();
         }
 
-        return $capacities;
-    }
+        return collect($definitions)->map(static function (array $definition): array {
+            $definition['prerequisites'] = $definition['prerequisites'] ?? [];
 
-    /**
-     * @return array<int, int>
-     */
-    private function productionBonusLevels(int $maxLevel): array
-    {
-        $bonuses = [];
-
-        for ($level = 1; $level <= $maxLevel; $level++) {
-            $bonuses[$level] = $level * 5;
-        }
-
-        return $bonuses;
+            return $definition;
+        });
     }
 }
