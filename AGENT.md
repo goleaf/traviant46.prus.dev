@@ -112,6 +112,8 @@ For EACH table:
 - Add indexes for performance (timestamps, foreign keys, frequently queried columns)
 - Use descriptive column names (e.g., `u1` → `infantry_count`, `f1` → `woodcutter_level`)
 
+**Status note (2025-12-15):** The normalized `map_tiles` table now exists via migration `2025_12_15_000000_create_map_tiles_table.php`, enforcing `(world_id, x, y)` uniqueness and indexes for `world_id`, `tile_type`, and `oasis_type`.
+
 **Priority Redesigns:**
 
 1. **users table:** Merge with backend/migrations users, add Fortify columns (email_verified_at, remember_token, two_factor_secret), alliance relationships, gold/silver balances

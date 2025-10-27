@@ -53,3 +53,8 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 
 ## Migration considerations
 - These tables rely heavily on implicit foreign keys (`owner`, `kid`, `did`) that need explicit relationships when ported to Laravel's schema. Capturing these dependencies up front helps design normalized replacements like `villages`, `village_buildings`, `map_tiles`, and `oases`. 【F:main_script/include/schema/T4.4.sql†L1215-L1229】【F:main_script/include/schema/T4.4.sql†L1595-L1636】
+
+## `map_tiles` (Laravel)
+- Normalised replacement for the legacy `wdata` map, storing one row per world coordinate with enforced uniqueness across `(world_id, x, y)` so Livewire map components can query deterministic records. 【F:database/migrations/2025_12_15_000000_create_map_tiles_table.php†L1-L36】
+- Persists terrain metadata via `tile_type` and `resource_pattern` columns while tracking optional oasis information in the nullable `oasis_type` field. 【F:database/migrations/2025_12_15_000000_create_map_tiles_table.php†L18-L28】
+- Adds covering indexes on `world_id`, `tile_type`, and `oasis_type` to mirror the high-frequency queries used by the map overview and crop finder tools. 【F:database/migrations/2025_12_15_000000_create_map_tiles_table.php†L30-L32】
