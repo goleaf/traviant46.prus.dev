@@ -35,6 +35,10 @@ Each section summarizes purpose, notable columns, and indexing straight from the
 - Handles queued tear-down jobs per village slot with completion timestamp and status flag. 【F:main_script/include/schema/T4.4.sql†L473-L480】
 - Uses a composite primary key on job `id` and `kid` to avoid duplicate entries during cascading deletes. 【F:main_script/include/schema/T4.4.sql†L475-L481】
 
+## `training_queues`
+- Represents active troop training batches in the modernised schema, linking each row to the owning village (`village_id`) and the troop blueprint (`troop_type_id`). 【F:database/migrations/2025_10_26_223419_create_training_queues_table.php†L17-L22】
+- Records the queued unit count, completion timestamp (`finishes_at`), and originating building reference (`building_ref`) while indexing `finishes_at` to make dequeuing efficient. 【F:database/migrations/2025_10_26_223419_create_training_queues_table.php†L22-L25】
+
 ## `smithy`
 - Records equipment upgrade levels unlocked in the smithy for each unit type (`u1`–`u8`) per village `kid`. 【F:main_script/include/schema/T4.4.sql†L1313-L1323】
 
