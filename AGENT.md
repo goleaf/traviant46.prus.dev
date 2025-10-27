@@ -531,7 +531,7 @@ Create custom middleware:
 
 - `CheckGameRunning`: Verify game is not in maintenance
 - `CheckBanned`: Redirect banned users
-- `CheckSitter`: Handle sitter context
+- `CheckSitter`: Handle sitter context (ensure `SitterContextMiddleware` shares banner data and audit `acted_by` metadata)
 - `UpdateResources`: Update resources on each request
 - `CheckVillageOwnership`: Verify user owns village
 
