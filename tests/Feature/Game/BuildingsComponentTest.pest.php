@@ -11,9 +11,15 @@ use App\Models\Game\VillageBuildingUpgrade;
 use App\Models\Game\VillageResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    // Force bcrypt to avoid Argon2 requirements on the CI image.
+    Config::set('hashing.driver', 'bcrypt');
+});
 
 function seedBuildingCatalogFor(string $slug, BuildingType $buildingType): void
 {
@@ -103,6 +109,71 @@ it('queues an upgrade when catalog prerequisites are satisfied', function (): vo
         'village_building_id' => $sawmill->getKey(),
         'target_level' => 3,
     ]);
+});
+
+it('shows the next level storage bonus for warehouse-style buildings', function (): void {
+    $user = User::factory()->create();
+    $village = Village::factory()->create([
+        'user_id' => $user->getKey(),
+    ]);
+
+    $mainBuildingType = BuildingType::factory()->create([
+        'gid' => 15,
+        'slug' => 'main-building',
+        'name' => 'Main Building',
+        'max_level' => 20,
+    ]);
+
+    $warehouseType = BuildingType::factory()->create([
+        'gid' => 10,
+        'slug' => 'warehouse',
+        'name' => 'Warehouse',
+        'max_level' => 20,
+    ]);
+
+    BuildingCatalog::query()->create([
+        'building_type_id' => $warehouseType->getKey(),
+        'building_slug' => 'warehouse',
+        'name' => 'Warehouse',
+        'prerequisites' => [
+            ['type' => 'building', 'slug' => 'main-building', 'name' => 'Main Building', 'level' => 1],
+        ],
+        'storage_capacity_per_level' => [
+            1 => 1200,
+            2 => 1700,
+        ],
+    ]);
+
+    VillageBuilding::query()->create([
+        'village_id' => $village->getKey(),
+        'slot_number' => 7,
+        'building_type' => $mainBuildingType->gid,
+        'buildable_type' => $mainBuildingType->getMorphClass(),
+        'buildable_id' => $mainBuildingType->getKey(),
+        'level' => 2,
+    ]);
+
+    $warehouse = VillageBuilding::query()->create([
+        'village_id' => $village->getKey(),
+        'slot_number' => 12,
+        'building_type' => $warehouseType->gid,
+        'buildable_type' => $warehouseType->getMorphClass(),
+        'buildable_id' => $warehouseType->getKey(),
+        'level' => 1,
+    ]);
+
+    $component = Livewire::actingAs($user)->test(GameBuildings::class, [
+        'village' => $village,
+    ]);
+
+    $rows = collect($component->get('buildings'));
+    $warehouseRow = $rows->firstWhere('id', $warehouse->getKey());
+
+    // The formatted bonus string should include the storage capacity label for clarity.
+    expect($warehouseRow)->not->toBeNull();
+    expect($warehouseRow['next_level_bonus'])->toBe('Next level bonus: Storage capacity: 1,700 resources');
+
+    $component->assertSee('Storage capacity: 1,700 resources');
 });
 
 it('disables upgrade when prerequisites are missing', function (): void {
