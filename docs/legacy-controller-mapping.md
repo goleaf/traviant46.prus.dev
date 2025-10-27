@@ -38,6 +38,7 @@ This inventory maps every actionable screen under `/_travian/main_script/include
 | `LoginCtrl` | Login form | `App\Http\Controllers\Auth\AuthenticatedSessionController` (Fortify binding) |
 | `LogoutCtrl` | Logout endpoint | `App\Http\Controllers\Auth\AuthenticatedSessionController@destroy` (Fortify binding) |
 | `ManualCtrl` | Travian manual | `App\Livewire\Content\Manual` **(planned)** |
+| `MarktplatzCtrl` | Marketplace trading interface | `App\Livewire\Game\Market` |
 | `Map_blockCtrl` | Map block metadata | `App\Http\Controllers\Map\TileController` **(planned)** |
 | `Map_markCtrl` | Map marker overlay | `App\Livewire\Map\Markers` **(planned)** |
 | `MinimapCtrl` | Small map widget | `App\Livewire\Map\MiniMap` **(planned)** |

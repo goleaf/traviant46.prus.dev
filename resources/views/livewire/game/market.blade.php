@@ -305,6 +305,14 @@
                     {{ __('Dispatch a one-off shipment to another village. Merchants leave immediately and arrive based on distance and tribe speed.') }}
                 </flux:description>
 
+                {{-- Merchant stats help players understand what the numbers below represent. --}}
+                <p class="mt-3 text-xs text-slate-400">
+                    {{ __('Each merchant can haul :capacity resources and travels at :speed fields per hour.', [
+                        'capacity' => number_format($summary['capacity_per_merchant'] ?? 0),
+                        'speed' => number_format($summary['speed'] ?? 0, 1),
+                    ]) }}
+                </p>
+
                 <form wire:submit.prevent="sendTrade" class="mt-6 space-y-6">
                     <div class="space-y-3">
                         <span class="text-xs uppercase tracking-wide text-slate-400">{{ __('Payload') }}</span>

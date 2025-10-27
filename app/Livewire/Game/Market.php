@@ -144,7 +144,7 @@ class Market extends Component
     #[Computed]
     public function offerMerchantsNeeded(): int
     {
-        $summary = $this->merchantSummary;
+        $summary = $this->merchantSummary();
 
         return $this->calculateRequiredMerchants(
             $this->normaliseResources($this->offerGive),
@@ -155,7 +155,7 @@ class Market extends Component
     #[Computed]
     public function tradeMerchantsNeeded(): int
     {
-        $summary = $this->merchantSummary;
+        $summary = $this->merchantSummary();
 
         return $this->calculateRequiredMerchants(
             $this->normaliseResources($this->tradePayload),
@@ -176,11 +176,15 @@ class Market extends Component
             return null;
         }
 
-        $summary = $this->merchantSummary;
+        $summary = $this->merchantSummary();
 
         $eta = $this->calculateEta($this->village, $target, (float) ($summary['speed'] ?? 1.0));
 
-        return $eta->diffForHumans();
+        // Combine a friendly relative window with a deterministic absolute timestamp for the UI hint.
+        return __('Arrives :relative (:absolute)', [
+            'relative' => $eta->diffForHumans(),
+            'absolute' => $eta->format('H:i'),
+        ]);
     }
 
     public function createOffer(): void

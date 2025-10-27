@@ -9,29 +9,46 @@ use App\Models\Game\Village;
 use App\Models\Game\World;
 use App\Models\User;
 use App\Services\Game\MarketService;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-function createVillageForUser(User $user, ?World $world = null, array $balances = []): Village
+beforeEach(function (): void {
+    // Hashing defaults to Argon2 in production, but bcrypt keeps CI environments portable.
+    config()->set('hashing.driver', 'bcrypt');
+});
+
+/**
+ * Helper that provisions a village with predictable balances and optional attribute overrides.
+ */
+function createVillageForUser(User $user, ?World $world = null, array $overrides = []): Village
 {
-    $attributes = [
-        'user_id' => $user->id,
-        'resource_balances' => array_merge([
-            'wood' => 10_000,
-            'clay' => 10_000,
-            'iron' => 10_000,
-            'crop' => 10_000,
-        ], $balances),
-        'production' => [
-            'wood' => 120,
-            'clay' => 110,
-            'iron' => 100,
-            'crop' => 90,
+    $resourceBalances = array_merge([
+        'wood' => 10_000,
+        'clay' => 10_000,
+        'iron' => 10_000,
+        'crop' => 10_000,
+    ], Arr::get($overrides, 'resource_balances', []));
+
+    $production = array_merge([
+        'wood' => 120,
+        'clay' => 110,
+        'iron' => 100,
+        'crop' => 90,
+    ], Arr::get($overrides, 'production', []));
+
+    $attributes = array_merge(
+        Arr::except($overrides, ['resource_balances', 'production']),
+        [
+            'user_id' => $user->id,
+            'resource_balances' => $resourceBalances,
+            'production' => $production,
         ],
-    ];
+    );
 
     if (Schema::hasColumn('villages', 'world_id')) {
         $world ??= World::factory()->create([
@@ -137,4 +154,43 @@ it('dispatches a direct trade shipment', function (): void {
 
     expect($balances['wood'])->toBe(10_000 - 900)
         ->and($balances['clay'])->toBe(10_000 - 300);
+});
+
+it('previews the merchant arrival window with relative and absolute timestamps', function (): void {
+    Carbon::setTestNow(Carbon::create(2025, 1, 1, 12, 0, 0));
+
+    $user = User::factory()->create(['race' => 1]);
+    $world = World::factory()->create(['speed' => 1.0]);
+
+    $originVillage = createVillageForUser($user, $world, [
+        'x_coordinate' => 0,
+        'y_coordinate' => 0,
+    ]);
+
+    $targetVillage = createVillageForUser($user, $world, [
+        'x_coordinate' => 16,
+        'y_coordinate' => 0,
+    ]);
+
+    $this->actingAs($user);
+
+    // Populate the payload and destination to trigger the computed preview property.
+    $component = app(GameMarket::class);
+    $component->boot(app(MarketService::class));
+    $component->mount($originVillage);
+
+    $component->tradePayload = [
+        'wood' => 500,
+        'clay' => 0,
+        'iron' => 0,
+        'crop' => 0,
+    ];
+    $component->tradeTarget = $targetVillage->getKey();
+
+    // Directly calling the computed method keeps the assertion framework-independent.
+    $preview = $component->tradeEtaPreview();
+
+    expect($preview)->toBe('Arrives 1 hour from now (13:00)');
+
+    Carbon::setTestNow();
 });
