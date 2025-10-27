@@ -95,6 +95,29 @@ single failure from blocking subsequent work. If a job depends on external
 services, wrap the calls in retryable HTTP/database clients so that transient
 failures do not cause a cascade of retries.
 
+### Resource tick job
+
+`App\Jobs\ResourceTickJob` is the minute-by-minute heartbeat that advances every
+village economy tick. The job streams villages by shard via
+`App\Support\ShardResolver`, locks each record in turn, and then:
+
+- Calculates production per hour by combining base village output, field
+  upgrades, owned oasis bonuses, and troop upkeep from
+  `VillageUpkeepService`. When the unit tables are absent (for example in
+  isolated tests), the upkeep service gracefully falls back to zero consumption
+  so ticks still complete.
+- Clamps updated balances to the warehouse/granary capacities and reconciles
+  any reservation blocks before persisting the `resource_balances` and `storage`
+  JSON columns.
+- Updates `VillageResource::last_collected_at` to the current tick timestamp.
+- Dispatches `ResourcesProduced` with the per-resource deltas and calculated
+  rates, plus `ResourceStorageWarning` notifications whenever a store breaches
+  the 90% threshold.
+
+All work is published on the dedicated `automation` queue. Keep the queue worker
+count balanced with the number of configured shards so that each partition is
+processed on schedule.
+
 ### Handling failures
 
 The queue system stores failed jobs in the `failed_jobs` table when you run the
