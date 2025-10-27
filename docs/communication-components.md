@@ -15,6 +15,7 @@ This document summarizes the responsibilities and data flows covered by the lega
 - Surfaces contextual error messages for long subjects, insufficient population, spam throttling, or excessive recipients.【F:_travian/main_script_dev/include/Controller/NachrichtenCtrl.php†L455-L471】
 - Manages the in-game address book, including friend invitations, acceptance, and status indicators for recent activity.【F:_travian/main_script_dev/include/Controller/NachrichtenCtrl.php†L472-L589】
 - Prefills reply metadata by quoting the previous message and adjusting the subject line when replying to existing messages.【F:_travian/main_script_dev/include/Controller/NachrichtenCtrl.php†L500-L536】
+- Normalises outgoing mail to plain text, stripping HTML tags and collapsing whitespace so the inbox and sent views remain text-only.
 
 ## Reports
 

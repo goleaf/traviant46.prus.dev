@@ -7,7 +7,6 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
 
 /**
  * Service provider responsible for configuring Livewire defaults and shared namespaces.
@@ -30,6 +29,10 @@ final class LivewireServiceProvider extends ServiceProvider
     {
         View::addNamespace('game', resource_path('views/livewire/game'));
 
-        Livewire::componentNamespace('App\\Livewire\\Game', 'game');
+        /**
+         * Livewire v3 automatically resolves component aliases based on the configured
+         * class namespace, so the explicit namespace registration previously
+         * required in v2 is no longer necessary here.
+         */
     }
 }

@@ -29,7 +29,7 @@ foreach ([
     'App\\Livewire\\Village\\Infrastructure',
     'App\\Livewire\\Village\\Overview',
 ] as $fqcn) {
-    if (! class_exists($fqcn, false)) {
+    if (! class_exists($fqcn)) {
         class_alias(\Tests\Stubs\FakeLivewirePage::class, $fqcn);
     }
 }

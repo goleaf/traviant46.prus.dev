@@ -93,12 +93,32 @@ class Compose extends Component
             return;
         }
 
+        $sanitizedSubject = $this->sanitizeSubject($validated['subject']);
+        $sanitizedBody = $this->sanitizeBody($validated['body']);
+
+        if ($sanitizedSubject === '') {
+            $this->addError('subject', __('Subject must include readable characters.'));
+            $this->statusMessage = null;
+
+            return;
+        }
+
+        if (mb_strlen($sanitizedBody) < 5) {
+            $this->addError('body', __('Message body must include readable characters.'));
+            $this->statusMessage = null;
+
+            return;
+        }
+
+        $this->subject = $sanitizedSubject;
+        $this->body = $sanitizedBody;
+
         try {
             $checksum = $this->spamHeuristics()->guardSending(
                 $sender,
                 $recipient,
-                $validated['subject'],
-                $validated['body'],
+                $sanitizedSubject,
+                $sanitizedBody,
             );
         } catch (SpamViolationException $exception) {
             $this->errorMessage = $exception->getMessage();
@@ -107,11 +127,11 @@ class Compose extends Component
             return;
         }
 
-        DB::transaction(function () use ($validated, $sender, $recipient, $checksum): void {
+        DB::transaction(function () use ($sanitizedSubject, $sanitizedBody, $sender, $recipient, $checksum): void {
             $message = Message::query()->create([
                 'sender_id' => $sender->getKey(),
-                'subject' => $validated['subject'],
-                'body' => $validated['body'],
+                'subject' => $sanitizedSubject,
+                'body' => $sanitizedBody,
                 'checksum' => $checksum,
                 'delivery_scope' => 'individual',
                 'sent_at' => now(),
@@ -204,5 +224,38 @@ class Compose extends Component
         $quoted = $lines->map(static fn (string $line): string => '> '.trim($line))->implode(PHP_EOL);
 
         return PHP_EOL.PHP_EOL.$quoted;
+    }
+
+    /**
+     * Normalises the subject so only visible text remains before storage.
+     */
+    protected function sanitizeSubject(string $subject): string
+    {
+        $stripped = trim(strip_tags($subject));
+        $collapsed = preg_replace('/\s+/u', ' ', $stripped) ?? '';
+
+        return (string) mb_substr($collapsed, 0, 120);
+    }
+
+    /**
+     * Converts any formatted message body into plain text paragraphs.
+     */
+    protected function sanitizeBody(string $body): string
+    {
+        $cleaned = preg_replace([
+            '/<script\b[^>]*>.*?<\/script>/is',
+            '/<style\b[^>]*>.*?<\/style>/is',
+        ], '', $body) ?? '';
+
+        $prepared = preg_replace([
+            '/<\s*br\s*\/?\s*>/i',
+            '/<\/?p[^>]*>/i',
+        ], "\n", $cleaned) ?? '';
+
+        $stripped = strip_tags($prepared);
+        $normalized = preg_replace("/(\r\n|\r)/", "\n", $stripped) ?? '';
+        $compressed = preg_replace("/\n{3,}/", "\n\n", $normalized) ?? '';
+
+        return trim($compressed);
     }
 }

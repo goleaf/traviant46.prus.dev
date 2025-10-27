@@ -23,6 +23,8 @@ beforeEach(function (): void {
         'recipient_unread_threshold' => 50,
         'global_unread_threshold' => 100,
     ]);
+
+    Config::set('hashing.driver', 'bcrypt');
 });
 
 it('defaults to the inbox tab, switches tabs, and captures flash messages', function (): void {
@@ -71,6 +73,28 @@ it('sends a message via the compose component', function (): void {
     expect($recipientRecord)->not->toBeNull();
     expect($recipientRecord->status)->toEqual('unread');
     expect($recipientRecord->read_at)->toBeNull();
+});
+
+it('strips formatting from composed messages so only text persists', function (): void {
+    $sender = User::factory()->create();
+    $recipient = User::factory()->create([
+        'username' => 'formatTester',
+    ]);
+
+    $this->actingAs($sender);
+
+    Livewire::test(ComposeComponent::class)
+        ->set('recipient', $recipient->username)
+        ->set('subject', '<b>Alliance</b> update')
+        ->set('body', "<p>Attack <strong>now</strong>.</p><br><script>alert('x');</script>")
+        ->call('send');
+
+    $message = Message::query()->where('sender_id', $sender->getKey())->first();
+
+    expect($message)->not->toBeNull();
+    expect($message->subject)->toEqual('Alliance update');
+    expect($message->body)->toEqual("Attack now.");
+    expect($message->body)->not->toContain('script');
 });
 
 it('marks messages read and unread through the inbox component', function (): void {
