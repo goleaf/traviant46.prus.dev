@@ -95,6 +95,21 @@ single failure from blocking subsequent work. If a job depends on external
 services, wrap the calls in retryable HTTP/database clients so that transient
 failures do not cause a cascade of retries.
 
+### Oasis respawn cadence
+
+- `OasisRespawnJob` reloads neutral garrisons for any oasis whose `respawn_at`
+  timestamp is due. The job consults `config/oasis.php` to determine the
+  correct nature troop mix and next respawn window, factoring in the owning
+  world's speed so faster servers cycle more quickly. The job only touches a
+  limited batch of rows per execution (default `50`) and runs inside a database
+  transaction with `SELECT ... FOR UPDATE` to avoid race conditions between
+  concurrent workers.
+
+- Update `config/oasis.php` when tuning respawn cadences or unit counts so the
+  seeder (`Database\Seeders\WorldSeeder`) and runtime job stay aligned. The job
+  falls back to the `default_respawn_minutes` configuration value if a preset
+  is missing.
+
 ### Handling failures
 
 The queue system stores failed jobs in the `failed_jobs` table when you run the
