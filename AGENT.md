@@ -499,6 +499,7 @@ Create `app/Console/Commands/MigrateOldDataCommand.php`:
 - Insert into new tables in chunks
 - Validate data integrity
 - Handle special cases
+- **resource_fields** migration created (`database/migrations/2025_10_26_223333_create_resource_fields_table.php`) storing each village slot's resource kind, level, and cached production with a unique `(village_id, kind, slot_number)` index. Update factories and tests whenever the schema evolves.
 
 ### 9.2 Critical Tables (special handling)
 

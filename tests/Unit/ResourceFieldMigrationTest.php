@@ -40,7 +40,7 @@ it('creates the resource fields table with the expected columns', function (): v
     ]))->toBeTrue();
 });
 
-it('enforces unique resource field slots per village', function (): void {
+it('enforces unique resource field entries per village kind and slot combination', function (): void {
     $villageId = DB::table('villages')->insertGetId([
         'created_at' => now(),
         'updated_at' => now(),
@@ -59,10 +59,40 @@ it('enforces unique resource field slots per village', function (): void {
     expect(fn (): bool => DB::table('resource_fields')->insert([
         'village_id' => $villageId,
         'slot_number' => 1,
-        'kind' => 'clay',
+        'kind' => 'wood',
         'level' => 2,
         'production_per_hour_cached' => 40,
         'created_at' => now(),
         'updated_at' => now(),
     ]))->toThrow(QueryException::class);
+});
+
+it('allows the same resource kind across different slots for a village', function (): void {
+    /** @var int $villageId */
+    $villageId = DB::table('villages')->insertGetId([
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    DB::table('resource_fields')->insert([
+        'village_id' => $villageId,
+        'slot_number' => 1,
+        'kind' => 'clay',
+        'level' => 1,
+        'production_per_hour_cached' => 50,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $inserted = DB::table('resource_fields')->insert([
+        'village_id' => $villageId,
+        'slot_number' => 2,
+        'kind' => 'clay',
+        'level' => 1,
+        'production_per_hour_cached' => 55,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect($inserted)->toBeTrue();
 });
