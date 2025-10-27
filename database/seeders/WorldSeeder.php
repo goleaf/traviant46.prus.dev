@@ -5,62 +5,13 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\Game\World;
+use App\Support\Game\OasisPresetRepository;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class WorldSeeder extends Seeder
 {
-    public const OASIS_PRESETS = [
-        1 => [
-            'label' => 'wood',
-            'garrison' => [
-                'rat' => 25,
-                'spider' => 18,
-                'boar' => 12,
-                'wolf' => 5,
-                'bear' => 2,
-            ],
-            'respawn_minutes' => 180,
-        ],
-        2 => [
-            'label' => 'clay',
-            'garrison' => [
-                'rat' => 22,
-                'spider' => 20,
-                'snake' => 18,
-                'bat' => 10,
-                'boar' => 5,
-            ],
-            'respawn_minutes' => 240,
-        ],
-        3 => [
-            'label' => 'iron',
-            'garrison' => [
-                'rat' => 18,
-                'spider' => 16,
-                'snake' => 20,
-                'bat' => 16,
-                'bear' => 12,
-                'crocodile' => 8,
-            ],
-            'respawn_minutes' => 300,
-        ],
-        4 => [
-            'label' => 'crop',
-            'garrison' => [
-                'rat' => 20,
-                'spider' => 20,
-                'boar' => 24,
-                'wolf' => 20,
-                'bear' => 18,
-                'tiger' => 12,
-                'elephant' => 6,
-            ],
-            'respawn_minutes' => 360,
-        ],
-    ];
-
     private const MAP_MIN_COORDINATE = -200;
 
     private const MAP_MAX_COORDINATE = 200;
@@ -102,13 +53,15 @@ class WorldSeeder extends Seeder
         ];
 
         $tileCounts = array_fill_keys(array_keys(self::TILE_TYPES), 0);
+        $oasisPresets = OasisPresetRepository::all();
+
         $oasisCounts = [
             'total' => 0,
-            'by_type' => array_fill_keys(array_column(self::OASIS_PRESETS, 'label'), 0),
+            'by_type' => array_fill_keys(array_column($oasisPresets, 'label'), 0),
         ];
 
         $totalTiles = ($bounds['max_x'] - $bounds['min_x'] + 1) * ($bounds['max_y'] - $bounds['min_y'] + 1);
-        $oasisTypeIds = array_keys(self::OASIS_PRESETS);
+        $oasisTypeIds = array_keys($oasisPresets);
         $tileBatch = [];
         $oasisBatch = [];
         $now = Carbon::now();
@@ -126,7 +79,7 @@ class WorldSeeder extends Seeder
 
                     if ($isOasis) {
                         $oasisTypeId = $oasisTypeIds[$seed % count($oasisTypeIds)];
-                        $preset = self::OASIS_PRESETS[$oasisTypeId];
+                        $preset = $oasisPresets[$oasisTypeId];
                         $oasisLabel = $preset['label'];
 
                         $tileBatch[] = [
@@ -212,14 +165,14 @@ class WorldSeeder extends Seeder
 
     private function calculateRespawnAt(Carbon $reference, float $worldSpeed, int $oasisTypeId): Carbon
     {
-        $preset = self::OASIS_PRESETS[$oasisTypeId] ?? null;
+        $respawnMinutes = OasisPresetRepository::respawnMinutesForType($oasisTypeId);
 
-        if ($preset === null) {
+        if ($respawnMinutes === null) {
             return $reference->copy();
         }
 
         $speed = $worldSpeed > 0 ? $worldSpeed : 1.0;
-        $minutes = (int) ceil($preset['respawn_minutes'] / $speed);
+        $minutes = (int) ceil($respawnMinutes / $speed);
 
         return $reference->copy()->addMinutes($minutes);
     }

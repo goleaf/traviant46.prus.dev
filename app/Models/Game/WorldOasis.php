@@ -7,6 +7,7 @@ namespace App\Models\Game;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 class WorldOasis extends Model
@@ -46,6 +47,14 @@ class WorldOasis extends Model
         return $query
             ->whereNotNull('respawn_at')
             ->where('respawn_at', '<=', now());
+    }
+
+    /**
+     * Link the oasis back to its world so we can evaluate map speed.
+     */
+    public function world(): BelongsTo
+    {
+        return $this->belongsTo(World::class, 'world_id');
     }
 
     /**
