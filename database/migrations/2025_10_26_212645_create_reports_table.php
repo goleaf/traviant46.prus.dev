@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create the lightweight reports table used for player-facing inboxes.
+     */
     public function up(): void
     {
         Schema::create('reports', function (Blueprint $table): void {
@@ -22,6 +25,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Drop the reports table.
+     */
     public function down(): void
     {
         Schema::dropIfExists('reports');

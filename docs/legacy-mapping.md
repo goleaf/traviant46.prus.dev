@@ -28,3 +28,8 @@ application layers.  Columns correspond to the Laravel domains where the functio
 | `/_travian/CONTRIBUTING.md` | `docs/CONTRIBUTING.md` | — | — | — | — | Contribution guidance is merged with the main docs so contributors follow one process. |
 | `/_travian/LICENSE` | `LICENSE` | — | — | — | — | Licensing remains at the repository root to apply uniformly to the migrated codebase. |
 
+## Game configuration reference
+
+- `config/game.php` defines the default world identifier (`world_id_default`), supported game speeds (`speed` values `1`, `3`, `5`, `10`), feature toggles (`features` array including `hospital`, `artifacts`, `hero`), the engine tick cadence (`tick_interval_seconds` defaulting to `60` seconds), and the shard count cast to an integer (`shards`).
+- Additional sections in the same file capture maintenance bypass logic, communication paging defaults, and movement cancellation windows inherited from the legacy Travian configuration tree.
+
